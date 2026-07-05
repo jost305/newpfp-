@@ -101,6 +101,26 @@
       background: hsl(var(--bb-primary));
     }
     .nav-tab.create { color: var(--bb-accent); }
+    .mobile-menu-btn {
+      display: none;
+      width: 28px; height: 28px; border-radius: 7px;
+      border: 1px solid var(--bb-border);
+      background: var(--bb-card); color: var(--bb-foreground);
+      align-items: center; justify-content: center;
+      font-size: 15px; cursor: pointer; flex-shrink: 0;
+    }
+    .mobile-nav-dropdown {
+      display: none;
+      position: fixed; top: var(--top-h); left: 0; right: 0;
+      background: var(--bb-sidebar);
+      border-bottom: 1px solid var(--bb-border);
+      flex-direction: column; padding: 8px; gap: 4px;
+      z-index: 99;
+    }
+    .mobile-nav-dropdown.open { display: flex; }
+    .mobile-nav-dropdown .nav-tab {
+      width: 100%; text-align: left; padding: 10px 12px;
+    }
     .nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .icon-btn {
       width: 28px; height: 28px; border-radius: 7px;
@@ -812,6 +832,8 @@
       .fighter-cards-row .fighter-card {
         flex: 0 0 78%; scroll-snap-align: start;
       }
+      .nav-stats, .nav-tabs { display: none; }
+      .mobile-menu-btn { display: flex; }
     }
   </style>
 </head>
@@ -834,6 +856,14 @@
     <button class="nav-tab create" data-view="create" onclick="setTab(this)">⚔️ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this)">Marketplace</button>
     <button class="nav-tab" data-view="leaderboard" onclick="setTab(this)">Leaderboard</button>
+  </div>
+  <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
+  <div class="mobile-nav-dropdown" id="mobile-nav-dropdown">
+    <button class="nav-tab active" data-view="arena" onclick="setTab(this); closeMobileMenu();">Arena</button>
+    <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">Agents</button>
+    <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">⚔️ Create</button>
+    <button class="nav-tab" data-view="marketplace" onclick="setTab(this); closeMobileMenu();">Marketplace</button>
+    <button class="nav-tab" data-view="leaderboard" onclick="setTab(this); closeMobileMenu();">Leaderboard</button>
   </div>
   <div class="nav-right">
     <button class="icon-btn">⚙️</button>
@@ -1429,6 +1459,21 @@
 
     document.getElementById('notif-dropdown').classList.remove('open');
   }
+
+  function toggleMobileMenu(e) {
+    e.stopPropagation();
+    document.getElementById('mobile-nav-dropdown').classList.toggle('open');
+  }
+  function closeMobileMenu() {
+    document.getElementById('mobile-nav-dropdown').classList.remove('open');
+  }
+  document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('mobile-nav-dropdown');
+    const btn = document.getElementById('mobile-menu-btn');
+    if (dropdown && dropdown.classList.contains('open') && !dropdown.contains(e.target) && e.target !== btn) {
+      dropdown.classList.remove('open');
+    }
+  });
 
   /* ── CHALLENGES ── */
   const challengeData = [
