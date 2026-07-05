@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>BantahBro Arena</title>
+    <link rel="icon" type="image/svg+xml" href="/newpfp/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/styles.css?v=51" />
+    <link rel="stylesheet" href="../styles/mobile.css?v=51" />
+    <script type="module" crossorigin src="/newpfp/assets/index-EV_4LT-r.js"></script>
+    <link rel="stylesheet" crossorigin href="/newpfp/assets/index-8lqbVdGx.css">
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <!-- Live Battles sidebar (overlay for preview) -->
+    <aside id="live-queue" class="live-queue" aria-label="Live Battles">
+      <div class="lq-hdr"><span class="lq-dot"></span>LIVE BATTLES</div>
+      <div class="lq-list">
+        <div class="lq-item">
+          <div class="lq-left">
+            <img class="lq-avatar" src="/newpfp/images/fighters/pepe/left/stand/0.png" alt="Pepe" onerror="this.src='/newpfp/images/fighters/pepe/portrait.png'" />
+            <div class="lq-name">PEPE</div>
+          </div>
+          <div class="lq-vs">VS</div>
+          <div class="lq-right">
+            <img class="lq-avatar" src="/newpfp/images/fighters/doge/left/stand/0.png" alt="Doge" onerror="this.src='/newpfp/images/fighters/doge/portrait.png'" />
+            <div class="lq-name">DOGE</div>
+          </div>
+          <div class="lq-meta"><span class="lq-badge">LIVE</span><span class="lq-count">31K</span></div>
+        </div>
+
+        <div class="lq-item">
+          <div class="lq-left">
+            <img class="lq-avatar" src="/newpfp/images/fighters/bonk/left/stand/0.png" alt="Bonk" onerror="this.src='/newpfp/images/fighters/bonk/portrait.png'" />
+            <div class="lq-name">BONK</div>
+          </div>
+          <div class="lq-vs">VS</div>
+          <div class="lq-right">
+            <img class="lq-avatar" src="/newpfp/images/fighters/mog/left/stand/0.png" alt="Mog" onerror="this.src='/newpfp/images/fighters/mog/portrait.png'" />
+            <div class="lq-name">MOG</div>
+          </div>
+          <div class="lq-meta"><span class="lq-badge">LIVE</span><span class="lq-count">8.2K</span></div>
+        </div>
+
+        <div class="lq-item">
+          <div class="lq-left">
+            <img class="lq-avatar" src="/newpfp/images/fighters/brett/left/stand/0.png" alt="Brett" onerror="this.src='/newpfp/images/fighters/brett/portrait.png'" />
+            <div class="lq-name">BRETT</div>
+          </div>
+          <div class="lq-vs">VS</div>
+          <div class="lq-right">
+            <img class="lq-avatar" src="/newpfp/images/fighters/wif/left/stand/0.png" alt="Wif" onerror="this.src='/newpfp/images/fighters/wif/portrait.png'" />
+            <div class="lq-name">WIF</div>
+          </div>
+          <div class="lq-meta"><span class="lq-badge">LIVE</span><span class="lq-count">5.1K</span></div>
+        </div>
+
+        <div class="lq-item">
+          <div class="lq-left">
+            <img class="lq-avatar" src="/newpfp/images/fighters/fartcoin/left/stand/0.png" alt="Fartcoin" onerror="this.src='/newpfp/images/fighters/fartcoin/portrait.png'" />
+            <div class="lq-name">FARTCOIN</div>
+          </div>
+          <div class="lq-vs">VS</div>
+          <div class="lq-right">
+            <img class="lq-avatar" src="/newpfp/images/fighters/npc/left/stand/0.png" alt="NPC" onerror="this.src='/newpfp/images/fighters/char04/portrait.png'" />
+            <div class="lq-name">NPC</div>
+          </div>
+          <div class="lq-meta"><span class="lq-badge">LIVE</span><span class="lq-count">2.3K</span></div>
+        </div>
+      </div>
+      <button class="lq-view-btn" onclick="window.location.href='/newpfp/queue.html'">VIEW ALL BATTLES →</button>
+    </aside>
+
+    <!-- Inject lightweight theme toggle for preview/debug (uses existing CSS rules) -->
+    <button
+      class="tb-theme-btn"
+      id="theme-toggle-btn"
+      title="Toggle light/dark mode"
+      style="position:fixed;right:12px;top:12px;z-index:9999;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.45);color:#fff;"
+      onclick="(function(){window.toggleTheme&&window.toggleTheme();})()"
+    >
+      🌙
+    </button>
+
+    <script>
+      (function(){
+        // Apply theme based on localStorage; mirror the simple logic used elsewhere
+        function applyTheme(isLight){
+          var root = document.documentElement;
+          if(isLight) root.classList.add('light'); else root.classList.remove('light');
+          var btn = document.getElementById('theme-toggle-btn');
+          if(btn) btn.textContent = isLight ? '☀️' : '🌙';
+        }
+
+        var saved = localStorage.getItem('mk-theme');
+        var isLight = saved === 'light';
+        applyTheme(isLight);
+
+        window.toggleTheme = function(){
+          isLight = !isLight;
+          applyTheme(isLight);
+          localStorage.setItem('mk-theme', isLight ? 'light' : 'dark');
+        };
+      })();
+    </script>
+    <!-- Preview-only in-page sections: Leaderboard, Fighters, Create -->
+    <style>
+      .preview-section {
+        position: fixed !important;
+        left: calc(var(--left-w) + 16px) !important;
+        top: calc(var(--top-h) + 16px) !important;
+        right: calc(var(--right-w) + 16px) !important;
+        bottom: 16px !important;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 20px;
+        color: var(--text-primary);
+        z-index: 99999 !important;
+        display: none;
+        overflow: auto;
+        box-shadow: none !important;
+        pointer-events: auto;
+        min-height: calc(100vh - var(--top-h) - 32px);
+      }
+      .preview-section.active { display: block; }
+      .preview-section h2 { font-family: var(--font-display); font-size: 18px; margin-bottom:12px; }
+      .preview-controller { position: fixed; left: calc(var(--left-w) + 24px); top: calc(var(--top-h) + 24px); z-index: 100000; display:flex; gap:8px; }
+      .preview-controller button { padding:8px 12px; border-radius:8px; background:transparent; border:none; color:var(--text-primary); cursor:pointer; font-weight:700; }
+    </style>
+
+    <div class="preview-controller" aria-hidden="false">
+      <button onclick="showSection('arena')">Arena</button>
+      <button onclick="showSection('leaderboard')">Leaderboard</button>
+      <button onclick="showSection('fighters')">Fighters</button>
+    </div>
+
+    <section id="leaderboard" class="preview-section" role="region" aria-label="Leaderboard">
+      <h2>Leaderboard</h2>
+      <div class="lb-list">
+        <!-- Placeholder rows -->
+        <div style="display:flex;align-items:center;gap:10px;padding:8px;">
+          <div style="width:36px;height:36px;border-radius:6px;background:linear-gradient(90deg,#6b21a8,#06b6d4);"></div>
+          <div style="flex:1;font-weight:800;">PEPE</div>
+          <div style="font-weight:800;color:var(--neon-gold);">#1 — 9.2M</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px;">
+          <div style="width:36px;height:36px;border-radius:6px;background:linear-gradient(90deg,#ef4444,#f97316);"></div>
+          <div style="flex:1;font-weight:800;">DOGE</div>
+          <div style="font-weight:800;color:var(--neon-gold);">#2 — 6.1M</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px;">
+          <div style="width:36px;height:36px;border-radius:6px;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div>
+          <div style="flex:1;font-weight:800;">BONK</div>
+          <div style="font-weight:800;color:var(--neon-gold);">#3 — 4.3M</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="fighters" class="preview-section" role="region" aria-label="Fighters">
+      <h2>Fighters</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        <div style="width:120px;padding:10px;border-radius:10px;">PEPE<br/><small>Rarity: Common</small></div>
+        <div style="width:120px;padding:10px;border-radius:10px;">DOGE<br/><small>Rarity: Rare</small></div>
+        <div style="width:120px;padding:10px;border-radius:10px;">BONK<br/><small>Rarity: Epic</small></div>
+        <div style="width:120px;padding:10px;border-radius:10px;">MOG<br/><small>Rarity: Legendary</small></div>
+      </div>
+    </section>
+
+    <script>
+      (function(){
+        var active = 'arena';
+        function hideAll(){
+          ['leaderboard','fighters','create'].forEach(function(id){
+            var el = document.getElementById(id); if(el) el.classList.remove('active');
+          });
+        }
+        window.showSection = function(name){
+          if(name === 'arena'){
+            hideAll();
+            active = 'arena';
+            return;
+          }
+          hideAll();
+          var el = document.getElementById(name);
+          if(el){ el.classList.add('active'); active = name; }
+        };
+        // expose a small helper to toggle by hash
+        window.addEventListener('hashchange', function(){ var h = location.hash.replace('#',''); if(h) window.showSection(h); });
+      })();
+    </script>
+    <script>
+      // Enable compact arena/HUD sizing for preview by default
+      (function(){
+        try { document.documentElement.classList.add('arena-compact'); } catch(e){}
+      })();
+    </script>
+    <script>
+      // Replace top nav page links with preview section buttons.
+      (function(){
+        var sectionMap = {
+          'Bantah Arena': 'arena',
+          'Agents': 'fighters',
+          '⚔️ Create': 'arena',
+          'Marketplace': 'arena',
+          'Leaderboard': 'leaderboard',
+          'New PFP': 'arena'
+        };
+        var removeHrefs = [
+          '../index.html',
+          '../index.html?page=agents',
+          '../index.html?page=create',
+          '../index.html?page=marketplace',
+          '../index.html?page=leaderboard',
+          '#'
+        ];
+        var removeText = new RegExp('^(' + Object.keys(sectionMap).map(function(label){ return label.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&'); }).join('|') + ')$', 'i');
+
+        function buildButton(label, section){
+          var btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'tb-nav-item';
+          btn.textContent = label;
+          btn.style.cursor = 'pointer';
+          btn.onclick = function(){ window.showSection(section); };
+          return btn;
+        }
+
+        function interceptAnchor(anchor){
+          if(!anchor) return false;
+          var href = anchor.getAttribute('href') || '';
+          var text = (anchor.textContent || '').trim();
+          var section = sectionMap[text];
+          if(removeHrefs.includes(href) || section){
+            window.showSection(section || 'arena');
+            return true;
+          }
+          if(/index\.html\?page=/.test(href)){
+            window.showSection('arena');
+            return true;
+          }
+          return false;
+        }
+
+        function installNavInterceptor(nav){
+          if(nav.__previewIntercepted) return;
+          nav.__previewIntercepted = true;
+          nav.addEventListener('click', function(event){
+            var anchor = event.target.closest('a');
+            if(!anchor || !nav.contains(anchor)) return;
+            if(interceptAnchor(anchor)){
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }, true);
+        }
+
+        document.addEventListener('click', function(event){
+          var anchor = event.target.closest('a');
+          if(!anchor) return;
+          if(interceptAnchor(anchor)){
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        }, true);
+
+        function replaceNavItems(){
+          var nav = document.getElementById('tb-nav');
+          if(!nav) return;
+
+          var removed = false;
+          nav.querySelectorAll('a').forEach(function(a){
+            var href = a.getAttribute('href') || '';
+            var text = (a.textContent || '').trim();
+            if(removeHrefs.includes(href) || removeText.test(text)){
+              a.remove();
+              removed = true;
+            }
+          });
+
+          if(!nav.querySelector('[data-preview-section]')){
+            if(removed){
+              nav.appendChild(buildButton('Arena', 'arena'));
+              nav.appendChild(buildButton('Leaderboard', 'leaderboard'));
+              nav.appendChild(buildButton('Fighters', 'fighters'));
+              nav.querySelectorAll('button').forEach(function(btn){
+                btn.setAttribute('data-preview-section', 'true');
+              });
+            }
+          }
+
+          installNavInterceptor(nav);
+        }
+
+        document.addEventListener('DOMContentLoaded', replaceNavItems);
+        var tries = 0;
+        var interval = setInterval(function(){
+          replaceNavItems();
+          tries += 1;
+          if(tries > 50) clearInterval(interval);
+        }, 200);
+
+        var observer = new MutationObserver(function(){ replaceNavItems(); });
+        observer.observe(document.body, { childList: true, subtree: true });
+      })();
+    </script>
+
+  </body>
+</html>
