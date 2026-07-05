@@ -588,6 +588,61 @@
     .full-lb-meta { font-size: 10px; color: var(--bb-muted-foreground); }
     .full-lb-bc { font-size: 12px; font-weight: 800; color: var(--extra-gold); text-align: right; }
 
+    /* ── CHALLENGES VIEW ── */
+    .challenge-tabs {
+      display: flex; gap: 6px; margin-bottom: 14px;
+      border-bottom: 1px solid var(--bb-border);
+    }
+    .challenge-tab {
+      padding: 8px 16px; font-size: 12px; font-weight: 700;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--bb-muted-foreground); border-bottom: 2px solid transparent;
+      margin-bottom: -1px; transition: all .15s;
+    }
+    .challenge-tab:hover { color: var(--bb-foreground); }
+    .challenge-tab.active {
+      color: hsl(var(--bb-primary)); border-bottom-color: hsl(var(--bb-primary));
+    }
+    .challenge-table {
+      background: var(--bb-card); border: 1px solid var(--bb-border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .challenge-row {
+      display: grid;
+      grid-template-columns: 100px 1fr 90px 110px 100px;
+      align-items: center; gap: 10px;
+      padding: 12px 16px; border-bottom: 1px solid var(--bb-border);
+    }
+    .challenge-row.head {
+      font-size: 10px; font-weight: 700; letter-spacing: .4px;
+      color: var(--bb-muted-foreground); text-transform: uppercase;
+      background: var(--bb-input);
+    }
+    .challenge-row:last-child { border-bottom: none; }
+    .challenge-row:not(.head):hover { background: var(--bb-muted); }
+    .challenge-status {
+      font-size: 10px; font-weight: 800; padding: 3px 8px;
+      border-radius: 6px; text-align: center; letter-spacing: .3px;
+      justify-self: start;
+    }
+    .challenge-status.live { background: rgba(239,68,68,.15); color: var(--bb-destructive); }
+    .challenge-status.ended { background: rgba(19,198,107,.15); color: var(--bb-secondary); }
+    .challenge-status.cancelled { background: var(--bb-muted); color: var(--bb-muted-foreground); }
+    .challenge-matchup {
+      display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600;
+      color: var(--bb-foreground); min-width: 0;
+    }
+    .challenge-matchup .chal-fighter { display: flex; align-items: center; gap: 5px; }
+    .challenge-matchup .chal-fighter.winner { color: var(--bb-secondary); font-weight: 800; }
+    .challenge-matchup .chal-fighter.loser { color: var(--bb-muted-foreground); }
+    .challenge-matchup .chal-vs { font-size: 10px; color: var(--bb-muted-foreground); }
+    .challenge-result { font-size: 11px; font-weight: 700; color: var(--bb-foreground); }
+    .challenge-pool { font-size: 12px; font-weight: 800; color: var(--extra-gold); }
+    .challenge-time { font-size: 10px; color: var(--bb-muted-foreground); }
+    .challenge-empty {
+      padding: 30px; text-align: center; font-size: 12px; color: var(--bb-muted-foreground);
+    }
+
     /* ── NOTIFICATIONS DROPDOWN ── */
     .notif-dropdown {
       position: absolute; top: calc(100% + 8px); right: 0;
@@ -851,7 +906,7 @@
         <div class="fighter-mini"><div class="avatar-sm">🐶</div><div class="fname">WIF</div></div>
         <span class="live-badge">LIVE</span>
       </div>
-      <button class="view-all-btn">VIEW ALL BATTLES →</button>
+      <button class="view-all-btn" onclick="openChallenges()">VIEW ALL BATTLES →</button>
     </div>
 
     <div>
@@ -1328,6 +1383,32 @@
       </div>
     </div>
   </div>
+
+  <!-- CHALLENGES VIEW -->
+  <div id="view-challenges" class="tab-view">
+    <div class="view-inner">
+      <div class="view-header">
+        <div class="view-title">Challenges</div>
+        <div class="view-subtitle">All battles — live, ended and cancelled</div>
+      </div>
+      <div class="challenge-tabs">
+        <button class="challenge-tab active" data-ctab="all" onclick="setChallengeTab(this)">All</button>
+        <button class="challenge-tab" data-ctab="live" onclick="setChallengeTab(this)">Live</button>
+        <button class="challenge-tab" data-ctab="ended" onclick="setChallengeTab(this)">Ended</button>
+        <button class="challenge-tab" data-ctab="cancelled" onclick="setChallengeTab(this)">Cancelled</button>
+      </div>
+      <div class="challenge-table">
+        <div class="challenge-row head">
+          <div>STATUS</div>
+          <div>MATCHUP</div>
+          <div>RESULT</div>
+          <div>POOL</div>
+          <div>TIME</div>
+        </div>
+        <div id="challenge-rows"></div>
+      </div>
+    </div>
+  </div>
   </main>
 
   <!-- RIGHT SIDEBAR -->
@@ -1393,6 +1474,70 @@
     if (target) target.classList.add('active');
 
     document.getElementById('notif-dropdown').classList.remove('open');
+  }
+
+  /* ── CHALLENGES ── */
+  const challengeData = [
+    { status: 'live', a: '🐸 PEPE', b: '🐕 DOGE', winner: null, pool: '128,450 BC', time: 'now' },
+    { status: 'live', a: '🔨 BONK', b: '😺 MOG', winner: null, pool: '94,200 BC', time: 'now' },
+    { status: 'live', a: '🦊 BRETT', b: '🐶 WIF', winner: null, pool: '61,900 BC', time: 'now' },
+    { status: 'ended', a: '🤖 ROBOT V1', b: '🦾 FLOATROBO', winner: 'a', pool: '1,240,000 BC', time: '2 min ago' },
+    { status: 'ended', a: '🐧 PUDGY PENGUIN', b: '🔨 BONK', winner: 'b', pool: '35,600 BC', time: '18 min ago' },
+    { status: 'ended', a: '🐕 DOGWIFHAT', b: '🐸 PEPE', winner: 'a', pool: '210,000 BC', time: '1 hr ago' },
+    { status: 'ended', a: '😺 MOG', b: '🐶 WIF', winner: 'b', pool: '48,300 BC', time: '3 hr ago' },
+    { status: 'cancelled', a: '🦾 FLOATROBO', b: '🦊 BRETT', winner: null, pool: '—', time: '5 hr ago' },
+    { status: 'cancelled', a: '🐸 PEPE', b: '🔨 BONK', winner: null, pool: '—', time: 'yesterday' },
+  ];
+
+  function renderChallenges(filter) {
+    const list = filter === 'all' ? challengeData : challengeData.filter(c => c.status === filter);
+    const container = document.getElementById('challenge-rows');
+    if (!container) return;
+
+    if (list.length === 0) {
+      container.innerHTML = '<div class="challenge-empty">No challenges in this category.</div>';
+      return;
+    }
+
+    container.innerHTML = list.map(c => {
+      const statusLabel = c.status === 'live' ? '● LIVE' : c.status === 'ended' ? 'ENDED' : 'CANCELLED';
+      let aClass = '', bClass = '', resultText = '—';
+      if (c.status === 'ended') {
+        aClass = c.winner === 'a' ? 'winner' : 'loser';
+        bClass = c.winner === 'b' ? 'winner' : 'loser';
+        resultText = (c.winner === 'a' ? c.a : c.b).replace(/^\S+\s/, '') + ' won';
+      } else if (c.status === 'live') {
+        resultText = 'In progress';
+      } else {
+        resultText = 'Cancelled';
+      }
+      return `
+        <div class="challenge-row">
+          <div class="challenge-status ${c.status}">${statusLabel}</div>
+          <div class="challenge-matchup">
+            <span class="chal-fighter ${aClass}">${c.a}</span>
+            <span class="chal-vs">vs</span>
+            <span class="chal-fighter ${bClass}">${c.b}</span>
+          </div>
+          <div class="challenge-result">${resultText}</div>
+          <div class="challenge-pool">${c.pool}</div>
+          <div class="challenge-time">${c.time}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function setChallengeTab(el) {
+    document.querySelectorAll('.challenge-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderChallenges(el.getAttribute('data-ctab'));
+  }
+
+  function openChallenges() {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-challenges').classList.add('active');
+    document.getElementById('notif-dropdown').classList.remove('open');
+    renderChallenges('all');
   }
 
   function toggleNotifications(e) {
