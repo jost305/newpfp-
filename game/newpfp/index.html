@@ -627,10 +627,10 @@
         <!-- Left fighter -->
         <div class="fighter-panel">
           <div class="fighter-card-arena">
-            <div class="arena-avatar">🤖</div>
+            <div class="arena-avatar" id="left-arena-avatar">🤖</div>
             <div class="fighter-info-arena">
-              <div class="fighter-name-arena">ROBOT V1</div>
-              <div class="fighter-bc">1,240,000 BC</div>
+              <div class="fighter-name-arena" id="left-arena-name">ROBOT V1</div>
+              <div class="fighter-bc" id="left-arena-bc">1,240,000 BC</div>
               <div class="spell-icons">
                 <div class="spell-icon">✏️</div>
                 <div class="spell-icon">🛡</div>
@@ -651,8 +651,8 @@
         <div class="fighter-panel" style="align-items:flex-end">
           <div class="fighter-card-arena">
             <div class="fighter-info-arena" style="text-align:right">
-              <div class="fighter-name-arena">FLOATROBO</div>
-              <div class="fighter-bc">890,000 BC</div>
+              <div class="fighter-name-arena" id="right-arena-name">FLOATROBO</div>
+              <div class="fighter-bc" id="right-arena-bc">890,000 BC</div>
               <div class="spell-icons" style="justify-content:flex-end">
                 <div class="spell-icon locked">🔒</div>
                 <div class="spell-icon">⚡</div>
@@ -660,7 +660,7 @@
                 <div class="spell-icon">✏️</div>
               </div>
             </div>
-            <div class="arena-avatar alt">🦾</div>
+            <div class="arena-avatar alt" id="right-arena-avatar">🦾</div>
           </div>
         </div>
       </div>
@@ -698,7 +698,7 @@
           <div class="fc-stat">24H <span class="pos">+85.2%</span></div>
         </div>
         <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn">● WATCH 2 EARN</button>
+        <button class="watch-btn" onclick="watchToEarn('pepe', this)">● WATCH 2 EARN</button>
       </div>
 
       <div class="fighter-card">
@@ -715,7 +715,7 @@
           <div class="fc-stat">24H <span class="pos">+63.1%</span></div>
         </div>
         <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn primary">● WATCH 2 EARN</button>
+        <button class="watch-btn primary" onclick="watchToEarn('doge', this)">● WATCH 2 EARN</button>
       </div>
 
       <div class="fighter-card">
@@ -732,7 +732,7 @@
           <div class="fc-stat">24H <span class="pos">+41.6%</span></div>
         </div>
         <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn">● WATCH 2 EARN</button>
+        <button class="watch-btn" onclick="watchToEarn('bonk', this)">● WATCH 2 EARN</button>
       </div>
 
       <div class="fighter-card">
@@ -749,7 +749,7 @@
           <div class="fc-stat">24H <span class="neg">-28.4%</span></div>
         </div>
         <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn primary">● WATCH 2 EARN</button>
+        <button class="watch-btn primary" onclick="watchToEarn('mog', this)">● WATCH 2 EARN</button>
       </div>
     </div>
   </main>
@@ -810,6 +810,32 @@
   function setTab(el) {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
+  }
+
+  const cardFighters = {
+    pepe: { emoji: '🐸', name: 'PEPE',  bc: '$12.5M MCAP' },
+    doge: { emoji: '🐕', name: 'DOGE',  bc: '$8.3M MCAP'  },
+    bonk: { emoji: '🔨', name: 'BONK',  bc: '$5.1M MCAP'  },
+    mog:  { emoji: '😺', name: 'MOG',   bc: '$3.2M MCAP'  },
+  };
+  let nextArenaSlot = 'left';
+
+  function watchToEarn(key, btnEl) {
+    const fighter = cardFighters[key];
+    if (!fighter) return;
+
+    const slot = nextArenaSlot;
+    document.getElementById(slot + '-arena-avatar').textContent = fighter.emoji;
+    document.getElementById(slot + '-arena-name').textContent = fighter.name;
+    document.getElementById(slot + '-arena-bc').textContent = fighter.bc;
+
+    nextArenaSlot = slot === 'left' ? 'right' : 'left';
+
+    if (btnEl) {
+      const original = btnEl.textContent;
+      btnEl.textContent = '✓ IN ARENA';
+      setTimeout(() => { btnEl.textContent = original; }, 1200);
+    }
   }
 
   let secs = 45;
