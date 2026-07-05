@@ -451,6 +451,143 @@
     .watch-btn:hover { opacity: .85; }
     .watch-btn.primary { background: hsl(var(--bb-primary)); }
 
+    /* ── TAB VIEWS ── */
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
+    .view-inner { padding: 16px; }
+    .view-header { margin-bottom: 14px; }
+    .view-title { font-size: 18px; font-weight: 800; color: var(--bb-foreground); }
+    .view-subtitle { font-size: 12px; color: var(--bb-muted-foreground); margin-top: 2px; }
+
+    /* Agents view */
+    .agents-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .agent-card {
+      background: var(--bb-card); border: 1px solid var(--bb-border);
+      border-radius: 12px; padding: 12px; text-align: center;
+      transition: border-color .15s;
+    }
+    .agent-card:hover { border-color: hsl(var(--bb-primary)); }
+    .agent-avatar {
+      width: 56px; height: 56px; border-radius: 14px; margin: 0 auto 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; border: 2px solid hsl(var(--bb-primary));
+      background: var(--bb-input);
+    }
+    .agent-name { font-size: 13px; font-weight: 800; color: var(--bb-foreground); }
+    .agent-level { font-size: 10px; color: var(--extra-gold); font-weight: 700; margin-top: 2px; }
+    .agent-record { font-size: 10px; color: var(--bb-muted-foreground); margin: 6px 0 10px; }
+    .agent-record .win { color: var(--bb-secondary); font-weight: 700; }
+    .agent-record .loss { color: var(--bb-destructive); font-weight: 700; }
+    .agent-btn {
+      width: 100%; padding: 7px; border-radius: 7px;
+      font-size: 11px; font-weight: 800; border: none; cursor: pointer;
+      background: hsl(var(--bb-primary)); color: var(--bb-foreground);
+      transition: opacity .15s;
+    }
+    .agent-btn:hover { opacity: .85; }
+
+    /* Create view */
+    .create-card {
+      max-width: 480px; background: var(--bb-card);
+      border: 1px solid var(--bb-border); border-radius: 14px; padding: 20px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .5px;
+      color: var(--bb-muted-foreground); text-transform: uppercase;
+      display: block; margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%; padding: 9px 10px; border-radius: 8px;
+      background: var(--bb-input); border: 1px solid var(--bb-border);
+      color: var(--bb-foreground); font-size: 13px;
+    }
+    .emoji-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+    .emoji-option {
+      width: 40px; height: 40px; border-radius: 10px;
+      background: var(--bb-input); border: 2px solid var(--bb-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; cursor: pointer; transition: all .15s;
+    }
+    .emoji-option:hover { border-color: hsl(var(--bb-primary)); }
+    .emoji-option.selected { border-color: hsl(var(--bb-primary)); background: rgb(var(--bb-primary-rgb) / 0.2); }
+    .stat-row {
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 11px; color: var(--bb-muted-foreground); margin-bottom: 8px;
+    }
+    .stat-bar-wrap {
+      flex: 1; height: 6px; border-radius: 4px; background: var(--bb-muted);
+      margin: 0 10px; overflow: hidden;
+    }
+    .stat-bar { height: 6px; border-radius: 4px; background: hsl(var(--bb-primary)); }
+    .create-submit-btn {
+      width: 100%; padding: 11px; border-radius: 9px; margin-top: 4px;
+      font-size: 13px; font-weight: 800; border: none; cursor: pointer;
+      background: hsl(var(--bb-primary)); color: var(--bb-foreground);
+      transition: opacity .15s;
+    }
+    .create-submit-btn:hover { opacity: .85; }
+
+    /* Marketplace view */
+    .marketplace-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    .market-card {
+      background: var(--bb-card); border: 1px solid var(--bb-border);
+      border-radius: 12px; padding: 12px; transition: border-color .15s;
+    }
+    .market-card:hover { border-color: hsl(var(--bb-primary)); }
+    .market-icon {
+      width: 100%; height: 70px; border-radius: 10px; margin-bottom: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 34px; background: var(--bb-muted);
+    }
+    .market-name { font-size: 12px; font-weight: 800; color: var(--bb-foreground); }
+    .market-desc { font-size: 9px; color: var(--bb-muted-foreground); margin: 4px 0 8px; }
+    .market-price {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .market-price span { font-size: 12px; font-weight: 800; color: var(--extra-gold); }
+    .market-btn {
+      width: 100%; padding: 7px; border-radius: 7px;
+      font-size: 11px; font-weight: 800; border: none; cursor: pointer;
+      background: var(--bb-secondary); color: var(--bb-foreground);
+      transition: opacity .15s;
+    }
+    .market-btn:hover { opacity: .85; }
+
+    /* Full leaderboard view */
+    .full-lb-list {
+      background: var(--bb-card); border: 1px solid var(--bb-border);
+      border-radius: 12px; overflow: hidden;
+    }
+    .full-lb-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border-bottom: 1px solid var(--bb-border);
+      transition: background .15s;
+    }
+    .full-lb-row:last-child { border-bottom: none; }
+    .full-lb-row:hover { background: var(--bb-muted); }
+    .full-lb-rank {
+      font-size: 13px; font-weight: 800; width: 22px;
+      text-align: center; color: var(--bb-muted-foreground);
+    }
+    .full-lb-avatar {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; border: 1.5px solid var(--bb-border);
+      flex-shrink: 0; background: var(--bb-input);
+    }
+    .full-lb-info { flex: 1; min-width: 0; }
+    .full-lb-name { font-size: 13px; font-weight: 700; color: var(--bb-foreground); }
+    .full-lb-meta { font-size: 10px; color: var(--bb-muted-foreground); }
+    .full-lb-bc { font-size: 12px; font-weight: 800; color: var(--extra-gold); text-align: right; }
+
     /* ── RIGHT SIDEBAR ── */
     .sidebar-right {
       width: var(--right-w);
@@ -552,11 +689,11 @@
     <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong>50 <span class="live-badge">LIVE</span></strong></div>
   </div>
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="setTab(this)">Arena</button>
-    <button class="nav-tab" onclick="setTab(this)">Agents</button>
-    <button class="nav-tab create" onclick="setTab(this)">⚔️ Create</button>
-    <button class="nav-tab" onclick="setTab(this)">Marketplace</button>
-    <button class="nav-tab" onclick="setTab(this)">Leaderboard</button>
+    <button class="nav-tab active" data-view="arena" onclick="setTab(this)">Arena</button>
+    <button class="nav-tab" data-view="agents" onclick="setTab(this)">Agents</button>
+    <button class="nav-tab create" data-view="create" onclick="setTab(this)">⚔️ Create</button>
+    <button class="nav-tab" data-view="marketplace" onclick="setTab(this)">Marketplace</button>
+    <button class="nav-tab" data-view="leaderboard" onclick="setTab(this)">Leaderboard</button>
   </div>
   <div class="nav-right">
     <button class="icon-btn">⚙️</button>
@@ -626,6 +763,7 @@
 
   <!-- MAIN -->
   <main class="main">
+  <div id="view-arena" class="tab-view active">
     <div class="arena-wrap">
       <div class="arena-bg-glow"></div>
       <div class="arena-grid"></div>
@@ -760,6 +898,217 @@
         <button class="watch-btn primary" onclick="watchToEarn('mog', this)">● WATCH 2 EARN</button>
       </div>
     </div>
+  </div>
+
+  <!-- AGENTS VIEW -->
+  <div id="view-agents" class="tab-view">
+    <div class="view-inner">
+      <div class="view-header">
+        <div class="view-title">My Agents</div>
+        <div class="view-subtitle">Manage, train and deploy your AI fighters</div>
+      </div>
+      <div class="agents-grid">
+        <div class="agent-card">
+          <div class="agent-avatar">🤖</div>
+          <div class="agent-name">ROBOT V1</div>
+          <div class="agent-level">LEVEL 12</div>
+          <div class="agent-record"><span class="win">18W</span> · <span class="loss">4L</span> · 1,240,000 BC</div>
+          <button class="agent-btn">TRAIN</button>
+        </div>
+        <div class="agent-card">
+          <div class="agent-avatar">🦾</div>
+          <div class="agent-name">FLOATROBO</div>
+          <div class="agent-level">LEVEL 9</div>
+          <div class="agent-record"><span class="win">14W</span> · <span class="loss">7L</span> · 890,000 BC</div>
+          <button class="agent-btn">TRAIN</button>
+        </div>
+        <div class="agent-card">
+          <div class="agent-avatar">🐸</div>
+          <div class="agent-name">PEPE</div>
+          <div class="agent-level">LEVEL 15</div>
+          <div class="agent-record"><span class="win">22W</span> · <span class="loss">3L</span> · 676 Holders</div>
+          <button class="agent-btn">TRAIN</button>
+        </div>
+        <div class="agent-card">
+          <div class="agent-avatar">🐕</div>
+          <div class="agent-name">DOGE</div>
+          <div class="agent-level">LEVEL 11</div>
+          <div class="agent-record"><span class="win">16W</span> · <span class="loss">6L</span> · 512 Holders</div>
+          <button class="agent-btn">TRAIN</button>
+        </div>
+        <div class="agent-card">
+          <div class="agent-avatar">🔨</div>
+          <div class="agent-name">BONK</div>
+          <div class="agent-level">LEVEL 8</div>
+          <div class="agent-record"><span class="win">10W</span> · <span class="loss">9L</span> · 421 Holders</div>
+          <button class="agent-btn">TRAIN</button>
+        </div>
+        <div class="agent-card">
+          <div class="agent-avatar">😺</div>
+          <div class="agent-name">MOG</div>
+          <div class="agent-level">LEVEL 6</div>
+          <div class="agent-record"><span class="win">7W</span> · <span class="loss">11L</span> · 289 Holders</div>
+          <button class="agent-btn">TRAIN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE VIEW -->
+  <div id="view-create" class="tab-view">
+    <div class="view-inner">
+      <div class="view-header">
+        <div class="view-title">Create Your Agent</div>
+        <div class="view-subtitle">Build a fighter and enter it into the arena</div>
+      </div>
+      <div class="create-card">
+        <div class="form-group">
+          <label class="form-label">Agent Name</label>
+          <input class="form-input" type="text" placeholder="e.g. SHADOW FANG" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Choose Avatar</label>
+          <div class="emoji-picker">
+            <div class="emoji-option selected">🤖</div>
+            <div class="emoji-option">🦾</div>
+            <div class="emoji-option">🐸</div>
+            <div class="emoji-option">🐕</div>
+            <div class="emoji-option">🔨</div>
+            <div class="emoji-option">😺</div>
+            <div class="emoji-option">🦊</div>
+            <div class="emoji-option">🐶</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stat Allocation</label>
+          <div class="stat-row">Power <div class="stat-bar-wrap"><div class="stat-bar" style="width:70%"></div></div> 70</div>
+          <div class="stat-row">Speed <div class="stat-bar-wrap"><div class="stat-bar" style="width:55%"></div></div> 55</div>
+          <div class="stat-row">Defense <div class="stat-bar-wrap"><div class="stat-bar" style="width:40%"></div></div> 40</div>
+        </div>
+        <button class="create-submit-btn">⚔️ DEPLOY AGENT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARKETPLACE VIEW -->
+  <div id="view-marketplace" class="tab-view">
+    <div class="view-inner">
+      <div class="view-header">
+        <div class="view-title">Marketplace</div>
+        <div class="view-subtitle">Buy skins, power-ups and boosts for your agents</div>
+      </div>
+      <div class="marketplace-grid">
+        <div class="market-card">
+          <div class="market-icon">🧪</div>
+          <div class="market-name">Power Potion</div>
+          <div class="market-desc">+15% damage for one battle</div>
+          <div class="market-price"><span>250 BC</span></div>
+          <button class="market-btn">BUY</button>
+        </div>
+        <div class="market-card">
+          <div class="market-icon">🛡</div>
+          <div class="market-name">Iron Shield</div>
+          <div class="market-desc">Blocks the next incoming hit</div>
+          <div class="market-price"><span>400 BC</span></div>
+          <button class="market-btn">BUY</button>
+        </div>
+        <div class="market-card">
+          <div class="market-icon">⚡</div>
+          <div class="market-name">Thunder Strike</div>
+          <div class="market-desc">Deal a bonus lightning attack</div>
+          <div class="market-price"><span>600 BC</span></div>
+          <button class="market-btn">BUY</button>
+        </div>
+        <div class="market-card">
+          <div class="market-icon">👑</div>
+          <div class="market-name">Golden Skin</div>
+          <div class="market-desc">Exclusive cosmetic for your agent</div>
+          <div class="market-price"><span>1,200 BC</span></div>
+          <button class="market-btn">BUY</button>
+        </div>
+        <div class="market-card">
+          <div class="market-icon">🎒</div>
+          <div class="market-name">XP Booster</div>
+          <div class="market-desc">Double training XP for 24h</div>
+          <div class="market-price"><span>850 BC</span></div>
+          <button class="market-btn">BUY</button>
+        </div>
+        <div class="market-card">
+          <div class="market-icon">🔒</div>
+          <div class="market-name">Vault Key</div>
+          <div class="market-desc">Unlocks a locked spell slot</div>
+          <div class="market-price"><span>2,000 BC</span></div>
+          <button class="market-btn">BUY</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD VIEW -->
+  <div id="view-leaderboard" class="tab-view">
+    <div class="view-inner">
+      <div class="view-header">
+        <div class="view-title">Leaderboard</div>
+        <div class="view-subtitle">Top performing agents this season</div>
+      </div>
+      <div class="full-lb-list">
+        <div class="full-lb-row">
+          <div class="full-lb-rank">🥇</div>
+          <div class="full-lb-avatar">🐕</div>
+          <div class="full-lb-info">
+            <div class="full-lb-name">Dogwifhat</div>
+            <div class="full-lb-meta">42 Wins</div>
+          </div>
+          <div class="full-lb-bc">6,200 BC</div>
+        </div>
+        <div class="full-lb-row">
+          <div class="full-lb-rank">🥈</div>
+          <div class="full-lb-avatar">🔨</div>
+          <div class="full-lb-info">
+            <div class="full-lb-name">Bonk</div>
+            <div class="full-lb-meta">35 Wins</div>
+          </div>
+          <div class="full-lb-bc">3,000 BC</div>
+        </div>
+        <div class="full-lb-row">
+          <div class="full-lb-rank">🥉</div>
+          <div class="full-lb-avatar">🐧</div>
+          <div class="full-lb-info">
+            <div class="full-lb-name">Pudgy Penguin</div>
+            <div class="full-lb-meta">35 Wins</div>
+          </div>
+          <div class="full-lb-bc">3,500 BC</div>
+        </div>
+        <div class="full-lb-row">
+          <div class="full-lb-rank">4</div>
+          <div class="full-lb-avatar">🤖</div>
+          <div class="full-lb-info">
+            <div class="full-lb-name">Robot V1</div>
+            <div class="full-lb-meta">18 Wins</div>
+          </div>
+          <div class="full-lb-bc">1,240,000 BC</div>
+        </div>
+        <div class="full-lb-row">
+          <div class="full-lb-rank">5</div>
+          <div class="full-lb-avatar">🦾</div>
+          <div class="full-lb-info">
+            <div class="full-lb-name">Floatrobo</div>
+            <div class="full-lb-meta">14 Wins</div>
+          </div>
+          <div class="full-lb-bc">890,000 BC</div>
+        </div>
+        <div class="full-lb-row">
+          <div class="full-lb-rank">6</div>
+          <div class="full-lb-avatar">🐸</div>
+          <div class="full-lb-info">
+            <div class="full-lb-name">Pepe</div>
+            <div class="full-lb-meta">22 Wins</div>
+          </div>
+          <div class="full-lb-bc">576 BC</div>
+        </div>
+      </div>
+    </div>
+  </div>
   </main>
 
   <!-- RIGHT SIDEBAR -->
@@ -818,6 +1167,11 @@
   function setTab(el) {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
+
+    const view = el.getAttribute('data-view');
+    document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+    const target = document.getElementById('view-' + view);
+    if (target) target.classList.add('active');
   }
 
   const cardFighters = {
