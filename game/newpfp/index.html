@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BantahBro Arena</title>
+  <link rel="icon" type="image/jpeg" href="/newpfp/assets/bota-logo.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles/styles.css" />
@@ -49,6 +50,10 @@
       background: hsl(var(--bb-primary));
       display: flex; align-items: center; justify-content: center;
       font-size: 13px; font-weight: 900; color: var(--bb-foreground);
+      overflow: hidden;
+    }
+    .logo-icon img {
+      width: 100%; height: 100%; object-fit: cover;
     }
     .logo-text {
       font-weight: 800; font-size: 13px;
@@ -346,9 +351,13 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 42px; position: relative; overflow: hidden;
     }
+    .nft-card img {
+      width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 1;
+    }
     .nft-card::before {
-      content: ''; position: absolute; inset: 0;
+      content: ''; position: absolute; inset: 0; z-index: 2;
       background: linear-gradient(135deg, rgb(var(--bb-primary-rgb) / 0.25), transparent 60%);
+      pointer-events: none;
     }
     .vs-text {
       font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
@@ -534,7 +543,7 @@
 <!-- TOP NAV -->
 <nav class="topnav">
   <a class="logo" href="#">
-    <div class="logo-icon">⚔</div>
+    <div class="logo-icon"><img src="/newpfp/assets/bota-logo.jpg" alt="BOTA"></div>
     <div class="logo-text">BOTA<span>ARENA</span></div>
   </a>
   <button class="search-btn">🔍</button>
@@ -642,7 +651,7 @@
 
         <!-- Center NFT -->
         <div class="arena-center">
-          <div class="nft-card">🃏</div>
+          <div class="nft-card"><img src="/newpfp/assets/bota-logo.jpg" alt="Battle of the Agents"></div>
           <div class="vs-text">⚔ BATTLE IN PROGRESS ⚔</div>
         </div>
 
