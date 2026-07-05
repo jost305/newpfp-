@@ -1,313 +1,860 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>BantahBro Arena</title>
-    <link rel="icon" type="image/svg+xml" href="/newpfp/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../styles/styles.css?v=51" />
-    <link rel="stylesheet" href="../styles/mobile.css?v=51" />
-    <script type="module" crossorigin src="/newpfp/assets/index-EV_4LT-r.js"></script>
-    <link rel="stylesheet" crossorigin href="/newpfp/assets/index-8lqbVdGx.css">
-  </head>
-  <body class="bantahbro-next-ui">
-    <div id="root"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BantahBro Arena</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    <!-- Live Battles sidebar (overlay for preview) -->
-    <aside id="live-queue" class="live-queue" aria-label="Live Battles">
-      <div class="lq-hdr"><span class="lq-dot"></span>LIVE BATTLES</div>
-      <div class="lq-list">
-        <div class="lq-item">
-          <div class="lq-left">
-            <img class="lq-avatar" src="/newpfp/images/fighters/pepe/left/stand/0.png" alt="Pepe" onerror="this.src='/newpfp/images/fighters/pepe/portrait.png'" />
-            <div class="lq-name">PEPE</div>
-          </div>
-          <div class="lq-vs">VS</div>
-          <div class="lq-right">
-            <img class="lq-avatar" src="/newpfp/images/fighters/doge/left/stand/0.png" alt="Doge" onerror="this.src='/newpfp/images/fighters/doge/portrait.png'" />
-            <div class="lq-name">DOGE</div>
-          </div>
-          <div class="lq-meta"><span class="lq-badge">LIVE</span><span class="lq-count">31K</span></div>
-        </div>
+    :root {
+      --bg: #07070f;
+      --bg2: #0e0e1c;
+      --bg3: #131325;
+      --card: #12121f;
+      --card2: #1a1a2e;
+      --border: #2a2a45;
+      --border2: #3a3a60;
+      --purple: #7c3aed;
+      --purple2: #8b5cf6;
+      --purple3: #6d28d9;
+      --neon: #a855f7;
+      --green: #10b981;
+      --green2: #13c66b;
+      --orange: #f97316;
+      --red: #ef4444;
+      --gold: #f59e0b;
+      --text: #f0f0ff;
+      --text2: #a0a0c0;
+      --text3: #606080;
+      --left-w: 172px;
+      --right-w: 220px;
+      --top-h: 56px;
+    }
 
-        <div class="lq-item">
-          <div class="lq-left">
-            <img class="lq-avatar" src="/newpfp/images/fighters/bonk/left/stand/0.png" alt="Bonk" onerror="this.src='/newpfp/images/fighters/bonk/portrait.png'" />
-            <div class="lq-name">BONK</div>
-          </div>
-          <div class="lq-vs">VS</div>
-          <div class="lq-right">
-            <img class="lq-avatar" src="/newpfp/images/fighters/mog/left/stand/0.png" alt="Mog" onerror="this.src='/newpfp/images/fighters/mog/portrait.png'" />
-            <div class="lq-name">MOG</div>
-          </div>
-          <div class="lq-meta"><span class="lq-badge">LIVE</span><span class="lq-count">8.2K</span></div>
-        </div>
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-        <div class="lq-item">
-          <div class="lq-left">
-            <img class="lq-avatar" src="/newpfp/images/fighters/brett/left/stand/0.png" alt="Brett" onerror="this.src='/newpfp/images/fighters/brett/portrait.png'" />
-            <div class="lq-name">BRETT</div>
-          </div>
-          <div class="lq-vs">VS</div>
-          <div class="lq-right">
-            <img class="lq-avatar" src="/newpfp/images/fighters/wif/left/stand/0.png" alt="Wif" onerror="this.src='/newpfp/images/fighters/wif/portrait.png'" />
-            <div class="lq-name">WIF</div>
-          </div>
-          <div class="lq-meta"><span class="lq-badge">LIVE</span><span class="lq-count">5.1K</span></div>
-        </div>
+    /* ── TOP NAV ── */
+    .topnav {
+      position: fixed; top: 0; left: 0; right: 0; height: var(--top-h);
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 14px; gap: 12px; z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .logo-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--purple), var(--neon));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 900; color: #fff;
+    }
+    .logo-text { font-weight: 800; font-size: 13px; letter-spacing: .5px; line-height: 1.1; }
+    .logo-text span { display: block; color: var(--text2); font-weight: 500; font-size: 10px; letter-spacing: 1px; }
+    .search-btn {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text2); font-size: 15px;
+      flex-shrink: 0;
+    }
+    .nav-stats { display: flex; gap: 18px; align-items: center; }
+    .nav-stat { font-size: 11px; color: var(--text2); display: flex; align-items: center; gap: 5px; }
+    .nav-stat strong { color: var(--text); font-size: 12px; }
+    .live-badge {
+      background: var(--red); color: #fff; border-radius: 4px;
+      padding: 1px 5px; font-size: 9px; font-weight: 700; letter-spacing: .5px;
+    }
+    .nav-tabs { display: flex; gap: 2px; margin: 0 auto; }
+    .nav-tab {
+      padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; background: transparent; color: var(--text2);
+      transition: all .15s;
+    }
+    .nav-tab:hover { color: var(--text); background: var(--card2); }
+    .nav-tab.active { color: #fff; background: var(--purple3); }
+    .nav-tab.create { color: var(--purple2); }
+    .nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .icon-btn {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 14px; color: var(--text2); position: relative;
+    }
+    .badge {
+      position: absolute; top: -4px; right: -4px;
+      background: var(--purple); color: #fff;
+      border-radius: 9px; font-size: 8px; font-weight: 700;
+      padding: 1px 4px; min-width: 14px; text-align: center;
+    }
+    .login-btn {
+      padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 700;
+      background: var(--purple); color: #fff; border: none; cursor: pointer;
+      letter-spacing: .5px; transition: background .15s;
+    }
+    .login-btn:hover { background: var(--purple2); }
+    .theme-btn {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card); display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 15px;
+    }
 
-        <div class="lq-item">
-          <div class="lq-left">
-            <img class="lq-avatar" src="/newpfp/images/fighters/fartcoin/left/stand/0.png" alt="Fartcoin" onerror="this.src='/newpfp/images/fighters/fartcoin/portrait.png'" />
-            <div class="lq-name">FARTCOIN</div>
-          </div>
-          <div class="lq-vs">VS</div>
-          <div class="lq-right">
-            <img class="lq-avatar" src="/newpfp/images/fighters/npc/left/stand/0.png" alt="NPC" onerror="this.src='/newpfp/images/fighters/char04/portrait.png'" />
-            <div class="lq-name">NPC</div>
-          </div>
-          <div class="lq-meta"><span class="lq-badge">LIVE</span><span class="lq-count">2.3K</span></div>
+    /* ── LAYOUT ── */
+    .layout {
+      display: flex;
+      padding-top: var(--top-h);
+      min-height: 100vh;
+    }
+
+    /* ── LEFT SIDEBAR ── */
+    .sidebar-left {
+      width: var(--left-w);
+      min-height: calc(100vh - var(--top-h));
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      position: fixed; top: var(--top-h); left: 0; bottom: 0;
+      overflow-y: auto; padding: 14px 10px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .sidebar-section-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+      color: var(--text3); text-transform: uppercase; margin-bottom: 8px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); display: inline-block; }
+
+    .battle-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px; display: flex;
+      align-items: center; gap: 6px; margin-bottom: 6px;
+    }
+    .fighter-mini { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
+    .avatar-sm {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; border: 2px solid var(--border2);
+    }
+    .fname { font-size: 9px; font-weight: 700; color: var(--text2); }
+    .vs-badge {
+      font-size: 9px; font-weight: 800; color: var(--text3);
+      padding: 0 2px;
+    }
+    .wait-btn {
+      background: var(--purple3); color: #fff; border: none;
+      border-radius: 5px; padding: 3px 7px; font-size: 9px; font-weight: 700;
+      cursor: pointer; letter-spacing: .3px;
+    }
+    .view-all-btn {
+      width: 100%; padding: 9px; border-radius: 8px;
+      background: transparent; border: 1px solid var(--border2);
+      color: var(--text2); font-size: 11px; font-weight: 600;
+      cursor: pointer; text-align: center; transition: all .15s;
+    }
+    .view-all-btn:hover { background: var(--card2); color: var(--text); }
+
+    /* predictions */
+    .predictions-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px;
+    }
+    .pred-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 10px;
+    }
+    .pred-title { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--text3); text-transform: uppercase; }
+    .timer {
+      font-size: 13px; font-weight: 800; color: var(--orange);
+      font-variant-numeric: tabular-nums;
+    }
+    .fighters-pred { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .fighter-pred { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .avatar-pred {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; border: 2px solid var(--purple);
+    }
+    .pred-name { font-size: 9px; font-weight: 700; text-align: center; }
+    .pred-pct { font-size: 11px; font-weight: 800; }
+    .pred-bar-wrap { margin: 8px 0; background: var(--bg3); border-radius: 4px; height: 5px; overflow: hidden; }
+    .pred-bar { height: 5px; border-radius: 4px; background: linear-gradient(90deg, var(--purple), var(--neon)); }
+    .pred-pool { font-size: 10px; color: var(--text2); margin: 6px 0 8px; text-align: center; }
+    .pred-pool span { color: var(--neon); font-weight: 700; }
+    .pred-btns { display: flex; gap: 6px; }
+    .pred-yes {
+      flex: 1; padding: 7px; border-radius: 7px; border: none;
+      background: linear-gradient(90deg, #16a34a, var(--green2)); color: #fff;
+      font-size: 11px; font-weight: 800; cursor: pointer;
+    }
+    .pred-no {
+      flex: 1; padding: 7px; border-radius: 7px; border: none;
+      background: linear-gradient(90deg, #b91c1c, var(--red)); color: #fff;
+      font-size: 11px; font-weight: 800; cursor: pointer;
+    }
+
+    /* ── MAIN ── */
+    .main {
+      margin-left: var(--left-w);
+      margin-right: var(--right-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: calc(100vh - var(--top-h));
+    }
+
+    /* arena */
+    .arena-wrap {
+      position: relative;
+      background: radial-gradient(ellipse at center, #1a0a3e 0%, #0d0820 40%, #070710 100%);
+      flex: 1; min-height: 380px;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .arena-bg-glow {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 50% 70%, rgba(124,58,237,.18) 0%, transparent 70%),
+        radial-gradient(ellipse 30% 20% at 25% 50%, rgba(59,130,246,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 20% at 75% 50%, rgba(124,58,237,.12) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .arena-floor {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 60%;
+      background: radial-gradient(ellipse 80% 60% at 50% 100%,
+        rgba(99,60,200,.25) 0%, transparent 70%);
+      border-top: 1px solid rgba(124,58,237,.15);
+    }
+    /* grid lines */
+    .arena-grid {
+      position: absolute; inset: 0; opacity: .08;
+      background-image:
+        linear-gradient(rgba(124,58,237,1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,237,1) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .arena-content {
+      position: relative; z-index: 2;
+      display: flex; align-items: stretch;
+      flex: 1; padding: 16px;
+      gap: 16px;
+    }
+
+    /* fighter panel */
+    .fighter-panel {
+      display: flex; flex-direction: column; gap: 10px; width: 160px; flex-shrink: 0;
+    }
+    .fighter-card-arena {
+      background: rgba(10,10,25,.7); border: 1px solid var(--border2);
+      border-radius: 12px; padding: 10px; display: flex; align-items: center; gap: 8px;
+      backdrop-filter: blur(8px);
+    }
+    .arena-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; border: 2px solid var(--purple); flex-shrink: 0;
+      background: var(--card2);
+    }
+    .fighter-info-arena { flex: 1; min-width: 0; }
+    .fighter-name-arena { font-size: 12px; font-weight: 800; }
+    .fighter-bc { font-size: 11px; color: var(--gold); font-weight: 700; margin-top: 2px; }
+    .spell-icons { display: flex; gap: 6px; flex-wrap: wrap; }
+    .spell-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(124,58,237,.25); border: 1px solid var(--purple);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; cursor: pointer; transition: all .15s;
+    }
+    .spell-icon:hover { background: rgba(124,58,237,.5); transform: scale(1.1); }
+    .spell-icon.locked { background: rgba(50,50,80,.4); border-color: var(--border); opacity: .5; }
+
+    /* center nft */
+    .arena-center {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+    }
+    .nft-card {
+      width: 130px; height: 130px; border-radius: 16px;
+      border: 2px solid var(--purple);
+      box-shadow: 0 0 40px rgba(124,58,237,.5), 0 0 80px rgba(124,58,237,.2);
+      background: linear-gradient(135deg, #1a0a40, #0d082a);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 64px; position: relative; overflow: hidden;
+    }
+    .nft-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(124,58,237,.3), transparent 60%);
+    }
+    .vs-text {
+      font-size: 11px; font-weight: 800; letter-spacing: 2px;
+      color: var(--text3); text-transform: uppercase;
+    }
+
+    /* spells bottom */
+    .spells-row {
+      display: flex; justify-content: space-between;
+      padding: 10px 16px; background: rgba(10,10,25,.6);
+      border-top: 1px solid var(--border); gap: 10px;
+    }
+    .spells-group { display: flex; gap: 8px; align-items: center; }
+    .spell-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      cursor: pointer;
+    }
+    .spell-circle {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(124,58,237,.2); border: 1.5px solid var(--purple);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; transition: all .15s;
+    }
+    .spell-circle:hover { background: rgba(124,58,237,.45); transform: scale(1.1); }
+    .spell-circle.locked { background: rgba(30,30,50,.5); border-color: var(--border); opacity: .45; }
+    .spell-label { font-size: 8px; font-weight: 600; color: var(--text3); letter-spacing: .5px; text-transform: uppercase; }
+
+    /* bottom fighter cards */
+    .fighter-cards-row {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 8px; padding: 12px 16px;
+      background: var(--bg2); border-top: 1px solid var(--border);
+    }
+    .fighter-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px; position: relative;
+      transition: border-color .15s;
+    }
+    .fighter-card:hover { border-color: var(--purple); }
+    .rank-badge {
+      position: absolute; top: 8px; left: 8px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--purple); color: #fff;
+      font-size: 9px; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .fc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding-left: 22px; }
+    .fc-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; border: 2px solid var(--border2); flex-shrink: 0;
+      background: var(--card2);
+    }
+    .fc-meta { flex: 1; min-width: 0; }
+    .fc-name { font-size: 13px; font-weight: 800; }
+    .fc-holders { font-size: 9px; color: var(--text3); display: flex; align-items: center; gap: 3px; }
+    .fc-stats { display: flex; gap: 8px; margin-bottom: 6px; }
+    .fc-stat { font-size: 9px; color: var(--text2); }
+    .fc-stat span { color: var(--green2); font-weight: 700; }
+    .fc-stat span.neg { color: var(--red); }
+    .fc-rewards {
+      font-size: 10px; color: var(--gold); font-weight: 700;
+      display: flex; align-items: center; gap: 4px; margin-bottom: 7px;
+    }
+    .watch-btn {
+      width: 100%; padding: 7px; border-radius: 7px;
+      font-size: 11px; font-weight: 800; border: none; cursor: pointer;
+      background: linear-gradient(90deg, #059669, var(--green2));
+      color: #fff; letter-spacing: .3px; transition: opacity .15s;
+    }
+    .watch-btn:hover { opacity: .85; }
+    .watch-btn.purple {
+      background: linear-gradient(90deg, var(--purple3), var(--purple2));
+    }
+
+    /* ── RIGHT SIDEBAR ── */
+    .sidebar-right {
+      width: var(--right-w);
+      min-height: calc(100vh - var(--top-h));
+      background: var(--bg2);
+      border-left: 1px solid var(--border);
+      position: fixed; top: var(--top-h); right: 0; bottom: 0;
+      overflow-y: auto; padding: 14px 12px;
+      display: flex; flex-direction: column; gap: 0;
+    }
+
+    /* leaderboard */
+    .lb-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 6px; border-radius: 8px;
+      transition: background .15s; cursor: pointer;
+    }
+    .lb-item:hover { background: var(--card2); }
+    .lb-rank { font-size: 11px; font-weight: 800; width: 16px; text-align: center; }
+    .lb-rank.gold { color: var(--gold); }
+    .lb-rank.silver { color: #9ca3af; }
+    .lb-rank.bronze { color: #d97706; }
+    .lb-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px; border: 1.5px solid var(--border2); flex-shrink: 0;
+      background: var(--card2);
+    }
+    .lb-info { flex: 1; min-width: 0; }
+    .lb-name { font-size: 12px; font-weight: 700; }
+    .lb-meta { font-size: 9px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+    .lb-meta .wins { color: var(--green2); font-weight: 700; }
+    .lb-bc { font-size: 10px; color: var(--text2); font-weight: 700; white-space: nowrap; display: flex; align-items: center; gap: 3px; }
+    .lb-icon { font-size: 10px; }
+    .lb-divider { height: 1px; background: var(--border); margin: 6px 0; }
+
+    /* trollbox */
+    .trollbox-section { margin-top: 12px; flex: 1; display: flex; flex-direction: column; }
+    .trollbox-header {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    }
+    .trollbox-title { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+    .live-pill {
+      background: var(--red); color: #fff; border-radius: 5px;
+      padding: 2px 6px; font-size: 9px; font-weight: 700; letter-spacing: .5px;
+    }
+    .trollbox-messages { flex: 1; display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; overflow: hidden; }
+    .troll-msg { font-size: 11px; line-height: 1.4; }
+    .troll-user { font-weight: 700; color: var(--purple2); }
+    .troll-user.bot { color: var(--text3); }
+    .troll-input-wrap {
+      display: flex; gap: 6px; align-items: center;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 10px;
+      margin-top: auto;
+    }
+    .troll-input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: var(--text); font-size: 12px; font-family: inherit;
+    }
+    .troll-input::placeholder { color: var(--text3); }
+    .troll-send {
+      width: 24px; height: 24px; border-radius: 6px;
+      background: var(--purple); border: none; color: #fff;
+      cursor: pointer; font-size: 12px; display: flex;
+      align-items: center; justify-content: center;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    /* ─── responsive ─── */
+    @media (max-width: 900px) {
+      :root { --left-w: 0px; --right-w: 0px; }
+      .sidebar-left, .sidebar-right { display: none; }
+      .main { margin: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <a class="logo" href="#">
+    <div class="logo-icon">⚔</div>
+    <div class="logo-text">BOTA<span>ARENA</span></div>
+  </a>
+
+  <button class="search-btn">🔍</button>
+
+  <div class="nav-stats">
+    <div class="nav-stat">BC EARNED<br><strong>0 BC 🎒</strong></div>
+    <div class="nav-stat">FIGHTERS<br><strong>50 <span class="live-badge">LIVE</span></strong></div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="setTab(this)">Arena</button>
+    <button class="nav-tab" onclick="setTab(this)">Agents</button>
+    <button class="nav-tab create" onclick="setTab(this)">⚔️ Create</button>
+    <button class="nav-tab" onclick="setTab(this)">Marketplace</button>
+    <button class="nav-tab" onclick="setTab(this)">Leaderboard</button>
+  </div>
+
+  <div class="nav-right">
+    <button class="icon-btn">⚙️</button>
+    <button class="icon-btn">🔔<span class="badge">3</span></button>
+    <button class="icon-btn">👛</button>
+    <button class="login-btn">LOGIN</button>
+    <button class="theme-btn">🌙</button>
+  </div>
+</nav>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar-left">
+    <div>
+      <div class="sidebar-section-title"><span class="dot"></span> Live Battles</div>
+
+      <div class="battle-item">
+        <div class="fighter-mini">
+          <div class="avatar-sm">🐸</div>
+          <div class="fname">PEPE</div>
         </div>
+        <div class="vs-badge">VS</div>
+        <div class="fighter-mini">
+          <div class="avatar-sm">🐕</div>
+          <div class="fname">DOGE</div>
+        </div>
+        <button class="wait-btn">WAIT</button>
       </div>
-      <button class="lq-view-btn" onclick="window.location.href='/newpfp/queue.html'">VIEW ALL BATTLES →</button>
-    </aside>
 
-    <!-- Inject lightweight theme toggle for preview/debug (uses existing CSS rules) -->
-    <button
-      class="tb-theme-btn"
-      id="theme-toggle-btn"
-      title="Toggle light/dark mode"
-      style="position:fixed;right:12px;top:12px;z-index:9999;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.45);color:#fff;"
-      onclick="(function(){window.toggleTheme&&window.toggleTheme();})()"
-    >
-      🌙
-    </button>
+      <div class="battle-item">
+        <div class="fighter-mini">
+          <div class="avatar-sm">🔨</div>
+          <div class="fname">BONK</div>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="fighter-mini">
+          <div class="avatar-sm">😺</div>
+          <div class="fname">MOG</div>
+        </div>
+        <button class="wait-btn">WAIT</button>
+      </div>
 
-    <script>
-      (function(){
-        // Apply theme based on localStorage; mirror the simple logic used elsewhere
-        function applyTheme(isLight){
-          var root = document.documentElement;
-          if(isLight) root.classList.add('light'); else root.classList.remove('light');
-          var btn = document.getElementById('theme-toggle-btn');
-          if(btn) btn.textContent = isLight ? '☀️' : '🌙';
-        }
+      <div class="battle-item">
+        <div class="fighter-mini">
+          <div class="avatar-sm">🦊</div>
+          <div class="fname">BRETT</div>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="fighter-mini">
+          <div class="avatar-sm">🐶</div>
+          <div class="fname">WIF</div>
+        </div>
+        <button class="wait-btn">WAIT</button>
+      </div>
 
-        var saved = localStorage.getItem('mk-theme');
-        var isLight = saved === 'light';
-        applyTheme(isLight);
-
-        window.toggleTheme = function(){
-          isLight = !isLight;
-          applyTheme(isLight);
-          localStorage.setItem('mk-theme', isLight ? 'light' : 'dark');
-        };
-      })();
-    </script>
-    <!-- Preview-only in-page sections: Leaderboard, Fighters, Create -->
-    <style>
-      .preview-section {
-        position: fixed !important;
-        left: calc(var(--left-w) + 16px) !important;
-        top: calc(var(--top-h) + 16px) !important;
-        right: calc(var(--right-w) + 16px) !important;
-        bottom: 16px !important;
-        background: transparent !important;
-        border: none !important;
-        border-radius: 0 !important;
-        padding: 20px;
-        color: var(--text-primary);
-        z-index: 99999 !important;
-        display: none;
-        overflow: auto;
-        box-shadow: none !important;
-        pointer-events: auto;
-        min-height: calc(100vh - var(--top-h) - 32px);
-      }
-      .preview-section.active { display: block; }
-      .preview-section h2 { font-family: var(--font-display); font-size: 18px; margin-bottom:12px; }
-      .preview-controller { position: fixed; left: calc(var(--left-w) + 24px); top: calc(var(--top-h) + 24px); z-index: 100000; display:flex; gap:8px; }
-      .preview-controller button { padding:8px 12px; border-radius:8px; background:transparent; border:none; color:var(--text-primary); cursor:pointer; font-weight:700; }
-    </style>
-
-    <div class="preview-controller" aria-hidden="false">
-      <button onclick="showSection('arena')">Arena</button>
-      <button onclick="showSection('leaderboard')">Leaderboard</button>
-      <button onclick="showSection('fighters')">Fighters</button>
+      <button class="view-all-btn">VIEW ALL BATTLES →</button>
     </div>
 
-    <section id="leaderboard" class="preview-section" role="region" aria-label="Leaderboard">
-      <h2>Leaderboard</h2>
-      <div class="lb-list">
-        <!-- Placeholder rows -->
-        <div style="display:flex;align-items:center;gap:10px;padding:8px;">
-          <div style="width:36px;height:36px;border-radius:6px;background:linear-gradient(90deg,#6b21a8,#06b6d4);"></div>
-          <div style="flex:1;font-weight:800;">PEPE</div>
-          <div style="font-weight:800;color:var(--neon-gold);">#1 — 9.2M</div>
+    <!-- Predictions -->
+    <div>
+      <div class="sidebar-section-title">⚡ Live Predictions</div>
+      <div class="predictions-box">
+        <div class="pred-header">
+          <span class="pred-title">Who wins?</span>
+          <span class="timer" id="timer">00:45</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px;">
-          <div style="width:36px;height:36px;border-radius:6px;background:linear-gradient(90deg,#ef4444,#f97316);"></div>
-          <div style="flex:1;font-weight:800;">DOGE</div>
-          <div style="font-weight:800;color:var(--neon-gold);">#2 — 6.1M</div>
+        <div class="fighters-pred">
+          <div class="fighter-pred">
+            <div class="avatar-pred">🤖</div>
+            <div class="pred-name">ROBOT V1</div>
+            <div class="pred-pct" style="color:var(--purple2)">52%</div>
+          </div>
+          <div style="font-size:11px;font-weight:800;color:var(--text3)">VS</div>
+          <div class="fighter-pred">
+            <div class="avatar-pred" style="border-color:var(--orange)">🦾</div>
+            <div class="pred-name">FLOATROBO</div>
+            <div class="pred-pct" style="color:var(--orange)">48%</div>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;padding:8px;">
-          <div style="width:36px;height:36px;border-radius:6px;background:linear-gradient(90deg,#22c55e,#14b8a6);"></div>
-          <div style="flex:1;font-weight:800;">BONK</div>
-          <div style="font-weight:800;color:var(--neon-gold);">#3 — 4.3M</div>
+        <div class="pred-bar-wrap">
+          <div class="pred-bar" style="width:52%"></div>
+        </div>
+        <div class="pred-pool">POOL: <span>128,450 BC</span></div>
+        <div class="pred-btns">
+          <button class="pred-yes">✓ YES</button>
+          <button class="pred-no">✗ NO</button>
         </div>
       </div>
-    </section>
+    </div>
+  </aside>
 
-    <section id="fighters" class="preview-section" role="region" aria-label="Fighters">
-      <h2>Fighters</h2>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;">
-        <div style="width:120px;padding:10px;border-radius:10px;">PEPE<br/><small>Rarity: Common</small></div>
-        <div style="width:120px;padding:10px;border-radius:10px;">DOGE<br/><small>Rarity: Rare</small></div>
-        <div style="width:120px;padding:10px;border-radius:10px;">BONK<br/><small>Rarity: Epic</small></div>
-        <div style="width:120px;padding:10px;border-radius:10px;">MOG<br/><small>Rarity: Legendary</small></div>
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- ARENA -->
+    <div class="arena-wrap">
+      <div class="arena-bg-glow"></div>
+      <div class="arena-grid"></div>
+      <div class="arena-floor"></div>
+
+      <div class="arena-content">
+
+        <!-- Left fighter -->
+        <div class="fighter-panel">
+          <div class="fighter-card-arena">
+            <div class="arena-avatar">🤖</div>
+            <div class="fighter-info-arena">
+              <div class="fighter-name-arena">ROBOT V1</div>
+              <div class="fighter-bc">1,240,000 BC</div>
+              <div style="display:flex;gap:4px;margin-top:6px;">
+                <div class="spell-icon">✏️</div>
+                <div class="spell-icon">🛡</div>
+                <div class="spell-icon">⚡</div>
+                <div class="spell-icon locked">🔒</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center NFT -->
+        <div class="arena-center">
+          <div class="nft-card">🃏</div>
+          <div class="vs-text">⚔ BATTLE IN PROGRESS ⚔</div>
+        </div>
+
+        <!-- Right fighter -->
+        <div class="fighter-panel" style="align-items:flex-end">
+          <div class="fighter-card-arena">
+            <div class="fighter-info-arena" style="text-align:right">
+              <div class="fighter-name-arena">FLOATROBO</div>
+              <div class="fighter-bc">890,000 BC</div>
+              <div style="display:flex;gap:4px;margin-top:6px;justify-content:flex-end;">
+                <div class="spell-icon locked">🔒</div>
+                <div class="spell-icon">⚡</div>
+                <div class="spell-icon">🛡</div>
+                <div class="spell-icon">✏️</div>
+              </div>
+            </div>
+            <div class="arena-avatar" style="border-color:var(--orange)">🦾</div>
+          </div>
+        </div>
       </div>
-    </section>
 
-    <script>
-      (function(){
-        var active = 'arena';
-        function hideAll(){
-          ['leaderboard','fighters','create'].forEach(function(id){
-            var el = document.getElementById(id); if(el) el.classList.remove('active');
-          });
-        }
-        window.showSection = function(name){
-          if(name === 'arena'){
-            hideAll();
-            active = 'arena';
-            return;
-          }
-          hideAll();
-          var el = document.getElementById(name);
-          if(el){ el.classList.add('active'); active = name; }
-        };
-        // expose a small helper to toggle by hash
-        window.addEventListener('hashchange', function(){ var h = location.hash.replace('#',''); if(h) window.showSection(h); });
-      })();
-    </script>
-    <script>
-      // Enable compact arena/HUD sizing for preview by default
-      (function(){
-        try { document.documentElement.classList.add('arena-compact'); } catch(e){}
-      })();
-    </script>
-    <script>
-      // Replace top nav page links with preview section buttons.
-      (function(){
-        var sectionMap = {
-          'Bantah Arena': 'arena',
-          'Agents': 'fighters',
-          '⚔️ Create': 'arena',
-          'Marketplace': 'arena',
-          'Leaderboard': 'leaderboard',
-          'New PFP': 'arena'
-        };
-        var removeHrefs = [
-          '../index.html',
-          '../index.html?page=agents',
-          '../index.html?page=create',
-          '../index.html?page=marketplace',
-          '../index.html?page=leaderboard',
-          '#'
-        ];
-        var removeText = new RegExp('^(' + Object.keys(sectionMap).map(function(label){ return label.replace(/[-/\\^$*+?.()|[\]{}]/g,'\\$&'); }).join('|') + ')$', 'i');
+      <!-- Spells bottom row -->
+      <div class="spells-row">
+        <div class="spells-group">
+          <div class="spell-btn">
+            <div class="spell-circle">🧪</div>
+            <div class="spell-label">Potion</div>
+          </div>
+          <div class="spell-btn">
+            <div class="spell-circle">🛡</div>
+            <div class="spell-label">Shield</div>
+          </div>
+          <div class="spell-btn">
+            <div class="spell-circle">⚡</div>
+            <div class="spell-label">Thunder</div>
+          </div>
+          <div class="spell-btn">
+            <div class="spell-circle locked">🔒</div>
+            <div class="spell-label">Locked</div>
+          </div>
+        </div>
+        <div class="spells-group">
+          <div class="spell-btn">
+            <div class="spell-circle locked">🔒</div>
+            <div class="spell-label">Locked</div>
+          </div>
+          <div class="spell-btn">
+            <div class="spell-circle">⚡</div>
+            <div class="spell-label">Thunder</div>
+          </div>
+          <div class="spell-btn">
+            <div class="spell-circle">🛡</div>
+            <div class="spell-label">Shield</div>
+          </div>
+          <div class="spell-btn">
+            <div class="spell-circle">🧪</div>
+            <div class="spell-label">Potion</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-        function buildButton(label, section){
-          var btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'tb-nav-item';
-          btn.textContent = label;
-          btn.style.cursor = 'pointer';
-          btn.onclick = function(){ window.showSection(section); };
-          return btn;
-        }
+    <!-- FIGHTER CARDS ROW -->
+    <div class="fighter-cards-row">
 
-        function interceptAnchor(anchor){
-          if(!anchor) return false;
-          var href = anchor.getAttribute('href') || '';
-          var text = (anchor.textContent || '').trim();
-          var section = sectionMap[text];
-          if(removeHrefs.includes(href) || section){
-            window.showSection(section || 'arena');
-            return true;
-          }
-          if(/index\.html\?page=/.test(href)){
-            window.showSection('arena');
-            return true;
-          }
-          return false;
-        }
+      <div class="fighter-card">
+        <div class="rank-badge">1</div>
+        <div class="fc-header">
+          <div class="fc-avatar">🐸</div>
+          <div class="fc-meta">
+            <div class="fc-name">PEPE</div>
+            <div class="fc-holders">👥 676 Holders</div>
+          </div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP $12.5M</div>
+          <div class="fc-stat">24H <span>+85.2%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn">● WATCH 2 EARN</button>
+      </div>
 
-        function installNavInterceptor(nav){
-          if(nav.__previewIntercepted) return;
-          nav.__previewIntercepted = true;
-          nav.addEventListener('click', function(event){
-            var anchor = event.target.closest('a');
-            if(!anchor || !nav.contains(anchor)) return;
-            if(interceptAnchor(anchor)){
-              event.preventDefault();
-              event.stopPropagation();
-            }
-          }, true);
-        }
+      <div class="fighter-card">
+        <div class="rank-badge" style="background:var(--orange)">2</div>
+        <div class="fc-header">
+          <div class="fc-avatar">🐕</div>
+          <div class="fc-meta">
+            <div class="fc-name">DOGE</div>
+            <div class="fc-holders">👥 512 Holders</div>
+          </div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP $8.3M</div>
+          <div class="fc-stat">24H <span>+63.1%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn purple">● WATCH 2 EARN</button>
+      </div>
 
-        document.addEventListener('click', function(event){
-          var anchor = event.target.closest('a');
-          if(!anchor) return;
-          if(interceptAnchor(anchor)){
-            event.preventDefault();
-            event.stopPropagation();
-          }
-        }, true);
+      <div class="fighter-card">
+        <div class="rank-badge" style="background:var(--green)">3</div>
+        <div class="fc-header">
+          <div class="fc-avatar">🔨</div>
+          <div class="fc-meta">
+            <div class="fc-name">BONK</div>
+            <div class="fc-holders">👥 421 Holders</div>
+          </div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP $5.1M</div>
+          <div class="fc-stat">24H <span>+41.6%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn">● WATCH 2 EARN</button>
+      </div>
 
-        function replaceNavItems(){
-          var nav = document.getElementById('tb-nav');
-          if(!nav) return;
+      <div class="fighter-card">
+        <div class="rank-badge" style="background:var(--red)">4</div>
+        <div class="fc-header">
+          <div class="fc-avatar">😺</div>
+          <div class="fc-meta">
+            <div class="fc-name">MOG</div>
+            <div class="fc-holders">👥 289 Holders</div>
+          </div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP $3.2M</div>
+          <div class="fc-stat">24H <span class="neg">-28.4%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn purple">● WATCH 2 EARN</button>
+      </div>
 
-          var removed = false;
-          nav.querySelectorAll('a').forEach(function(a){
-            var href = a.getAttribute('href') || '';
-            var text = (a.textContent || '').trim();
-            if(removeHrefs.includes(href) || removeText.test(text)){
-              a.remove();
-              removed = true;
-            }
-          });
+    </div>
+  </main>
 
-          if(!nav.querySelector('[data-preview-section]')){
-            if(removed){
-              nav.appendChild(buildButton('Arena', 'arena'));
-              nav.appendChild(buildButton('Leaderboard', 'leaderboard'));
-              nav.appendChild(buildButton('Fighters', 'fighters'));
-              nav.querySelectorAll('button').forEach(function(btn){
-                btn.setAttribute('data-preview-section', 'true');
-              });
-            }
-          }
+  <!-- RIGHT SIDEBAR -->
+  <aside class="sidebar-right">
+    <div class="sidebar-section-title">🏆 Leaderboard</div>
 
-          installNavInterceptor(nav);
-        }
+    <div class="lb-item">
+      <div class="lb-rank gold">🥇</div>
+      <div class="lb-avatar">🐕</div>
+      <div class="lb-info">
+        <div class="lb-name">Dogwifhat</div>
+        <div class="lb-meta"><span class="wins">42 W</span> · 6,200 BC</div>
+      </div>
+      <div class="lb-bc">👑</div>
+    </div>
 
-        document.addEventListener('DOMContentLoaded', replaceNavItems);
-        var tries = 0;
-        var interval = setInterval(function(){
-          replaceNavItems();
-          tries += 1;
-          if(tries > 50) clearInterval(interval);
-        }, 200);
+    <div class="lb-item">
+      <div class="lb-rank silver">🥈</div>
+      <div class="lb-avatar">🔨</div>
+      <div class="lb-info">
+        <div class="lb-name">Bonk</div>
+        <div class="lb-meta"><span class="wins">35 W</span> · 3,000 BC</div>
+      </div>
+      <div class="lb-bc">⏳</div>
+    </div>
 
-        var observer = new MutationObserver(function(){ replaceNavItems(); });
-        observer.observe(document.body, { childList: true, subtree: true });
-      })();
-    </script>
+    <div class="lb-item">
+      <div class="lb-rank bronze">🥉</div>
+      <div class="lb-avatar">🐧</div>
+      <div class="lb-info">
+        <div class="lb-name">Pudgy Penguin</div>
+        <div class="lb-meta"><span class="wins">35 W</span> · 3,500 BC</div>
+      </div>
+      <div class="lb-bc">⚡</div>
+    </div>
 
-  </body>
+    <div class="lb-divider"></div>
+
+    <div class="lb-item">
+      <div class="lb-rank" style="color:var(--text3)">4</div>
+      <div class="lb-avatar">🐸</div>
+      <div class="lb-info">
+        <div class="lb-name">PepeLord</div>
+        <div class="lb-meta"><span class="wins">28 W</span> · 2,800 BC</div>
+      </div>
+    </div>
+
+    <div class="lb-item">
+      <div class="lb-rank" style="color:var(--text3)">5</div>
+      <div class="lb-avatar">🤖</div>
+      <div class="lb-info">
+        <div class="lb-name">RobotX</div>
+        <div class="lb-meta"><span class="wins">22 W</span> · 2,100 BC</div>
+      </div>
+    </div>
+
+    <!-- Trollbox -->
+    <div class="trollbox-section">
+      <div class="trollbox-header">
+        <div class="trollbox-title">Trollbox</div>
+        <div class="live-pill">LIVE</div>
+      </div>
+      <div class="trollbox-messages" id="trollbox">
+        <div class="troll-msg"><span class="troll-user">suchlow69:</span> WAGMI DOGE ARMY 🐕</div>
+        <div class="troll-msg"><span class="troll-user">frog_lord:</span> JUST APED INTO PEPE 🐸</div>
+        <div class="troll-msg"><span class="troll-user">degen420:</span> WHO ELSE IS WATCHING</div>
+        <div class="troll-msg"><span class="troll-user">whale_x:</span> ALL IN ON ROBOT V1 💎</div>
+        <div class="troll-msg"><span class="troll-user bot">bantah_bot:</span> ✗ BATTLE STARTED! ROBOT V1 vs FLOATROBO — FIGHT!</div>
+      </div>
+      <div class="troll-input-wrap">
+        <input class="troll-input" type="text" placeholder="Say something..." id="troll-in" onkeydown="sendMsg(event)" />
+        <button class="troll-send" onclick="sendMsgBtn()">↑</button>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+  // Nav tab switching
+  function setTab(el) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // Countdown timer
+  let secs = 45;
+  setInterval(() => {
+    secs = secs > 0 ? secs - 1 : 59;
+    const m = String(Math.floor(secs / 60)).padStart(2, '0');
+    const s = String(secs % 60).padStart(2, '0');
+    const el = document.getElementById('timer');
+    if (el) el.textContent = m + ':' + s;
+  }, 1000);
+
+  // Trollbox
+  const mockMsgs = [
+    ['kek_enjoyer', 'PEPE ARMY NO CAP 🐸'],
+    ['degen420', 'LFG ROBOT V1 🤖'],
+    ['whale_x', 'THIS IS INSANE 🤯'],
+    ['moon_chaser', 'PUMP IT 🚀'],
+    ['suchlow69', 'WAGMI 💪'],
+    ['frog_lord', 'NGL this is wild'],
+  ];
+  let msgIdx = 0;
+  setInterval(() => {
+    const [user, msg] = mockMsgs[msgIdx % mockMsgs.length];
+    msgIdx++;
+    const box = document.getElementById('trollbox');
+    if (!box) return;
+    const div = document.createElement('div');
+    div.className = 'troll-msg';
+    div.innerHTML = `<span class="troll-user">${user}:</span> ${msg}`;
+    box.appendChild(div);
+    if (box.children.length > 8) box.removeChild(box.children[0]);
+  }, 3500);
+
+  function sendMsg(e) { if (e.key === 'Enter') sendMsgBtn(); }
+  function sendMsgBtn() {
+    const inp = document.getElementById('troll-in');
+    const box = document.getElementById('trollbox');
+    if (!inp || !inp.value.trim() || !box) return;
+    const div = document.createElement('div');
+    div.className = 'troll-msg';
+    div.innerHTML = `<span class="troll-user" style="color:var(--green2)">you:</span> ${inp.value.trim()}`;
+    box.appendChild(div);
+    if (box.children.length > 8) box.removeChild(box.children[0]);
+    inp.value = '';
+  }
+</script>
+</body>
 </html>
