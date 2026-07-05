@@ -265,7 +265,7 @@
         radial-gradient(ellipse at center,
           rgb(var(--bb-primary-rgb) / 0.2) 0%,
           var(--bb-background) 70%);
-      flex: 1; min-height: 220px; max-height: 300px;
+      flex: 1; min-height: 170px; max-height: 230px;
       display: flex; flex-direction: column; overflow: hidden;
     }
     .arena-bg-glow {
@@ -292,39 +292,39 @@
     .arena-content {
       position: relative; z-index: 2;
       display: flex; align-items: stretch;
-      flex: 1; padding: 16px; gap: 16px;
+      flex: 1; padding: 10px 12px; gap: 10px;
     }
 
     /* fighter panel */
     .fighter-panel {
-      display: flex; flex-direction: column; gap: 10px;
-      width: 160px; flex-shrink: 0;
+      display: flex; flex-direction: column; gap: 6px;
+      width: 140px; flex-shrink: 0;
     }
     .fighter-card-arena {
       background: rgb(var(--bb-background-rgb) / 0.7);
       border: 1px solid var(--bb-border);
-      border-radius: 12px; padding: 10px;
-      display: flex; align-items: center; gap: 8px;
+      border-radius: 10px; padding: 7px;
+      display: flex; align-items: center; gap: 6px;
       backdrop-filter: blur(8px);
     }
     .arena-avatar {
-      width: 48px; height: 48px; border-radius: 50%;
+      width: 36px; height: 36px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      font-size: 28px;
+      font-size: 20px;
       border: 2px solid hsl(var(--bb-primary));
       flex-shrink: 0; background: var(--bb-card);
     }
     .arena-avatar.alt { border-color: var(--extra-orange); }
     .fighter-info-arena { flex: 1; min-width: 0; }
-    .fighter-name-arena { font-size: 12px; font-weight: 800; color: var(--bb-foreground); }
-    .fighter-bc { font-size: 11px; color: var(--extra-gold); font-weight: 700; margin-top: 2px; }
-    .spell-icons { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+    .fighter-name-arena { font-size: 11px; font-weight: 800; color: var(--bb-foreground); }
+    .fighter-bc { font-size: 10px; color: var(--extra-gold); font-weight: 700; margin-top: 1px; }
+    .spell-icons { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
     .spell-icon {
-      width: 28px; height: 28px; border-radius: 50%;
+      width: 20px; height: 20px; border-radius: 50%;
       background: rgb(var(--bb-primary-rgb) / 0.2);
       border: 1px solid hsl(var(--bb-primary));
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; cursor: pointer; transition: all .15s;
+      font-size: 10px; cursor: pointer; transition: all .15s;
     }
     .spell-icon:hover { background: rgb(var(--bb-primary-rgb) / 0.45); transform: scale(1.1); }
     .spell-icon.locked {
@@ -335,46 +335,46 @@
     /* center nft */
     .arena-center {
       flex: 1; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 10px;
+      align-items: center; justify-content: center; gap: 6px;
     }
     .nft-card {
-      width: 130px; height: 130px; border-radius: 16px;
+      width: 84px; height: 84px; border-radius: 12px;
       border: 2px solid hsl(var(--bb-primary));
       box-shadow:
-        0 0 40px rgb(var(--bb-primary-rgb) / 0.5),
-        0 0 80px rgb(var(--bb-primary-rgb) / 0.2);
+        0 0 24px rgb(var(--bb-primary-rgb) / 0.5),
+        0 0 48px rgb(var(--bb-primary-rgb) / 0.2);
       background: var(--bb-card);
       display: flex; align-items: center; justify-content: center;
-      font-size: 64px; position: relative; overflow: hidden;
+      font-size: 42px; position: relative; overflow: hidden;
     }
     .nft-card::before {
       content: ''; position: absolute; inset: 0;
       background: linear-gradient(135deg, rgb(var(--bb-primary-rgb) / 0.25), transparent 60%);
     }
     .vs-text {
-      font-size: 11px; font-weight: 800; letter-spacing: 2px;
+      font-size: 10px; font-weight: 800; letter-spacing: 1.5px;
       color: var(--bb-muted-foreground); text-transform: uppercase;
     }
 
     /* spells bottom */
     .spells-row {
       display: flex; justify-content: space-between;
-      padding: 10px 16px;
+      padding: 6px 12px;
       background: rgb(var(--bb-background-rgb) / 0.6);
       border-top: 1px solid var(--bb-border);
-      gap: 10px;
+      gap: 8px;
     }
-    .spells-group { display: flex; gap: 8px; align-items: center; }
+    .spells-group { display: flex; gap: 6px; align-items: center; }
     .spell-btn {
       display: flex; flex-direction: column;
-      align-items: center; gap: 3px; cursor: pointer;
+      align-items: center; gap: 2px; cursor: pointer;
     }
     .spell-circle {
-      width: 40px; height: 40px; border-radius: 50%;
+      width: 30px; height: 30px; border-radius: 50%;
       background: rgb(var(--bb-primary-rgb) / 0.18);
       border: 1.5px solid hsl(var(--bb-primary));
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; transition: all .15s;
+      font-size: 14px; transition: all .15s;
     }
     .spell-circle:hover {
       background: rgb(var(--bb-primary-rgb) / 0.4); transform: scale(1.1);
@@ -384,7 +384,7 @@
       border-color: var(--bb-border); opacity: .45;
     }
     .spell-label {
-      font-size: 8px; font-weight: 600;
+      font-size: 7px; font-weight: 600;
       color: var(--bb-muted-foreground);
       letter-spacing: .5px; text-transform: uppercase;
     }
