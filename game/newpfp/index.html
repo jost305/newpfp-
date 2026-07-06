@@ -1088,6 +1088,8 @@
   </div>
   <div class="nav-tabs">
     <button class="nav-tab active" data-view="arena" onclick="setTab(this)">Arena</button>
+    <button class="nav-tab" data-view="pumpfighters" onclick="setTab(this)">🚀 PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)">🖼 PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this)">Agents</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this)">⚔️ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this)">Marketplace</button>
@@ -1096,6 +1098,8 @@
   <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
   <div class="mobile-nav-dropdown" id="mobile-nav-dropdown">
     <button class="nav-tab active" data-view="arena" onclick="setTab(this); closeMobileMenu();">Arena</button>
+    <button class="nav-tab" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">🚀 PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();">🖼 PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">Agents</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">⚔️ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this); closeMobileMenu();">Marketplace</button>
@@ -1326,6 +1330,232 @@
         </div>
         <div class="fc-rewards">🏆 <span class="fc-rewards-val">576</span> BC Rewards</div>
         <button class="watch-btn primary" onclick="watchToEarn('mog', this)">● WATCH 2 EARN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PUMPFIGHTERS VIEW -->
+  <div id="view-pumpfighters" class="tab-view">
+    <div class="arena-wrap">
+      <div class="arena-bg-glow"></div>
+      <div class="arena-grid"></div>
+      <div class="arena-floor"></div>
+      <div class="arena-content">
+        <div class="fighter-panel">
+          <div class="fighter-card-arena">
+            <div class="arena-avatar" id="pf-left-avatar">🚀</div>
+            <div class="fighter-info-arena">
+              <div class="fighter-name-arena" id="pf-left-name">PUMP ALPHA</div>
+              <div class="fighter-bc" id="pf-left-bc">1,240,000 BC</div>
+              <div class="spell-icons">
+                <div class="spell-icon">✏️</div>
+                <div class="spell-icon">🛡</div>
+                <div class="spell-icon">⚡</div>
+                <div class="spell-icon locked">🔒</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="arena-center">
+          <div class="nft-card"><img src="/newpfp/assets/bota-logo.jpg" alt="PumpFighters"></div>
+          <div class="vs-text">🚀 PUMPFIGHTERS — COMING SOON 🚀</div>
+        </div>
+        <div class="fighter-panel" style="align-items:flex-end">
+          <div class="fighter-card-arena">
+            <div class="fighter-info-arena" style="text-align:right">
+              <div class="fighter-name-arena" id="pf-right-name">PUMP BETA</div>
+              <div class="fighter-bc" id="pf-right-bc">890,000 BC</div>
+              <div class="spell-icons" style="justify-content:flex-end">
+                <div class="spell-icon locked">🔒</div>
+                <div class="spell-icon">⚡</div>
+                <div class="spell-icon">🛡</div>
+                <div class="spell-icon">✏️</div>
+              </div>
+            </div>
+            <div class="arena-avatar alt" id="pf-right-avatar">💎</div>
+          </div>
+        </div>
+      </div>
+      <div class="spells-row">
+        <div class="spells-group">
+          <div class="spell-btn"><div class="spell-circle">🧪</div><div class="spell-label">Potion</div></div>
+          <div class="spell-btn"><div class="spell-circle">🛡</div><div class="spell-label">Shield</div></div>
+          <div class="spell-btn"><div class="spell-circle">⚡</div><div class="spell-label">Thunder</div></div>
+          <div class="spell-btn"><div class="spell-circle locked">🔒</div><div class="spell-label">Locked</div></div>
+        </div>
+        <div class="spells-group">
+          <div class="spell-btn"><div class="spell-circle locked">🔒</div><div class="spell-label">Locked</div></div>
+          <div class="spell-btn"><div class="spell-circle">⚡</div><div class="spell-label">Thunder</div></div>
+          <div class="spell-btn"><div class="spell-circle">🛡</div><div class="spell-label">Shield</div></div>
+          <div class="spell-btn"><div class="spell-circle">🧪</div><div class="spell-label">Potion</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="fighter-cards-row">
+      <div class="fighter-card" data-fc="pump1">
+        <div class="rank-badge">1</div>
+        <div class="fc-header">
+          <div class="fc-avatar">🚀</div>
+          <div class="fc-meta"><div class="fc-name">PUMP ALPHA</div><div class="fc-holders">👥 676 Holders</div></div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP <span class="fc-mcap-val">$12.5M</span></div>
+          <div class="fc-stat">24H <span class="pos">+85.2%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn">● WATCH 2 EARN</button>
+      </div>
+      <div class="fighter-card" data-fc="pump2">
+        <div class="rank-badge orange">2</div>
+        <div class="fc-header">
+          <div class="fc-avatar">💎</div>
+          <div class="fc-meta"><div class="fc-name">GEM LORD</div><div class="fc-holders">👥 512 Holders</div></div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP <span class="fc-mcap-val">$8.3M</span></div>
+          <div class="fc-stat">24H <span class="pos">+63.1%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn primary">● WATCH 2 EARN</button>
+      </div>
+      <div class="fighter-card" data-fc="pump3">
+        <div class="rank-badge secondary">3</div>
+        <div class="fc-header">
+          <div class="fc-avatar">🌙</div>
+          <div class="fc-meta"><div class="fc-name">MOONSHOT</div><div class="fc-holders">👥 421 Holders</div></div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP <span class="fc-mcap-val">$5.1M</span></div>
+          <div class="fc-stat">24H <span class="pos">+41.6%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn">● WATCH 2 EARN</button>
+      </div>
+      <div class="fighter-card" data-fc="pump4">
+        <div class="rank-badge destructive">4</div>
+        <div class="fc-header">
+          <div class="fc-avatar">🔥</div>
+          <div class="fc-meta"><div class="fc-name">FLAMECOIN</div><div class="fc-holders">👥 289 Holders</div></div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP <span class="fc-mcap-val">$3.2M</span></div>
+          <div class="fc-stat">24H <span class="neg">-28.4%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn primary">● WATCH 2 EARN</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PFP MODE VIEW -->
+  <div id="view-pfpmode" class="tab-view">
+    <div class="arena-wrap">
+      <div class="arena-bg-glow"></div>
+      <div class="arena-grid"></div>
+      <div class="arena-floor"></div>
+      <div class="arena-content">
+        <div class="fighter-panel">
+          <div class="fighter-card-arena">
+            <div class="arena-avatar" id="pfp-left-avatar">🖼</div>
+            <div class="fighter-info-arena">
+              <div class="fighter-name-arena" id="pfp-left-name">APE #3429</div>
+              <div class="fighter-bc" id="pfp-left-bc">1,240,000 BC</div>
+              <div class="spell-icons">
+                <div class="spell-icon">✏️</div>
+                <div class="spell-icon">🛡</div>
+                <div class="spell-icon">⚡</div>
+                <div class="spell-icon locked">🔒</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="arena-center">
+          <div class="nft-card"><img src="/newpfp/assets/bota-logo.jpg" alt="PFP Mode"></div>
+          <div class="vs-text">🖼 PFP MODE — COMING SOON 🖼</div>
+        </div>
+        <div class="fighter-panel" style="align-items:flex-end">
+          <div class="fighter-card-arena">
+            <div class="fighter-info-arena" style="text-align:right">
+              <div class="fighter-name-arena" id="pfp-right-name">PUNK #7804</div>
+              <div class="fighter-bc" id="pfp-right-bc">890,000 BC</div>
+              <div class="spell-icons" style="justify-content:flex-end">
+                <div class="spell-icon locked">🔒</div>
+                <div class="spell-icon">⚡</div>
+                <div class="spell-icon">🛡</div>
+                <div class="spell-icon">✏️</div>
+              </div>
+            </div>
+            <div class="arena-avatar alt" id="pfp-right-avatar">👾</div>
+          </div>
+        </div>
+      </div>
+      <div class="spells-row">
+        <div class="spells-group">
+          <div class="spell-btn"><div class="spell-circle">🧪</div><div class="spell-label">Potion</div></div>
+          <div class="spell-btn"><div class="spell-circle">🛡</div><div class="spell-label">Shield</div></div>
+          <div class="spell-btn"><div class="spell-circle">⚡</div><div class="spell-label">Thunder</div></div>
+          <div class="spell-btn"><div class="spell-circle locked">🔒</div><div class="spell-label">Locked</div></div>
+        </div>
+        <div class="spells-group">
+          <div class="spell-btn"><div class="spell-circle locked">🔒</div><div class="spell-label">Locked</div></div>
+          <div class="spell-btn"><div class="spell-circle">⚡</div><div class="spell-label">Thunder</div></div>
+          <div class="spell-btn"><div class="spell-circle">🛡</div><div class="spell-label">Shield</div></div>
+          <div class="spell-btn"><div class="spell-circle">🧪</div><div class="spell-label">Potion</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="fighter-cards-row">
+      <div class="fighter-card" data-fc="pfp1">
+        <div class="rank-badge">1</div>
+        <div class="fc-header">
+          <div class="fc-avatar">🖼</div>
+          <div class="fc-meta"><div class="fc-name">APE #3429</div><div class="fc-holders">👥 676 Holders</div></div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP <span class="fc-mcap-val">$12.5M</span></div>
+          <div class="fc-stat">24H <span class="pos">+85.2%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn">● WATCH 2 EARN</button>
+      </div>
+      <div class="fighter-card" data-fc="pfp2">
+        <div class="rank-badge orange">2</div>
+        <div class="fc-header">
+          <div class="fc-avatar">👾</div>
+          <div class="fc-meta"><div class="fc-name">PUNK #7804</div><div class="fc-holders">👥 512 Holders</div></div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP <span class="fc-mcap-val">$8.3M</span></div>
+          <div class="fc-stat">24H <span class="pos">+63.1%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn primary">● WATCH 2 EARN</button>
+      </div>
+      <div class="fighter-card" data-fc="pfp3">
+        <div class="rank-badge secondary">3</div>
+        <div class="fc-header">
+          <div class="fc-avatar">🐱</div>
+          <div class="fc-meta"><div class="fc-name">COOL CAT #22</div><div class="fc-holders">👥 421 Holders</div></div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP <span class="fc-mcap-val">$5.1M</span></div>
+          <div class="fc-stat">24H <span class="pos">+41.6%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn">● WATCH 2 EARN</button>
+      </div>
+      <div class="fighter-card" data-fc="pfp4">
+        <div class="rank-badge destructive">4</div>
+        <div class="fc-header">
+          <div class="fc-avatar">🤖</div>
+          <div class="fc-meta"><div class="fc-name">ROBOT #9001</div><div class="fc-holders">👥 289 Holders</div></div>
+        </div>
+        <div class="fc-stats">
+          <div class="fc-stat">MCAP <span class="fc-mcap-val">$3.2M</span></div>
+          <div class="fc-stat">24H <span class="neg">-28.4%</span></div>
+        </div>
+        <div class="fc-rewards">🏆 576 BC Rewards</div>
+        <button class="watch-btn primary">● WATCH 2 EARN</button>
       </div>
     </div>
   </div>
