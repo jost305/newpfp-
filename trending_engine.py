@@ -70,6 +70,11 @@ _state = {
 _lock = threading.Lock()
 _refresh_start_time = None
 
+# In-memory fighter store (used when DB is unavailable)
+_mem_fighters = {}       # unique_id → fighter dict
+_mem_battles = []        # recent battle results
+_mem_stats = {}          # unique_id → {wins, losses, win_streak, total_bc_earned}
+
 
 def get_state():
     """Return a snapshot of the current engine state (safe to JSON-serialise)."""
@@ -429,6 +434,35 @@ def generate_fighter_profile(coin):
 # PART 4 — IMAGE PIPELINE  (Pillow circular crop)
 # ─────────────────────────────────────────────────────────────────────────────
 
+_CHAIN_COLORS = {
+    "solana": ("#9945FF", "#14F195"),
+    "bsc":    ("#F3BA2F", "#0B0E11"),
+    "base":   ("#0052FF", "#FFFFFF"),
+}
+
+def _fallback_avatar_svg(name, chain="solana"):
+    """Generate an SVG circular avatar with gradient + initial letter."""
+    c1, c2 = _CHAIN_COLORS.get(chain, ("#6366F1", "#8B5CF6"))
+    letter = (name or "?")[0].upper()
+    svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="{c1}"/>
+          <stop offset="100%" stop-color="{c2}"/>
+        </linearGradient>
+        <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <circle cx="100" cy="100" r="96" fill="url(#g)" stroke="{c1}" stroke-width="3" filter="url(#glow)"/>
+      <text x="100" y="115" text-anchor="middle" fill="white" font-size="72" font-weight="800"
+            font-family="system-ui,sans-serif" style="text-shadow:0 2px 8px rgba(0,0,0,0.5)">{letter}</text>
+    </svg>'''
+    import base64 as b64mod
+    encoded = b64mod.b64encode(svg.encode('utf-8')).decode('utf-8')
+    return f"data:image/svg+xml;base64,{encoded}"
+
+
 def process_coin_logo(image_uri):
     """
     Fetch a token image URL, crop to circle at AVATAR_SIZE×AVATAR_SIZE,
@@ -782,7 +816,7 @@ def update_leaderboard(result):
 
 def get_leaderboard(chain="all", limit=20):
     chain_filter = "" if chain == "all" else f"AND f.chain = '{chain}'"
-    return _query(f"""
+    res = _query(f"""
         SELECT
             f.unique_id, f.chain, f.display_name, f.full_name,
             f.image_uri, f.processed_avatar,
@@ -805,9 +839,22 @@ def get_leaderboard(chain="all", limit=20):
         ORDER BY COALESCE(s.global_rank, 999) ASC
         LIMIT %s
     """, (limit,))
+    
+    if not res:
+        # Fallback to in-memory state if DB is empty
+        fighters = _state.get("fighters", [])
+        if chain != "all":
+            fighters = [f for f in fighters if f.get("chain") == chain]
+        # Sort by global_rank if available, else market cap
+        fighters.sort(key=lambda x: x.get("global_rank", 999))
+        return fighters[:limit]
+        
+    return res
 
 
 def get_recent_battles(limit=20):
+    if not (_HAS_DB and DATABASE_URL):
+        return _mem_battles[-limit:]
     return _query("""
         SELECT winner_name, winner_chain, loser_name, loser_chain,
                match_type, rounds_fought, bc_pool, created_at
@@ -821,12 +868,29 @@ def get_recent_battles(limit=20):
 # PART 9 — ORCHESTRATOR  (full 5-min refresh cycle)
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _mem_update_leaderboard(result):
+    """In-memory leaderboard update when DB is unavailable."""
+    winner_id = result["winner"].get("unique_id")
+    loser_id  = result["loser"].get("unique_id")
+    bc        = result["bc_pool"]
+
+    if winner_id:
+        s = _mem_stats.setdefault(winner_id, {"wins":0,"losses":0,"win_streak":0,"total_bc_earned":0})
+        s["wins"] += 1
+        s["win_streak"] += 1
+        s["total_bc_earned"] += bc
+    if loser_id:
+        s = _mem_stats.setdefault(loser_id, {"wins":0,"losses":0,"win_streak":0,"total_bc_earned":0})
+        s["losses"] += 1
+        s["win_streak"] = 0
+
+
 def _refresh_cycle():
     """
     One full cycle:
     1. Fetch coins from 3 chains
     2. Generate + upsert fighter profiles
-    3. Process logos (circular avatars)
+    3. Process logos (circular avatars) with SVG fallback
     4. Build match queue
     5. Simulate battles + update leaderboard
     6. Update in-memory state
@@ -838,6 +902,8 @@ def _refresh_cycle():
         _state["is_refreshing"] = True
         _state["error"] = None
     _refresh_start_time = time.time()
+
+    has_db = bool(_HAS_DB and DATABASE_URL)
 
     try:
         # ── 1. Fetch all chains ───────────────────────────────────────────────
@@ -853,38 +919,53 @@ def _refresh_cycle():
         # ── 2. Generate fighter profiles ──────────────────────────────────────
         new_fighters = [generate_fighter_profile(c) for c in all_coins]
 
-        # ── 3. Process logos (run in parallel via threads for speed) ──────────
+        # ── 3. Process logos with SVG fallback ────────────────────────────────
         import concurrent.futures
         def process_one(f):
             avatar = process_coin_logo(f["image_uri"])
+            if not avatar:
+                avatar = _fallback_avatar_svg(f["display_name"], f["chain"])
             f["processed_avatar"] = avatar
             return f
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
             new_fighters = list(pool.map(process_one, new_fighters))
 
-        # ── 4. Upsert to DB, retire stale ────────────────────────────────────
-        keep_ids = [f["unique_id"] for f in new_fighters]
-        retire_stale_fighters(keep_ids)
-        for f in new_fighters:
-            upsert_fighter_profile(f)
+        # ── 4. DB path: upsert + reload ──────────────────────────────────────
+        if has_db:
+            keep_ids = [f["unique_id"] for f in new_fighters]
+            retire_stale_fighters(keep_ids)
+            for f in new_fighters:
+                upsert_fighter_profile(f)
 
-        # ── 5. Reload from DB (has real win/loss stats) ───────────────────────
-        db_fighters = load_active_fighters_from_db()
-
-        # Merge processed_avatar into db_fighters (DB may not have it yet)
+        # ── 5. Build fighter list (DB or in-memory) ───────────────────────────
         avatar_map = {f["unique_id"]: f.get("processed_avatar") for f in new_fighters}
-        for f in db_fighters:
-            uid = f.get("unique_id") or f.get("fighter_unique_id", "")
-            if not f.get("processed_avatar") and uid in avatar_map:
-                f["processed_avatar"] = avatar_map[uid]
-            # Normalise fields (DB columns use underscores, stats join uses alias)
-            for k in ["wins", "losses", "win_streak", "global_rank", "chain_rank"]:
-                if f.get(k) is None:
-                    f[k] = 0 if k != "global_rank" and k != "chain_rank" else 999
+
+        if has_db:
+            db_fighters = load_active_fighters_from_db()
+            for f in db_fighters:
+                uid = f.get("unique_id") or f.get("fighter_unique_id", "")
+                if not f.get("processed_avatar") and uid in avatar_map:
+                    f["processed_avatar"] = avatar_map[uid]
+                for k in ["wins", "losses", "win_streak", "global_rank", "chain_rank"]:
+                    if f.get(k) is None:
+                        f[k] = 0 if k not in ("global_rank", "chain_rank") else 999
+            active_fighters = db_fighters
+        else:
+            # In-memory path: merge stats from _mem_stats
+            for f in new_fighters:
+                uid = f["unique_id"]
+                _mem_fighters[uid] = f
+                stats = _mem_stats.get(uid, {})
+                f["wins"]        = stats.get("wins", 0)
+                f["losses"]      = stats.get("losses", 0)
+                f["win_streak"]  = stats.get("win_streak", 0)
+                f["global_rank"] = 999
+                f["chain_rank"]  = 999
+            active_fighters = new_fighters
 
         # ── 6. Build match queue + simulate battles ───────────────────────────
-        match_queue = build_match_queue(db_fighters)
+        match_queue = build_match_queue(active_fighters)
         battle_results = []
         live_match = None
 
@@ -892,8 +973,11 @@ def _refresh_cycle():
             result = simulate_battle(match["fighter_a"], match["fighter_b"])
             result["match_type"] = match["match_type"]
             result["label"]      = match["label"]
-            save_battle_result(result, match["match_type"])
-            update_leaderboard(result)
+            if has_db:
+                save_battle_result(result, match["match_type"])
+                update_leaderboard(result)
+            else:
+                _mem_update_leaderboard(result)
             battle_results.append({
                 "winner_name":  result["winner"]["display_name"],
                 "winner_chain": result["winner"]["chain"],
@@ -905,6 +989,12 @@ def _refresh_cycle():
                 "bc_pool":      result["bc_pool"],
                 "created_at":   result["created_at"],
             })
+
+        # Accumulate in-memory battles
+        if not has_db:
+            _mem_battles.extend(battle_results)
+            while len(_mem_battles) > MAX_RECENT_BATTLES:
+                _mem_battles.pop(0)
 
         # Pick one match as the "live" display match (prefer chain rivalry)
         if match_queue:
@@ -920,21 +1010,38 @@ def _refresh_cycle():
                     }
                     break
 
-        # ── 7. Reload fresh stats + update state ─────────────────────────────
-        final_fighters = load_active_fighters_from_db()
-        for f in final_fighters:
-            uid = f.get("unique_id", "")
-            if not f.get("processed_avatar") and uid in avatar_map:
-                f["processed_avatar"] = avatar_map[uid]
-            for k in ["wins", "losses", "win_streak", "global_rank", "chain_rank"]:
-                if f.get(k) is None:
-                    f[k] = 0 if k not in ("global_rank", "chain_rank") else 999
-
-        recent = get_recent_battles(MAX_RECENT_BATTLES)
-        # Convert datetime objects to ISO strings for JSON
-        for r in recent:
-            if r.get("created_at") and hasattr(r["created_at"], "isoformat"):
-                r["created_at"] = r["created_at"].isoformat()
+        # ── 7. Final state update ─────────────────────────────────────────────
+        if has_db:
+            final_fighters = load_active_fighters_from_db()
+            for f in final_fighters:
+                uid = f.get("unique_id", "")
+                if not f.get("processed_avatar") and uid in avatar_map:
+                    f["processed_avatar"] = avatar_map[uid]
+                for k in ["wins", "losses", "win_streak", "global_rank", "chain_rank"]:
+                    if f.get(k) is None:
+                        f[k] = 0 if k not in ("global_rank", "chain_rank") else 999
+            recent = get_recent_battles(MAX_RECENT_BATTLES)
+            for r in recent:
+                if r.get("created_at") and hasattr(r["created_at"], "isoformat"):
+                    r["created_at"] = r["created_at"].isoformat()
+        else:
+            # In-memory: re-apply stats, compute ranks
+            final_fighters = list(_mem_fighters.values())
+            for f in final_fighters:
+                uid = f["unique_id"]
+                stats = _mem_stats.get(uid, {})
+                f["wins"]       = stats.get("wins", 0)
+                f["losses"]     = stats.get("losses", 0)
+                f["win_streak"] = stats.get("win_streak", 0)
+                f["total_bc_earned"] = stats.get("total_bc_earned", 0)
+            # Sort by score for ranking
+            final_fighters.sort(
+                key=lambda x: x.get("wins",0)*0.5 + x.get("win_streak",0)*0.3 + x.get("total_bc_earned",0)*0.0002,
+                reverse=True
+            )
+            for i, f in enumerate(final_fighters):
+                f["global_rank"] = i + 1
+            recent = _mem_battles[-MAX_RECENT_BATTLES:]
 
         with _lock:
             _state["fighters"]       = final_fighters

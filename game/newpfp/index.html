@@ -1071,7 +1071,388 @@
       .nav-stats, .nav-tabs { display: none; }
       .mobile-menu-btn { display: flex; }
     }
-  </style>
+
+    
+    /* ═══ CREATE VIEW BUILDER ══════════════════════════════════════════════ */
+    .create-builder {
+      display: flex; gap: 24px; max-width: 1000px; margin: 0 auto;
+      align-items: flex-start;
+    }
+    @media (max-width: 800px) { .create-builder { flex-direction: column; } }
+
+    /* Left Panel: Config */
+    .cp-panel {
+      flex: 1; min-width: 320px; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(139,92,246,0.3); border-radius: 16px;
+      padding: 24px; box-shadow: inset 0 0 40px rgba(139,92,246,0.05);
+    }
+    .cp-panel-heading {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; font-weight: 800; color: #fff;
+      font-size: 14px; letter-spacing: 1px;
+    }
+    .cp-panel-heading small {
+      font-size: 10px; font-weight: 700; color: #9945FF;
+      background: rgba(153,69,255,0.15); padding: 4px 10px;
+      border-radius: 12px; text-transform: uppercase;
+    }
+
+    .cp-avatar-row {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+    }
+    .cp-avatar-wrap {
+      width: 80px; height: 80px; border-radius: 50%;
+      border: 2px dashed rgba(139,92,246,0.5); cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; background: rgba(0,0,0,0.3); position: relative;
+      overflow: hidden; transition: all 0.2s; flex-shrink: 0;
+    }
+    .cp-avatar-wrap:hover { border-color: #14F195; background: rgba(20,241,149,0.1); }
+    .cp-avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .cp-avatar-hint { font-size: 11px; color: var(--bb-muted-foreground); line-height: 1.5; }
+    .cp-avatar-hint strong { color: #fff; display: block; font-size: 13px; margin-bottom: 4px; }
+    #cp-file-input { display: none; }
+
+    .cp-label { display: block; margin-bottom: 16px; }
+    .cp-label span {
+      display: block; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.6);
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .cp-input {
+      width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 13px;
+      transition: border-color 0.2s; outline: none;
+    }
+    .cp-input:focus { border-color: #9945FF; }
+    .cp-textarea { resize: vertical; min-height: 60px; font-family: inherit; }
+    .cp-select { cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; }
+
+    .cp-section-lbl {
+      font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.6);
+      margin: 24px 0 12px; text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;
+    }
+    .cp-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .cp-stat-cell { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); }
+    .cp-stat-cell span { display: block; font-size: 10px; font-weight: 800; color: #F3BA2F; margin-bottom: 4px; }
+    .cp-stat-num {
+      width: 100%; background: transparent; border: none; color: #fff;
+      font-size: 16px; font-weight: 900; outline: none; margin-bottom: 6px;
+    }
+    .cp-stat-bar-wrap { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+    .cp-stat-bar { height: 100%; background: linear-gradient(90deg, #F3BA2F, #EF4444); border-radius: 2px; transition: width 0.3s; }
+
+    .cp-preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .cp-preset-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px; padding: 6px 12px; font-size: 11px; color: #fff;
+      cursor: pointer; transition: all 0.2s; font-weight: 600;
+    }
+    .cp-preset-btn:hover { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.5); }
+
+    .cp-deploy-btn {
+      width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 900;
+      color: #000; background: linear-gradient(90deg, #14F195, #22C55E); border: none;
+      cursor: pointer; box-shadow: 0 0 20px rgba(20,241,149,0.3); transition: all 0.2s;
+    }
+    .cp-deploy-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(20,241,149,0.5); }
+
+    /* Right Panel: Live Preview */
+    .cp-preview { flex: 1; max-width: 400px; display: flex; flex-direction: column; }
+    .cp-preview-card {
+      background: linear-gradient(180deg, #1a0a2e 0%, #0d1b2a 100%);
+      border: 1px solid rgba(139,92,246,0.4); border-radius: 20px;
+      padding: 30px; position: relative; overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1);
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+    }
+    .cp-preview-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 120px;
+      background: linear-gradient(180deg, rgba(139,92,246,0.2) 0%, transparent 100%);
+    }
+    .cp-preview-avatar {
+      width: 140px; height: 140px; border-radius: 50%; border: 4px solid #1a0a2e;
+      background: #000; z-index: 1; margin-bottom: 16px;
+      box-shadow: 0 0 0 2px rgba(139,92,246,0.5), 0 10px 30px rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center; font-size: 60px;
+      overflow: hidden;
+    }
+    .cp-preview-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .cp-preview-name { font-size: 24px; font-weight: 900; color: #fff; z-index: 1; letter-spacing: 1px; }
+    .cp-preview-collection { font-size: 13px; color: #9945FF; font-weight: 700; z-index: 1; margin-top: 4px; }
+    .cp-preview-class {
+      margin-top: 12px; background: rgba(20,241,149,0.1); border: 1px solid rgba(20,241,149,0.3);
+      color: #14F195; font-size: 11px; font-weight: 800; padding: 4px 12px;
+      border-radius: 20px; text-transform: uppercase; z-index: 1; letter-spacing: 1px;
+    }
+    .cp-preview-traits {
+      margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.5);
+      line-height: 1.6; z-index: 1;
+    }
+    .cp-preview-stats {
+      margin-top: 30px; width: 100%; z-index: 1; background: rgba(0,0,0,0.4);
+      border-radius: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.05);
+    }
+    .cp-preview-stat-row { display: flex; align-items: center; margin-bottom: 10px; }
+    .cp-preview-stat-row:last-child { margin-bottom: 0; }
+    .cp-preview-stat-lbl { width: 36px; font-size: 11px; font-weight: 800; color: #F3BA2F; text-align: left; }
+    .cp-preview-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin: 0 12px; overflow: hidden; }
+    .cp-preview-bar-fill { height: 100%; background: linear-gradient(90deg, #9945FF, #14F195); border-radius: 3px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .cp-preview-stat-val { width: 24px; font-size: 12px; font-weight: 900; color: #fff; text-align: right; }
+
+    /* ═══ PUMPFIGHTERS ARENA ═══════════════════════════════════════════════ */
+    .pf-arena {
+      position: relative; border-radius: 16px; overflow: hidden;
+      background: linear-gradient(135deg, #1a0a2e 0%, #0d1b2a 40%, #1a0a2e 100%);
+      border: 1px solid rgba(139,92,246,0.3);
+      min-height: 520px; display: flex; flex-direction: column;
+    }
+    .pf-arena::before {
+      content: ''; position: absolute; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse at 30% 60%, rgba(153,69,255,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 60%, rgba(20,241,149,0.12) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 100%, rgba(243,186,47,0.10) 0%, transparent 40%);
+    }
+    .pf-arena-grid {
+      position: absolute; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(139,92,246,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,92,246,0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .pf-arena-floor {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 35%;
+      background: linear-gradient(to top, rgba(139,92,246,0.08), transparent);
+      z-index: 0;
+    }
+
+    /* Top bar: round counter */
+    .pf-top-bar {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 14px 18px 0; position: relative; z-index: 2;
+    }
+    .pf-fighter-info {
+      display: flex; align-items: center; gap: 10px; max-width: 220px;
+    }
+    .pf-fighter-info.right { flex-direction: row-reverse; text-align: right; }
+    .pf-fi-avatar {
+      width: 48px; height: 48px; border-radius: 50%; overflow: hidden;
+      border: 2px solid rgba(139,92,246,0.6); flex-shrink: 0;
+      box-shadow: 0 0 12px rgba(139,92,246,0.4);
+    }
+    .pf-fi-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .pf-fi-avatar.right { border-color: rgba(20,241,149,0.6); box-shadow: 0 0 12px rgba(20,241,149,0.4); }
+    .pf-fi-name {
+      font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.5px;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .pf-fi-chain { font-size: 10px; color: var(--bb-muted-foreground); margin-top: 2px; }
+    .pf-fi-bc { font-size: 11px; color: #F3BA2F; font-weight: 700; }
+    .pf-fi-rank { font-size: 10px; color: rgba(255,255,255,0.5); }
+    .pf-fi-level {
+      position: absolute; bottom: -4px; left: -4px; width: 22px; height: 22px;
+      border-radius: 50%; background: linear-gradient(135deg, #6366F1, #8B5CF6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 900; color: #fff; border: 2px solid #1a0a2e;
+    }
+
+    .pf-round-badge {
+      text-align: center; background: rgba(0,0,0,0.5); border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 8px; padding: 6px 12px;
+    }
+    .pf-round-label { color: #F3BA2F; font-weight: 900; font-size: 11px; letter-spacing: 0.5px; }
+    .pf-round-turn { color: rgba(255,255,255,0.5); font-size: 9px; margin-top: 0px; }
+    .pf-round-energy { color: #14F195; font-size: 10px; font-weight: 700; margin-top: 2px; }
+
+    /* Arena center: fighters + VS */
+    .pf-battle-zone {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      position: relative; z-index: 2; gap: 20px; padding: 10px 24px 0;
+    }
+    .pf-combatant {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .pf-hp-bar-wrap {
+      display: flex; align-items: center; gap: 6px; font-size: 11px; color: #fff; font-weight: 700;
+    }
+    .pf-hp-bar-bg {
+      width: 120px; height: 10px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .pf-hp-bar-fill {
+      height: 100%; border-radius: 6px; transition: width 0.6s ease;
+    }
+    .pf-hp-bar-fill.green { background: linear-gradient(90deg, #22C55E, #14F195); }
+    .pf-hp-bar-fill.red { background: linear-gradient(90deg, #EF4444, #F97316); }
+    .pf-big-avatar {
+      width: 140px; height: 140px; border-radius: 50%; overflow: hidden;
+      position: relative;
+      box-shadow: 0 0 40px rgba(139,92,246,0.5), 0 0 80px rgba(139,92,246,0.2);
+      border: 3px solid rgba(139,92,246,0.5);
+    }
+    .pf-big-avatar.right {
+      box-shadow: 0 0 40px rgba(20,241,149,0.5), 0 0 80px rgba(20,241,149,0.2);
+      border-color: rgba(20,241,149,0.5);
+    }
+    .pf-big-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .pf-glow-ring {
+      position: absolute; inset: -8px; border-radius: 50%;
+      border: 2px solid rgba(139,92,246,0.3);
+      animation: pf-pulse 2s ease-in-out infinite;
+    }
+    .pf-big-avatar.right .pf-glow-ring { border-color: rgba(20,241,149,0.3); }
+    @keyframes pf-pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.08); opacity: 1; } }
+
+    .pf-vs-center {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .pf-vs-text {
+      font-size: 32px; font-weight: 900; color: #fff;
+      text-shadow: 0 0 20px rgba(139,92,246,0.8), 0 0 40px rgba(139,92,246,0.4);
+      letter-spacing: 2px;
+    }
+    .pf-match-label {
+      font-size: 11px; color: #F3BA2F; font-weight: 600;
+      background: rgba(243,186,47,0.1); padding: 3px 10px; border-radius: 8px;
+      border: 1px solid rgba(243,186,47,0.2);
+    }
+
+    /* Battle log sidebar */
+    
+    .pf-battle-log-panel {
+      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      background: rgba(0,0,0,0.6); border: 1px solid rgba(139,92,246,0.2);
+      border-radius: 8px; padding: 10px; z-index: 3; min-width: 160px; max-width: 200px;
+    }
+    .pf-bl-title { color: #F3BA2F; font-weight: 800; font-size: 10px; margin-bottom: 4px; letter-spacing: 0.5px; }
+    .pf-bl-entry { font-size: 9px; color: rgba(255,255,255,0.7); margin-bottom: 4px; line-height: 1.2; }
+    .pf-bl-turn { color: #9945FF; font-weight: 700; margin-right: 4px; }
+    .pf-bl-action { color: #14F195; font-weight: 700; }
+    .pf-bl-dmg { color: #EF4444; font-weight: 700; }
+.pf-battle-zone {
+      display: flex; align-items: center; justify-content: center;
+      flex: 1; gap: 30px; padding: 20px 80px; z-index: 2; position: relative;
+    }
+    .pf-combatant {
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      transition: transform 0.15s ease-out;
+    }
+    .pf-combatant.attack-left { animation: attackLeft 0.4s ease-out; }
+    .pf-combatant.attack-right { animation: attackRight 0.4s ease-out; }
+    .pf-combatant.hit { animation: hitShake 0.3s ease-out; }
+
+    @keyframes attackLeft {
+      0% { transform: translateX(0); }
+      30% { transform: translateX(60px) scale(1.1); }
+      60% { transform: translateX(40px) scale(1.05); }
+      100% { transform: translateX(0) scale(1); }
+    }
+    @keyframes attackRight {
+      0% { transform: translateX(0); }
+      30% { transform: translateX(-60px) scale(1.1); }
+      60% { transform: translateX(-40px) scale(1.05); }
+      100% { transform: translateX(0) scale(1); }
+    }
+    @keyframes hitShake {
+      0% { transform: translateX(0); filter: brightness(2); }
+      20% { transform: translateX(-8px); filter: brightness(1.5); }
+      40% { transform: translateX(8px); filter: brightness(1.2); }
+      60% { transform: translateX(-4px); filter: brightness(1); }
+      80% { transform: translateX(4px); }
+      100% { transform: translateX(0); }
+    }
+    @keyframes hitFlash {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    .pf-hp-bar-wrap { display: flex; align-items: center; gap: 8px; width: 140px; }
+    .pf-hp-bar-wrap span { color: #fff; font-weight: 900; font-size: 14px; min-width: 30px; text-align: right; }
+    .pf-hp-bar-bg { flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+    .pf-hp-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease-out; }
+    .pf-hp-bar-fill.green { background: linear-gradient(90deg, #22C55E, #14F195); }
+    .pf-hp-bar-fill.red { background: linear-gradient(90deg, #EF4444, #F97316); }
+
+    .pf-big-avatar {
+      width: 120px; height: 120px; border-radius: 50%; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s, filter 0.2s;
+    }
+    .pf-big-avatar img {
+      width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+      border: 3px solid #9945FF; z-index: 1; position: relative;
+      background: #000;
+    }
+    .pf-glow-ring {
+      position: absolute; inset: -8px; border-radius: 50%;
+      border: 2px solid rgba(139,92,246,0.4);
+      box-shadow: 0 0 20px rgba(139,92,246,0.3), inset 0 0 20px rgba(139,92,246,0.1);
+      animation: glowPulse 2s ease-in-out infinite;
+    }
+    @keyframes glowPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(139,92,246,0.3); }
+      50% { box-shadow: 0 0 40px rgba(139,92,246,0.6), 0 0 60px rgba(20,241,149,0.2); }
+    }
+    .pf-big-avatar.right .pf-glow-ring {
+      border-color: rgba(20,241,149,0.4);
+      box-shadow: 0 0 20px rgba(20,241,149,0.3), inset 0 0 20px rgba(20,241,149,0.1);
+    }
+    .pf-big-avatar.right img { border-color: #14F195; }
+
+    .pf-vs-center { display: none; }
+    .pf-vs-text {
+      font-size: 48px; font-weight: 900; color: #fff; text-shadow: 0 0 30px rgba(139,92,246,0.8);
+      animation: vsPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes vsPulse {
+      0%, 100% { text-shadow: 0 0 30px rgba(139,92,246,0.8); transform: scale(1); }
+      50% { text-shadow: 0 0 50px rgba(139,92,246,1), 0 0 80px rgba(20,241,149,0.4); transform: scale(1.05); }
+    }
+    .pf-match-label { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 8px; font-weight: 600; }
+
+    .pf-spells-bar {
+      display: flex; gap: 8px; justify-content: center; padding: 8px 12px; z-index: 2;
+    }
+    .pf-spell-card {
+      background: rgba(0,0,0,0.5); border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 8px; padding: 6px 8px; text-align: center; min-width: 70px;
+      position: relative; cursor: pointer; transition: all 0.2s; margin: 0 auto;
+    }
+    .pf-spell-card:hover { border-color: #14F195; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(20,241,149,0.2); }
+    .pf-spell-cost {
+      position: absolute; top: -6px; right: -6px; width: 18px; height: 18px;
+      background: #9945FF; border-radius: 50%; font-size: 9px; font-weight: 900;
+      color: #fff; display: flex; align-items: center; justify-content: center;
+    }
+    .pf-spell-icon { font-size: 18px; margin-bottom: 2px; }
+    .pf-spell-name { font-size: 8px; font-weight: 800; color: #fff; letter-spacing: 0px; }
+    .pf-spell-desc { font-size: 8px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+    .pf-emojis-bar {
+      display: flex; gap: 8px; justify-content: center; padding: 8px 20px 16px; z-index: 2;
+    }
+    .pf-emoji-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px; padding: 6px 14px; font-size: 11px; color: #fff;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .pf-emoji-btn:hover { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.5); }
+
+    /* Damage popup */
+    .pf-dmg-popup {
+      position: absolute; font-size: 24px; font-weight: 900; color: #EF4444;
+      text-shadow: 0 0 10px rgba(239,68,68,0.5); pointer-events: none;
+      animation: dmgFloat 0.8s ease-out forwards; z-index: 10;
+    }
+    @keyframes dmgFloat {
+      0% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(-50px) scale(1.3); }
+    }
+
+
+    </style>
 </head>
 <body class="bantahbro-next-ui dark">
 
@@ -1087,8 +1468,8 @@
     <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong>50 <span class="live-badge">LIVE</span></strong></div>
   </div>
   <div class="nav-tabs">
-    <button class="nav-tab active" data-view="arena" onclick="setTab(this)">Arena</button>
-    <button class="nav-tab" data-view="pumpfighters" onclick="setTab(this)">🚀 PumpFighters</button>
+    <button class="nav-tab" data-view="arena" onclick="setTab(this)">Arena</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)">🚀 PumpFighters</button>
     <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)">🖼 PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this)">Agents</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this)">⚔️ Create</button>
@@ -1097,8 +1478,8 @@
   </div>
   <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
   <div class="mobile-nav-dropdown" id="mobile-nav-dropdown">
-    <button class="nav-tab active" data-view="arena" onclick="setTab(this); closeMobileMenu();">Arena</button>
-    <button class="nav-tab" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">🚀 PumpFighters</button>
+    <button class="nav-tab" data-view="arena" onclick="setTab(this); closeMobileMenu();">Arena</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">🚀 PumpFighters</button>
     <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();">🖼 PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">Agents</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">⚔️ Create</button>
@@ -1144,25 +1525,10 @@
   <aside class="sidebar-left">
     <div>
       <div class="sidebar-section-title"><span class="dot"></span> Live Battles</div>
-      <div class="battle-item">
-        <div class="fighter-mini"><div class="avatar-sm">🐸</div><div class="fname">PEPE</div></div>
-        <div class="vs-badge">VS</div>
-        <div class="fighter-mini"><div class="avatar-sm">🐕</div><div class="fname">DOGE</div></div>
-        <span class="live-badge">LIVE</span>
+      <div id="sidebar-live-battles">
+        <!-- Dynamically populated from pfState -->
       </div>
-      <div class="battle-item">
-        <div class="fighter-mini"><div class="avatar-sm">🔨</div><div class="fname">BONK</div></div>
-        <div class="vs-badge">VS</div>
-        <div class="fighter-mini"><div class="avatar-sm">😺</div><div class="fname">MOG</div></div>
-        <span class="live-badge">LIVE</span>
-      </div>
-      <div class="battle-item">
-        <div class="fighter-mini"><div class="avatar-sm">🦊</div><div class="fname">BRETT</div></div>
-        <div class="vs-badge">VS</div>
-        <div class="fighter-mini"><div class="avatar-sm">🐶</div><div class="fname">WIF</div></div>
-        <span class="live-badge">LIVE</span>
-      </div>
-      <button class="view-all-btn" onclick="openChallenges()">VIEW ALL BATTLES →</button>
+      <button class="view-all-btn" onclick="openChallenges()">VIEW ALL BATTLES &rarr;</button>
     </div>
 
     <div>
@@ -1193,11 +1559,30 @@
         </div>
       </div>
     </div>
+  
+    <div class="trollbox-section">
+      <div class="trollbox-header">
+        <div class="trollbox-title">Trollbox</div>
+        <div class="live-pill">LIVE</div>
+      </div>
+      <div class="trollbox-messages" id="trollbox">
+        <div class="troll-msg"><span class="troll-user">suchlow69:</span> WAGMI DOGE ARMY ≡ƒÉò</div>
+        <div class="troll-msg"><span class="troll-user">frog_lord:</span> JUST APED INTO PEPE ≡ƒÉ╕</div>
+        <div class="troll-msg"><span class="troll-user">degen420:</span> WHO ELSE IS WATCHING</div>
+        <div class="troll-msg"><span class="troll-user">whale_x:</span> ALL IN ON ROBOT V1 ≡ƒÆÄ</div>
+        <div class="troll-msg"><span class="troll-user bot">bantah_bot:</span> Γ£ù BATTLE STARTED! ROBOT V1 vs FLOATROBO ΓÇö FIGHT!</div>
+      </div>
+      <div class="troll-input-wrap">
+        <input class="troll-input" type="text" placeholder="Say something..."
+               id="troll-in" onkeydown="sendMsg(event)" />
+        <button class="troll-send" onclick="sendMsgBtn()">Γåæ</button>
+      </div>
+    </div>
   </aside>
 
   <!-- MAIN -->
   <main class="main">
-  <div id="view-arena" class="tab-view active">
+  <div id="view-arena" class="tab-view">
     <div class="arena-wrap">
       <div class="arena-bg-glow"></div>
       <div class="arena-grid"></div>
@@ -1264,186 +1649,126 @@
 
     <!-- Fighter cards -->
     <div class="fighter-cards-row">
-      <div class="fighter-card" data-fc="pepe">
-        <div class="rank-badge">1</div>
-        <div class="fc-header">
-          <div class="fc-avatar">🐸</div>
-          <div class="fc-meta">
-            <div class="fc-name">PEPE</div>
-            <div class="fc-holders">👥 <span class="fc-holders-val">676</span> Holders</div>
-          </div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$12.5M</span></div>
-          <div class="fc-stat">24H <span class="pos fc-change-val">+85.2%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 <span class="fc-rewards-val">576</span> BC Rewards</div>
-        <button class="watch-btn" onclick="watchToEarn('pepe', this)">● WATCH 2 EARN</button>
-      </div>
+      
 
-      <div class="fighter-card" data-fc="doge">
-        <div class="rank-badge orange">2</div>
-        <div class="fc-header">
-          <div class="fc-avatar">🐕</div>
-          <div class="fc-meta">
-            <div class="fc-name">DOGE</div>
-            <div class="fc-holders">👥 <span class="fc-holders-val">512</span> Holders</div>
-          </div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$8.3M</span></div>
-          <div class="fc-stat">24H <span class="pos fc-change-val">+63.1%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 <span class="fc-rewards-val">576</span> BC Rewards</div>
-        <button class="watch-btn primary" onclick="watchToEarn('doge', this)">● WATCH 2 EARN</button>
-      </div>
+      
 
-      <div class="fighter-card" data-fc="bonk">
-        <div class="rank-badge secondary">3</div>
-        <div class="fc-header">
-          <div class="fc-avatar">🔨</div>
-          <div class="fc-meta">
-            <div class="fc-name">BONK</div>
-            <div class="fc-holders">👥 <span class="fc-holders-val">421</span> Holders</div>
-          </div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$5.1M</span></div>
-          <div class="fc-stat">24H <span class="pos fc-change-val">+41.6%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 <span class="fc-rewards-val">576</span> BC Rewards</div>
-        <button class="watch-btn" onclick="watchToEarn('bonk', this)">● WATCH 2 EARN</button>
-      </div>
+      
 
-      <div class="fighter-card" data-fc="mog">
-        <div class="rank-badge destructive">4</div>
-        <div class="fc-header">
-          <div class="fc-avatar">😺</div>
-          <div class="fc-meta">
-            <div class="fc-name">MOG</div>
-            <div class="fc-holders">👥 <span class="fc-holders-val">289</span> Holders</div>
-          </div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$3.2M</span></div>
-          <div class="fc-stat">24H <span class="neg fc-change-val">-28.4%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 <span class="fc-rewards-val">576</span> BC Rewards</div>
-        <button class="watch-btn primary" onclick="watchToEarn('mog', this)">● WATCH 2 EARN</button>
-      </div>
+      
     </div>
   </div>
 
   <!-- PUMPFIGHTERS VIEW -->
-  <div id="view-pumpfighters" class="tab-view">
-    <div class="arena-wrap">
-      <div class="arena-bg-glow"></div>
-      <div class="arena-grid"></div>
-      <div class="arena-floor"></div>
-      <div class="arena-content">
-        <div class="fighter-panel">
-          <div class="fighter-card-arena">
-            <div class="arena-avatar" id="pf-left-avatar">🚀</div>
-            <div class="fighter-info-arena">
-              <div class="fighter-name-arena" id="pf-left-name">PUMP ALPHA</div>
-              <div class="fighter-bc" id="pf-left-bc">1,240,000 BC</div>
-              <div class="spell-icons">
-                <div class="spell-icon">✏️</div>
-                <div class="spell-icon">🛡</div>
-                <div class="spell-icon">⚡</div>
-                <div class="spell-icon locked">🔒</div>
-              </div>
+  <div id="view-pumpfighters" class="tab-view active">
+    <div class="pf-arena" id="pf-arena-container">
+      <div class="pf-arena-grid"></div>
+      <div class="pf-arena-floor"></div>
+
+      <!-- Waiting state (shown when no live match) -->
+      <div class="pf-waiting" id="pf-waiting">
+        <div class="pf-waiting-spinner"></div>
+        <div class="pf-waiting-text">Fetching Trending Coins...</div>
+        <div class="pf-waiting-sub">DexScreener data loading across Solana, BSC, and Base</div>
+      </div>
+
+      <!-- Live match (hidden until data arrives) -->
+      <div id="pf-live-match" style="display:none; flex-direction:column; flex:1;">
+        <!-- Top bar -->
+        <div class="pf-top-bar">
+          <div class="pf-fighter-info" id="pf-fi-left">
+            <div class="pf-fi-avatar" id="pf-fia-left"><img src="" alt=""/></div>
+            <div>
+              <div class="pf-fi-name" id="pf-fin-left">---</div>
+              <div class="pf-fi-chain" id="pf-fic-left">---</div>
+              <div class="pf-fi-bc" id="pf-fib-left">0 BC</div>
+            </div>
+          </div>
+          <div class="pf-round-badge">
+            <div class="pf-round-label" id="pf-round-label">ROUND 1</div>
+            <div class="pf-round-turn" id="pf-round-turn">TURN 1</div>
+            <div class="pf-round-energy" id="pf-round-energy">576 BC Pool</div>
+          </div>
+          <div class="pf-fighter-info right" id="pf-fi-right">
+            <div class="pf-fi-avatar right" id="pf-fia-right"><img src="" alt=""/></div>
+            <div>
+              <div class="pf-fi-name" id="pf-fin-right">---</div>
+              <div class="pf-fi-chain" id="pf-fic-right">---</div>
+              <div class="pf-fi-bc" id="pf-fib-right">0 BC</div>
             </div>
           </div>
         </div>
-        <div class="arena-center">
-          <div class="nft-card"><img src="/newpfp/assets/bota-logo.jpg" alt="PumpFighters"></div>
-          <div class="vs-text">🚀 PUMPFIGHTERS — COMING SOON 🚀</div>
-        </div>
-        <div class="fighter-panel" style="align-items:flex-end">
-          <div class="fighter-card-arena">
-            <div class="fighter-info-arena" style="text-align:right">
-              <div class="fighter-name-arena" id="pf-right-name">PUMP BETA</div>
-              <div class="fighter-bc" id="pf-right-bc">890,000 BC</div>
-              <div class="spell-icons" style="justify-content:flex-end">
-                <div class="spell-icon locked">🔒</div>
-                <div class="spell-icon">⚡</div>
-                <div class="spell-icon">🛡</div>
-                <div class="spell-icon">✏️</div>
-              </div>
-            </div>
-            <div class="arena-avatar alt" id="pf-right-avatar">💎</div>
+
+        <!-- Battle log (right) -->
+        <div class="pf-battle-log-panel" id="pf-battle-log">
+          <div class="pf-bl-title">Battle Log</div>
+          <div id="pf-bl-entries">
+            <div class="pf-bl-entry"><span class="pf-bl-turn">Waiting...</span></div>
           </div>
         </div>
-      </div>
-      <div class="spells-row">
-        <div class="spells-group">
-          <div class="spell-btn"><div class="spell-circle">🧪</div><div class="spell-label">Potion</div></div>
-          <div class="spell-btn"><div class="spell-circle">🛡</div><div class="spell-label">Shield</div></div>
-          <div class="spell-btn"><div class="spell-circle">⚡</div><div class="spell-label">Thunder</div></div>
-          <div class="spell-btn"><div class="spell-circle locked">🔒</div><div class="spell-label">Locked</div></div>
+
+        <!-- Battle zone -->
+        <div class="pf-battle-zone">
+          <div class="pf-combatant">
+            <div class="pf-hp-bar-wrap">
+              <span id="pf-hp-left-val">100</span>
+              <div class="pf-hp-bar-bg"><div class="pf-hp-bar-fill green" id="pf-hp-left" style="width:100%"></div></div>
+            </div>
+            <div class="pf-big-avatar" id="pf-ba-left">
+              <div class="pf-glow-ring"></div>
+              <img src="" alt="" id="pf-ba-left-img"/>
+            </div>
+          </div>
+          <div class="pf-vs-center">
+            <div class="pf-vs-text">VS</div>
+            <div class="pf-match-label" id="pf-match-label">Chain Rivalry</div>
+          </div>
+          <div class="pf-combatant">
+            <div class="pf-hp-bar-wrap">
+              <span id="pf-hp-right-val">100</span>
+              <div class="pf-hp-bar-bg"><div class="pf-hp-bar-fill green" id="pf-hp-right" style="width:100%"></div></div>
+            </div>
+            <div class="pf-big-avatar right" id="pf-ba-right">
+              <div class="pf-glow-ring"></div>
+              <img src="" alt="" id="pf-ba-right-img"/>
+            </div>
+          </div>
         </div>
-        <div class="spells-group">
-          <div class="spell-btn"><div class="spell-circle locked">🔒</div><div class="spell-label">Locked</div></div>
-          <div class="spell-btn"><div class="spell-circle">⚡</div><div class="spell-label">Thunder</div></div>
-          <div class="spell-btn"><div class="spell-circle">🛡</div><div class="spell-label">Shield</div></div>
-          <div class="spell-btn"><div class="spell-circle">🧪</div><div class="spell-label">Potion</div></div>
-        </div>
-      </div>
+
+        <!-- Spell cards -->
+        <div class="pf-spells-bar">
+          <div class="pf-spell-card">
+            <div class="pf-spell-cost">1</div>
+            <div class="pf-spell-icon">&#x2694;&#xFE0F;</div>
+            <div class="pf-spell-name">HORN CHARGE</div>
+            <div class="pf-spell-desc">Deal 120 DMG</div>
+          </div>
+          <div class="pf-spell-card">
+            <div class="pf-spell-cost">1</div>
+            <div class="pf-spell-icon">&#x1F43E;</div>
+            <div class="pf-spell-name">WING DASH</div>
+            <div class="pf-spell-desc">+20% Speed</div>
+          </div>
+          <div class="pf-spell-card">
+            <div class="pf-spell-cost">2</div>
+            <div class="pf-spell-icon">&#x1F525;</div>
+            <div class="pf-spell-name">MIGHTY ROAR</div>
+            <div class="pf-spell-desc">Deal 160 DMG</div>
+          </div>
+          <div class="pf-spell-card">
+            <div class="pf-spell-cost">1</div>
+            <div class="pf-spell-icon">&#x1F4A5;</div>
+            <div class="pf-spell-name">MEME BLAST</div>
+            <div class="pf-spell-desc">Deal 110 DMG</div>
+          </div>
+          
+
+        
     </div>
-    <div class="fighter-cards-row">
-      <div class="fighter-card" data-fc="pump1">
-        <div class="rank-badge">1</div>
-        <div class="fc-header">
-          <div class="fc-avatar">🚀</div>
-          <div class="fc-meta"><div class="fc-name">PUMP ALPHA</div><div class="fc-holders">👥 676 Holders</div></div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$12.5M</span></div>
-          <div class="fc-stat">24H <span class="pos">+85.2%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn">● WATCH 2 EARN</button>
-      </div>
-      <div class="fighter-card" data-fc="pump2">
-        <div class="rank-badge orange">2</div>
-        <div class="fc-header">
-          <div class="fc-avatar">💎</div>
-          <div class="fc-meta"><div class="fc-name">GEM LORD</div><div class="fc-holders">👥 512 Holders</div></div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$8.3M</span></div>
-          <div class="fc-stat">24H <span class="pos">+63.1%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn primary">● WATCH 2 EARN</button>
-      </div>
-      <div class="fighter-card" data-fc="pump3">
-        <div class="rank-badge secondary">3</div>
-        <div class="fc-header">
-          <div class="fc-avatar">🌙</div>
-          <div class="fc-meta"><div class="fc-name">MOONSHOT</div><div class="fc-holders">👥 421 Holders</div></div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$5.1M</span></div>
-          <div class="fc-stat">24H <span class="pos">+41.6%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn">● WATCH 2 EARN</button>
-      </div>
-      <div class="fighter-card" data-fc="pump4">
-        <div class="rank-badge destructive">4</div>
-        <div class="fc-header">
-          <div class="fc-avatar">🔥</div>
-          <div class="fc-meta"><div class="fc-name">FLAMECOIN</div><div class="fc-holders">👥 289 Holders</div></div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$3.2M</span></div>
-          <div class="fc-stat">24H <span class="neg">-28.4%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn primary">● WATCH 2 EARN</button>
-      </div>
+
+    <!-- Fighter cards below arena -->
+    <div class="fighter-cards-row" id="pf-fighters-list">
+      <!-- Injected via JS -->
     </div>
   </div>
 
@@ -1787,14 +2112,13 @@
     <div class="view-inner">
       <div class="view-header">
         <div class="view-title">Leaderboard</div>
-        <div class="view-subtitle">Top performing agents this season</div>
+        <div class="view-subtitle">Top performing PumpFighters this season</div>
       </div>
-      <div class="challenge-tabs">
-        <button class="challenge-tab active" data-lbtab="earnings" onclick="setLbTab(this)">Earnings</button>
-        <button class="challenge-tab" data-lbtab="bc" onclick="setLbTab(this)">BC Earned</button>
-        <button class="challenge-tab" data-lbtab="fights" onclick="setLbTab(this)">Fights</button>
-        <button class="challenge-tab" data-lbtab="wins" onclick="setLbTab(this)">Wins</button>
-        <button class="challenge-tab" data-lbtab="losses" onclick="setLbTab(this)">Losses</button>
+      <div class="challenge-tabs" style="margin-bottom:12px;">
+        <button class="challenge-tab active" data-lbtab="all" onclick="setLbTab(this)">All</button>
+        <button class="challenge-tab" data-lbtab="solana" onclick="setLbTab(this)">Solana</button>
+        <button class="challenge-tab" data-lbtab="bsc" onclick="setLbTab(this)">BSC</button>
+        <button class="challenge-tab" data-lbtab="base" onclick="setLbTab(this)">Base</button>
       </div>
       <div class="full-lb-list" id="full-lb-list"></div>
     </div>
@@ -1892,53 +2216,10 @@
   <!-- RIGHT SIDEBAR -->
   <aside class="sidebar-right">
     <div class="sidebar-section-title">🏆 Leaderboard</div>
-    <div class="lb-item" data-lb="dogwifhat">
-      <div class="lb-rank">🥇</div>
-      <div class="lb-avatar">🐕</div>
-      <div class="lb-info">
-        <div class="lb-name">Dogwifhat</div>
-        <div class="lb-meta"><span class="wins lb-wins-val">42 W</span> · <span class="lb-bc-val">6,200 BC</span></div>
+      <div id="sidebar-leaderboard-list">
+        <!-- Dynamically populated from pfState -->
       </div>
-      <span>👑</span>
-    </div>
-    <div class="lb-item" data-lb="bonk">
-      <div class="lb-rank">🥈</div>
-      <div class="lb-avatar">🔨</div>
-      <div class="lb-info">
-        <div class="lb-name">Bonk</div>
-        <div class="lb-meta"><span class="wins lb-wins-val">35 W</span> · <span class="lb-bc-val">3,000 BC</span></div>
-      </div>
-      <span>⏳</span>
-    </div>
-    <div class="lb-item" data-lb="pudgy">
-      <div class="lb-rank">🥉</div>
-      <div class="lb-avatar">🐧</div>
-      <div class="lb-info">
-        <div class="lb-name">Pudgy Penguin</div>
-        <div class="lb-meta"><span class="wins lb-wins-val">35 W</span> · <span class="lb-bc-val">3,500 BC</span></div>
-      </div>
-      <span>⚡</span>
-    </div>
-
-    <div class="trollbox-section">
-      <div class="trollbox-header">
-        <div class="trollbox-title">Trollbox</div>
-        <div class="live-pill">LIVE</div>
-      </div>
-      <div class="trollbox-messages" id="trollbox">
-        <div class="troll-msg"><span class="troll-user">suchlow69:</span> WAGMI DOGE ARMY 🐕</div>
-        <div class="troll-msg"><span class="troll-user">frog_lord:</span> JUST APED INTO PEPE 🐸</div>
-        <div class="troll-msg"><span class="troll-user">degen420:</span> WHO ELSE IS WATCHING</div>
-        <div class="troll-msg"><span class="troll-user">whale_x:</span> ALL IN ON ROBOT V1 💎</div>
-        <div class="troll-msg"><span class="troll-user bot">bantah_bot:</span> ✗ BATTLE STARTED! ROBOT V1 vs FLOATROBO — FIGHT!</div>
-      </div>
-      <div class="troll-input-wrap">
-        <input class="troll-input" type="text" placeholder="Say something..."
-               id="troll-in" onkeydown="sendMsg(event)" />
-        <button class="troll-send" onclick="sendMsgBtn()">↑</button>
-      </div>
-    </div>
-  </aside>
+    </aside>
 </div>
 
 <script type="module">
@@ -2103,17 +2384,22 @@
     if (modal) modal.classList.remove('open');
   }
 
-  function setTab(el) {
+    function setTab(el) {
     closeSearchModal();
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-
+    
+    // Add active class to both desktop and mobile nav tabs with this view
     const view = el.getAttribute('data-view');
+    document.querySelectorAll('.nav-tab[data-view="' + view + '"]').forEach(t => t.classList.add('active'));
+
     document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
     const target = document.getElementById('view-' + view);
     if (target) target.classList.add('active');
 
     document.getElementById('notif-dropdown').classList.remove('open');
+    
+    // Persist state in URL hash
+    window.location.hash = view;
   }
 
   function openProfileView() {
@@ -2396,6 +2682,8 @@
   window.closeChallengeModal = closeChallengeModal;
   window.selectFighter = selectFighter;
   window.confirmChallenge = confirmChallenge;
+  window.watchToEarn = watchToEarn;
+  window.setLbTab = setLbTab;
 
   function renderNotifications() {
     const list = document.getElementById('notif-list');
@@ -2513,22 +2801,102 @@
   };
   let nextArenaSlot = 'left';
 
-  function watchToEarn(key, btnEl) {
-    const fighter = cardFighters[key];
+  function watchToEarn(fighterId, btnEl) {
+    if (!pfState || !pfState.fighters) return;
+    
+    // Support both string keys and numeric IDs
+    let fighter = pfState.fighters.find(f => String(f.unique_id) === String(fighterId));
+    if (!fighter) fighter = pfState.fighters.find(f => String(f.id) === String(fighterId));
+    if (!fighter) fighter = pfState.fighters.find(f => f.name && f.name.toLowerCase() === String(fighterId).toLowerCase());
+    if (!fighter) fighter = pfState.fighters[0];
     if (!fighter) return;
 
-    const slot = nextArenaSlot;
-    document.getElementById(slot + '-arena-avatar').textContent = fighter.emoji;
-    document.getElementById(slot + '-arena-name').textContent = fighter.name;
-    document.getElementById(slot + '-arena-bc').textContent = fighter.bc;
-
-    nextArenaSlot = slot === 'left' ? 'right' : 'left';
-
+    // Show button loading state
     if (btnEl) {
       const original = btnEl.textContent;
-      btnEl.textContent = '✓ IN ARENA';
-      setTimeout(() => { btnEl.textContent = original; }, 1200);
+      btnEl.textContent = '⚔️ SWITCHING...';
+      btnEl.style.opacity = '0.6';
+      setTimeout(() => { btnEl.textContent = original; btnEl.style.opacity = '1'; }, 1200);
     }
+
+    // Ensure we're on the PumpFighters tab (the default homepage)
+    const pfTab = document.querySelector('.nav-tab[data-view="pumpfighters"]');
+    if (pfTab) setTab(pfTab);
+
+    // Scroll to the arena at the top
+    const arenaContainer = document.getElementById('pf-arena-container');
+    if (arenaContainer) arenaContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Show loading overlay on the PF arena
+    if (arenaContainer) {
+      let overlay = document.getElementById('pf-arena-overlay');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'pf-arena-overlay';
+        overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;border-radius:24px;transition:opacity 0.3s;';
+        overlay.innerHTML = '<div style="font-size:40px;margin-bottom:10px;animation:hitShake 0.5s infinite;">⚔️</div><div style="color:#14F195;font-weight:800;font-size:16px;">SWITCHING BATTLE...</div>';
+        arenaContainer.style.position = 'relative';
+        arenaContainer.appendChild(overlay);
+      }
+      overlay.style.opacity = '1';
+      overlay.style.display = 'flex';
+      setTimeout(() => { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 300); }, 800);
+    }
+
+    // Pick a random opponent from different fighters
+    const opponents = pfState.fighters.filter(f => String(f.unique_id) !== String(fighter.unique_id));
+    const opponent = opponents[Math.floor(Math.random() * opponents.length)] || pfState.fighters[1] || fighter;
+
+    // Stop the current battle animation
+    if (pfBattleAnimTimer) { clearInterval(pfBattleAnimTimer); pfBattleAnimTimer = null; }
+
+    // Update pfState.live_match so renderPumpLiveArena shows the new fighters
+    pfState.live_match = { fighter_a: fighter, fighter_b: opponent };
+
+    // Hide waiting, show live match
+    const waiting = document.getElementById('pf-waiting');
+    const liveEl = document.getElementById('pf-live-match');
+    if (waiting) waiting.style.display = 'none';
+    if (liveEl) liveEl.style.display = 'flex';
+
+    // Update PF arena UI elements
+    const setImg = (id, src) => {
+      const el = document.querySelector('#' + id + ' img');
+      if (el) el.src = src || '';
+    };
+    setImg('pf-fia-left', fighter.processed_avatar);
+    setImg('pf-fia-right', opponent.processed_avatar);
+
+    const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setText('pf-fin-left', fighter.display_name || fighter.name);
+    setText('pf-fin-right', opponent.display_name || opponent.name);
+    setText('pf-fic-left', (fighter.chain || '').toUpperCase());
+    setText('pf-fic-right', (opponent.chain || '').toUpperCase());
+    setText('pf-fib-left', fmtMcap(fighter.market_cap_usd));
+    setText('pf-fib-right', fmtMcap(opponent.market_cap_usd));
+
+    // Update big avatars
+    const baLeft = document.getElementById('pf-ba-left-img');
+    const baRight = document.getElementById('pf-ba-right-img');
+    if (baLeft) baLeft.src = fighter.processed_avatar || '';
+    if (baRight) baRight.src = opponent.processed_avatar || '';
+
+    // Reset HP bars
+    const hpBarL = document.getElementById('pf-hp-left');
+    const hpBarR = document.getElementById('pf-hp-right');
+    const valL = document.getElementById('pf-hp-left-val');
+    const valR = document.getElementById('pf-hp-right-val');
+    if (hpBarL) { hpBarL.style.width = '100%'; hpBarL.className = 'pf-hp-bar-fill green'; }
+    if (hpBarR) { hpBarR.style.width = '100%'; hpBarR.className = 'pf-hp-bar-fill green'; }
+    if (valL) valL.textContent = fighter.hp || 100;
+    if (valR) valR.textContent = opponent.hp || 100;
+
+    // Reset round/turn
+    setText('pf-round-label', 'ROUND 1');
+    setText('pf-round-turn', 'TURN 1');
+
+    // Start the new battle animation after the overlay fades
+    setTimeout(() => { startBattleAnimation(fighter, opponent); }, 900);
   }
 
   let secs = 45;
@@ -2573,80 +2941,460 @@
     inp.value = '';
   }
 
-  /* ── LIVE MARKET DATA (fighter cards + leaderboard) ── */
-  const marketState = {
-    pepe: { mcap: 12.5, change: 85.2, holders: 676, rewards: 576 },
-    doge: { mcap: 8.3,  change: 63.1, holders: 512, rewards: 576 },
-    bonk: { mcap: 5.1,  change: 41.6, holders: 421, rewards: 576 },
-    mog:  { mcap: 3.2,  change: -28.4, holders: 289, rewards: 576 },
-  };
-  const lbState = {
-    dogwifhat: { emoji: '🐕', name: 'Dogwifhat',      wins: 42, losses: 6,  bc: 6200,      rank: '🥇' },
-    bonk:      { emoji: '🔨', name: 'Bonk',           wins: 35, losses: 9,  bc: 3000,      rank: '🥈' },
-    pudgy:     { emoji: '🐧', name: 'Pudgy Penguin',  wins: 35, losses: 5,  bc: 3500,      rank: '🥉' },
-    robotv1:   { emoji: '🤖', name: 'Robot V1',       wins: 18, losses: 4,  bc: 1240000,   rank: 4 },
-    floatrobo: { emoji: '🦾', name: 'Floatrobo',      wins: 14, losses: 7,  bc: 890000,    rank: 5 },
-    pepe:      { emoji: '🐸', name: 'Pepe',           wins: 22, losses: 3,  bc: 576,       rank: 6 },
-  };
 
-  function rand(min, max) { return Math.random() * (max - min) + min; }
 
-  function fmtMcap(v) { return '$' + v.toFixed(1) + 'M'; }
-  function fmtChange(v) { return (v >= 0 ? '+' : '') + v.toFixed(1) + '%'; }
-  function fmtBc(v) { return Math.round(v).toLocaleString('en-US'); }
-
-  let lbTab = 'earnings';
-  const lbSortKey = {
-    earnings: (s) => s.bc,
-    bc: (s) => s.bc,
-    fights: (s) => s.wins + s.losses,
-    wins: (s) => s.wins,
-    losses: (s) => s.losses,
-  };
-
-  function renderSidebarLeaderboard() {
-    const top3 = Object.keys(lbState).slice(0, 3);
-    const badges = ['👑', '⏳', '⚡'];
-    top3.forEach((key, i) => {
-      const s = lbState[key];
-      const row = document.querySelector('.sidebar-right .lb-item[data-lb="' + key + '"]');
-      if (!row) return;
-      row.querySelector('.lb-wins-val').textContent = s.wins + ' W';
-      row.querySelector('.lb-bc-val').textContent = fmtBc(s.bc) + ' BC';
-    });
+  // -- CREATE VIEW LOGIC --
+  function cpHandleFile(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const url = evt.target.result;
+        document.getElementById('cp-image-url').value = '';
+        _cpSetAvatar(url);
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
-  function renderFullLeaderboard() {
+  function cpSyncImageUrl() {
+    const url = document.getElementById('cp-image-url').value;
+    if (url) _cpSetAvatar(url);
+    else _cpSetAvatar('');
+  }
+
+  function _cpSetAvatar(url) {
+    const cpImg = document.getElementById('cp-avatar-img');
+    const cpEmoji = document.getElementById('cp-avatar-emoji');
+    const prImg = document.getElementById('prev-img');
+    const prEmoji = document.getElementById('prev-emoji');
+
+    if (url) {
+      cpImg.src = url; cpImg.style.display = 'block'; cpEmoji.style.display = 'none';
+      prImg.src = url; prImg.style.display = 'block'; prEmoji.style.display = 'none';
+    } else {
+      cpImg.src = ''; cpImg.style.display = 'none'; cpEmoji.style.display = 'block';
+      prImg.src = ''; prImg.style.display = 'none'; prEmoji.style.display = 'block';
+    }
+  }
+
+  function cpSyncStat(stat, minV, maxV) {
+    let val = parseInt(document.getElementById('cp-' + stat).value) || minV;
+    val = Math.max(minV, Math.min(maxV, val));
+    const pct = ((val - minV) / (maxV - minV)) * 100;
+
+    document.getElementById('cp-' + stat + '-bar').style.width = pct + '%';
+    document.getElementById('prev-' + stat + '-bar').style.width = pct + '%';
+    document.getElementById('prev-' + stat + '-val').textContent = val;
+  }
+
+  function cpSync() {
+    const name = document.getElementById('cp-name').value.trim() || 'UNNAMED FIGHTER';
+    document.getElementById('cp-preview-name-small').textContent = name.toUpperCase();
+    document.getElementById('prev-name').textContent = name.toUpperCase();
+
+    const coll = document.getElementById('cp-collection').value.trim() || '—';
+    document.getElementById('prev-collection').textContent = coll;
+
+    const cls = document.getElementById('cp-class').value;
+    document.getElementById('cp-class-badge').textContent = cls;
+    document.getElementById('prev-class').textContent = cls.toUpperCase();
+
+    const traits = document.getElementById('cp-traits').value.trim() || 'No traits yet';
+    document.getElementById('prev-traits').textContent = traits;
+
+    cpSyncStat('hp', 60, 220);
+    cpSyncStat('atk', 5, 45);
+    cpSyncStat('def', 0, 35);
+    cpSyncStat('spd', 5, 24);
+  }
+
+  function cpLoadPreset(id) {
+    const p = {
+      pepe: { name: 'Pepe', coll: 'Rare Pepes', url: 'https://i.seadn.io/gae/rS7Kx8Ett0G16rU2tJubv7qFwW41q4E6-D3wD_wL1N1yZ5zW8P6xV_N9rV0?auto=format&w=256', cls: 'trickster', traits: 'meme, legendary, toxic', hp:180, atk:35, def:10, spd:18 },
+      doge: { name: 'Doge', coll: 'Doge Pound', url: 'https://i.seadn.io/gae/BdxvLseXcfl57BiuQcQYdJ64v-aI8din7eo5TIgMiOSB1_W-Mh-M9gT4K-V-n_sB6B-B-aA?auto=format&w=256', cls: 'striker', traits: 'fast, loyal, meme', hp:140, atk:40, def:15, spd:20 },
+      bonk: { name: 'Bonk', coll: 'Solana Bonk', url: 'https://i.seadn.io/gcs/files/b498b36873528b9c658f89e27c191a0c.png?auto=format&w=256', cls: 'tank', traits: 'hammer, sturdy', hp:200, atk:25, def:30, spd:8 },
+      mog:  { name: 'Mog',  coll: 'Mog Coin', url: 'https://i.seadn.io/gcs/files/6c2bb12b6f3ee8c8230b80e81c7ff083.png?auto=format&w=256', cls: 'blaster', traits: 'laser eyes, meme', hp:110, atk:45, def:5, spd:22 },
+      wif:  { name: 'WIF',  coll: 'Dogwifhat', url: 'https://i.seadn.io/gcs/files/e9f3b7d159be432f80c65ab7574b6bd1.png?auto=format&w=256', cls: 'frost', traits: 'hat, chill', hp:150, atk:20, def:25, spd:12 }
+    }[id];
+    if(!p) return;
+
+    document.getElementById('cp-name').value = p.name;
+    document.getElementById('cp-collection').value = p.coll;
+    document.getElementById('cp-image-url').value = p.url;
+    document.getElementById('cp-class').value = p.cls;
+    document.getElementById('cp-traits').value = p.traits;
+    document.getElementById('cp-hp').value = p.hp;
+    document.getElementById('cp-atk').value = p.atk;
+    document.getElementById('cp-def').value = p.def;
+    document.getElementById('cp-spd').value = p.spd;
+    cpSyncImageUrl();
+    cpSync();
+  }
+
+  function cpDeploy() {
+    alert('Fighter ' + document.getElementById('cp-name').value + ' deployed to Arena!');
+  }
+
+  window.cpHandleFile = cpHandleFile;
+  window.cpSyncImageUrl = cpSyncImageUrl;
+  window.cpSyncStat = cpSyncStat;
+  window.cpSync = cpSync;
+  window.cpLoadPreset = cpLoadPreset;
+  window.cpDeploy = cpDeploy;
+
+  // -- PUMPFIGHTERS LIVE DATA --
+  let pfState = null;
+  let lbTab = 'all';
+  let pfBattleAnimTimer = null;
+
+  async function fetchPumpState() {
+    try {
+      const res = await fetch('/api/pumpfighters/state');
+      pfState = await res.json();
+      renderPumpLiveArena();
+      renderPumpFighters();
+    renderLiveBattles();
+    renderSidebarLiveBattles();
+    renderSidebarLeaderboard();
+    } catch (e) { console.error('fetchPumpState:', e); }
+  }
+
+  async function fetchPumpLeaderboard() {
+    try {
+      const res = await fetch('/api/pumpfighters/leaderboard?chain=' + lbTab);
+      const data = await res.json();
+      renderPumpLeaderboard(data);
+    } catch (e) { console.error('fetchPumpLeaderboard:', e); }
+  }
+
+  function fmtMcap(v) {
+    if (!v) return '$0';
+    if (v >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M';
+    if (v >= 1e3) return '$' + (v / 1e3).toFixed(1) + 'K';
+    return '$' + Math.round(v);
+  }
+
+  function renderPumpLiveArena() {
+    const waiting = document.getElementById('pf-waiting');
+    const liveEl  = document.getElementById('pf-live-match');
+    if (!pfState || !liveEl) return;
+
+    if (!pfState.live_match) {
+      if (waiting) {
+        waiting.style.display = 'flex';
+        if (pfState.is_refreshing) {
+          waiting.querySelector('.pf-waiting-text').textContent = 'Fetching Trending Coins...';
+        } else if (pfState.fighters && pfState.fighters.length > 0) {
+          waiting.querySelector('.pf-waiting-text').textContent = 'Processing next match...';
+        } else {
+          waiting.querySelector('.pf-waiting-text').textContent = 'Waiting for coins from DexScreener...';
+          waiting.querySelector('.pf-waiting-sub').textContent =
+            pfState.next_refresh_in ? 'Next refresh in ' + pfState.next_refresh_in + 's' : '';
+        }
+      }
+      liveEl.style.display = 'none';
+      return;
+    }
+
+    if (waiting) waiting.style.display = 'none';
+    liveEl.style.display = 'flex';
+
+    const fA = pfState.live_match.fighter_a;
+    const fB = pfState.live_match.fighter_b;
+    const match = pfState.live_match;
+
+    // Top info panels
+    const setImg = (id, src) => {
+      const el = document.querySelector('#' + id + ' img');
+      if (el) el.src = src || '';
+    };
+    setImg('pf-fia-left', fA.processed_avatar);
+    setImg('pf-fia-right', fB.processed_avatar);
+    document.getElementById('pf-fin-left').textContent = fA.display_name;
+    document.getElementById('pf-fin-right').textContent = fB.display_name;
+    document.getElementById('pf-fic-left').textContent = (fA.chain || '').toUpperCase();
+    document.getElementById('pf-fic-right').textContent = (fB.chain || '').toUpperCase();
+    document.getElementById('pf-fib-left').textContent = fmtMcap(fA.market_cap_usd);
+    document.getElementById('pf-fib-right').textContent = fmtMcap(fB.market_cap_usd);
+
+    // Big avatars
+    document.getElementById('pf-ba-left-img').src = fA.processed_avatar || '';
+    document.getElementById('pf-ba-right-img').src = fB.processed_avatar || '';
+
+    // Match label
+    document.getElementById('pf-match-label').textContent = match.label || 'PumpFighters Battle';
+
+    // Stats panel
+    const sp = document.getElementById('pf-sp-fighters');
+    if (sp && pfState.fighters) sp.textContent = pfState.fighters.length;
+    const spM = document.getElementById('pf-sp-matches');
+    if (spM && pfState.recent_battles) spM.textContent = pfState.recent_battles.length;
+
+    // BC pool
+    const bcPool = 576 + Math.round((fA.market_cap_usd || 0) / 5000);
+    document.getElementById('pf-round-energy').textContent = bcPool.toLocaleString() + ' BC Pool';
+
+    // Animate battle (HP bars simulation)
+    if (!pfBattleAnimTimer) startBattleAnimation(fA, fB);
+
+    // Battle log
+    renderBattleLog();
+  }
+
+  function startBattleAnimation(fA, fB) {
+    let hpA = fA.hp || 100;
+    let hpB = fB.hp || 100;
+    const maxA = hpA, maxB = hpB;
+    let round = 1;
+    let turnSide = 'left'; // alternates who attacks
+
+    const combatants = document.querySelectorAll('#pf-live-match .pf-combatant');
+    const leftCombatant = combatants[0];
+    const rightCombatant = combatants[1];
+
+    if (pfBattleAnimTimer) clearInterval(pfBattleAnimTimer);
+    pfBattleAnimTimer = setInterval(() => {
+      // Determine attacker & defender
+      const isLeftAttacking = turnSide === 'left';
+      const attacker = isLeftAttacking ? leftCombatant : rightCombatant;
+      const defender = isLeftAttacking ? rightCombatant : leftCombatant;
+
+      // Calculate damage
+      const baseDmg = Math.random() * 8 + 2;
+      const dmg = Math.round(baseDmg * 10) / 10;
+
+      if (isLeftAttacking) {
+        hpB = Math.max(0, hpB - dmg);
+      } else {
+        hpA = Math.max(0, hpA - dmg);
+      }
+      round++;
+
+      // ── Animate attacker lunging ──
+      if (attacker) {
+        attacker.classList.remove('attack-left', 'attack-right', 'hit');
+        void attacker.offsetWidth; // reflow
+        attacker.classList.add(isLeftAttacking ? 'attack-left' : 'attack-right');
+      }
+
+      // ── Animate defender getting hit (with delay) ──
+      setTimeout(() => {
+        if (defender) {
+          defender.classList.remove('attack-left', 'attack-right', 'hit');
+          void defender.offsetWidth;
+          defender.classList.add('hit');
+        }
+        // ── Show floating damage number ──
+        const defAvatar = defender ? defender.querySelector('.pf-big-avatar') : null;
+        if (defAvatar) {
+          const popup = document.createElement('div');
+          popup.className = 'pf-dmg-popup';
+          popup.textContent = '-' + Math.round(dmg);
+          popup.style.left = '50%';
+          popup.style.top = '20%';
+          defAvatar.style.position = 'relative';
+          defAvatar.appendChild(popup);
+          setTimeout(() => popup.remove(), 800);
+        }
+      }, 150);
+
+      // ── Update HP bars ──
+      const pctA = Math.round((hpA / maxA) * 100);
+      const pctB = Math.round((hpB / maxB) * 100);
+
+      const hpBarL = document.getElementById('pf-hp-left');
+      const hpBarR = document.getElementById('pf-hp-right');
+      if (hpBarL) {
+        hpBarL.style.width = pctA + '%';
+        hpBarL.className = 'pf-hp-bar-fill ' + (pctA > 40 ? 'green' : 'red');
+      }
+      if (hpBarR) {
+        hpBarR.style.width = pctB + '%';
+        hpBarR.className = 'pf-hp-bar-fill ' + (pctB > 40 ? 'green' : 'red');
+      }
+      const valL = document.getElementById('pf-hp-left-val');
+      const valR = document.getElementById('pf-hp-right-val');
+      if (valL) valL.textContent = Math.round(hpA);
+      if (valR) valR.textContent = Math.round(hpB);
+
+      const rl = document.getElementById('pf-round-label');
+      const rt = document.getElementById('pf-round-turn');
+      if (rl) rl.textContent = 'ROUND ' + Math.ceil(round / 5);
+      if (rt) rt.textContent = 'TURN ' + round;
+
+      // Flip attacker for next turn
+      turnSide = isLeftAttacking ? 'right' : 'left';
+
+      // ── Highlight active spell card ──
+      const spellCards = document.querySelectorAll('.pf-spell-card');
+      spellCards.forEach(c => c.style.borderColor = '');
+      const activeSpell = spellCards[Math.floor(Math.random() * spellCards.length)];
+      if (activeSpell) activeSpell.style.borderColor = '#14F195';
+
+      if (hpA <= 0 || hpB <= 0) {
+        clearInterval(pfBattleAnimTimer);
+        pfBattleAnimTimer = null;
+
+        // Flash winner
+        const winner = hpA <= 0 ? rightCombatant : leftCombatant;
+        if (winner) winner.style.filter = 'drop-shadow(0 0 20px #14F195)';
+
+        // Reset after 3s
+        setTimeout(() => {
+          if (winner) winner.style.filter = '';
+          if (leftCombatant) leftCombatant.classList.remove('attack-left', 'attack-right', 'hit');
+          if (rightCombatant) rightCombatant.classList.remove('attack-left', 'attack-right', 'hit');
+          spellCards.forEach(c => c.style.borderColor = '');
+          hpA = maxA; hpB = maxB;
+          if (hpBarL) { hpBarL.style.width = '100%'; hpBarL.className = 'pf-hp-bar-fill green'; }
+          if (hpBarR) { hpBarR.style.width = '100%'; hpBarR.className = 'pf-hp-bar-fill green'; }
+          if (valL) valL.textContent = maxA;
+          if (valR) valR.textContent = maxB;
+          if (rl) rl.textContent = 'ROUND 1';
+          if (rt) rt.textContent = 'TURN 1';
+          if (pfState && pfState.live_match) startBattleAnimation(pfState.live_match.fighter_a, pfState.live_match.fighter_b);
+        }, 3000);
+      }
+    }, 800);
+  }
+
+  function renderBattleLog() {
+    const el = document.getElementById('pf-bl-entries');
+    if (!el || !pfState || !pfState.recent_battles) return;
+    const recent = pfState.recent_battles.slice(-5).reverse();
+    if (recent.length === 0) {
+      el.innerHTML = '<div class="pf-bl-entry"><span class="pf-bl-turn">No battles yet</span></div>';
+      return;
+    }
+    el.innerHTML = recent.map((b, i) =>
+      '<div class="pf-bl-entry">' +
+        '<span class="pf-bl-turn">Match ' + (i + 1) + '</span>' +
+        '<span class="pf-bl-action">' + b.winner_name + '</span> defeated ' +
+        '<span class="pf-bl-dmg">' + b.loser_name + '</span> (' + b.rounds + ' rounds)' +
+      '</div>'
+    ).join('');
+  }
+
+  
+  function renderLiveBattles() {
+    const list = document.getElementById('live-battles-list');
+    if (!list || !pfState || !pfState.fighters) return;
+
+    let html = '';
+    const fighters = pfState.fighters;
+    // Create pairs for battles
+    for (let i = 0; i < fighters.length - 1; i += 2) {
+      if (i >= 6) break; // Limit to 3 battles max
+      const f1 = fighters[i];
+      const f2 = fighters[i+1];
+      html += `
+        <div class="pfpmode-item">
+          <div class="pfpmode-match"><span>${f1.emoji || '🥊'} ${f1.name}</span> <span style="color:#666; font-size:10px;">VS</span> <span>${f2.emoji || '🥊'} ${f2.name}</span></div>
+          <div class="pfpmode-badge">LIVE</div>
+        </div>
+      `;
+    }
+    list.innerHTML = html;
+  }
+
+  
+  function renderSidebarLiveBattles() {
+    const container = document.getElementById('sidebar-live-battles');
+    if (!container || !pfState || !pfState.fighters) return;
+    
+    const fighters = pfState.fighters;
+    let html = '';
+    // Create battle pairs from real fighters
+    for (let i = 0; i < fighters.length - 1 && i < 6; i += 2) {
+      const fA = fighters[i];
+      const fB = fighters[i + 1];
+      html += '<div class="battle-item">' +
+        '<div class="fighter-mini"><div class="avatar-sm">' + (fA.emoji || '&#x1F94A;') + '</div><div class="fname">' + (fA.display_name || fA.name) + '</div></div>' +
+        '<div class="vs-badge">VS</div>' +
+        '<div class="fighter-mini"><div class="avatar-sm">' + (fB.emoji || '&#x1F94A;') + '</div><div class="fname">' + (fB.display_name || fB.name) + '</div></div>' +
+        '<span class="live-badge">LIVE</span>' +
+      '</div>';
+    }
+    container.innerHTML = html;
+  }
+
+  
+  function renderSidebarLeaderboard() {
+    const container = document.getElementById('sidebar-leaderboard-list');
+    if (!container || !pfState || !pfState.fighters) return;
+    
+    // Sort fighters by wins or rank
+    const fighters = [...pfState.fighters].sort((a, b) => (b.wins || 0) - (a.wins || 0)).slice(0, 5);
+    
+    let html = '';
+    fighters.forEach((f, i) => {
+      const rankLabel = i === 0 ? '&#x1F947;' : i === 1 ? '&#x1F948;' : i === 2 ? '&#x1F949;' : (i + 1);
+      html += '<div class="lb-item" onclick="watchToEarn(\'' + f.unique_id + '\', null)">' +
+        '<div class="lb-rank">' + rankLabel + '</div>' +
+        '<div class="lb-avatar">' + (f.emoji || '&#x1F94A;') + '</div>' +
+        '<div class="lb-info">' +
+          '<div class="lb-name">' + (f.display_name || f.name) + '</div>' +
+          '<div class="lb-meta"><span class="wins lb-wins-val">' + (f.wins || 0) + ' W</span> &bull; <span class="lb-bc">' + (f.market_cap_usd ? '$' + (f.market_cap_usd/1000).toFixed(1) + 'K' : '0 BC') + '</span></div>' +
+        '</div>' +
+      '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function renderPumpFighters() {
+
+    const list = document.getElementById('pf-fighters-list');
+    if (!list || !pfState || !pfState.fighters) return;
+
+    list.innerHTML = pfState.fighters.slice(0, 4).map((f, i) => {
+      let chainEmoji = '&#x1F680;';
+      let badgeClass = '';
+      if (f.chain === 'solana') { chainEmoji = '&#x1F7E3;'; badgeClass = 'secondary'; }
+      if (f.chain === 'bsc') { chainEmoji = '&#x1F7E1;'; badgeClass = 'orange'; }
+      if (f.chain === 'base') { chainEmoji = '&#x1F535;'; badgeClass = 'destructive'; }
+
+      const avatarStyle = f.processed_avatar
+        ? 'background-image:url(' + f.processed_avatar + '); background-size:cover; background-position:center; font-size:0;'
+        : '';
+
+      return '<div class="fighter-card">' +
+        '<div class="rank-badge ' + badgeClass + '">' + (i + 1) + '</div>' +
+        '<div class="fc-header">' +
+          '<div class="fc-avatar" style="' + avatarStyle + '">' + (f.processed_avatar ? '' : chainEmoji) + '</div>' +
+          '<div class="fc-meta"><div class="fc-name">' + f.display_name + '</div>' +
+          '<div class="fc-holders">' + (f.full_name || '') + '</div></div>' +
+        '</div>' +
+        '<div class="fc-stats">' +
+          '<div class="fc-stat">MCAP <span class="fc-mcap-val">' + fmtMcap(f.market_cap_usd) + '</span></div>' +
+          '<div class="fc-stat">CHAIN <span class="pos">' + chainEmoji + ' ' + (f.chain || '').toUpperCase() + '</span></div>' +
+        '</div>' +
+        '<div class="fc-rewards">HP: ' + (f.hp||100) + ' | ATK: ' + (f.aggression||50) + ' | DEF: ' + (f.defense||50) + ' | W/L: ' + (f.wins||0) + '/' + (f.losses||0) + '</div>' +
+        '<button class="watch-btn' + (i === 0 ? ' primary' : '') + '" onclick="watchToEarn(\'' + f.unique_id + '\', this)">WATCH 2 EARN</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderPumpLeaderboard(data) {
     const container = document.getElementById('full-lb-list');
     if (!container) return;
 
-    const sortFn = lbSortKey[lbTab] || lbSortKey.earnings;
-    const sorted = Object.keys(lbState)
-      .map(key => ({ key, ...lbState[key] }))
-      .sort((a, b) => sortFn(b) - sortFn(a));
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--bb-muted-foreground);">No fighters yet. Waiting for DexScreener data...</div>';
+      return;
+    }
 
-    container.innerHTML = sorted.map((s, i) => {
-      const rankLabel = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
-      let metaText;
-      if (lbTab === 'fights') {
-        metaText = (s.wins + s.losses) + ' Fights';
-      } else if (lbTab === 'wins') {
-        metaText = s.wins + ' Wins';
-      } else if (lbTab === 'losses') {
-        metaText = s.losses + ' Losses';
-      } else {
-        metaText = s.wins + 'W · ' + s.losses + 'L';
-      }
-      return `
-        <div class="full-lb-row" data-lb="${s.key}">
-          <div class="full-lb-rank">${rankLabel}</div>
-          <div class="full-lb-avatar">${s.emoji}</div>
-          <div class="full-lb-info">
-            <div class="full-lb-name">${s.name}</div>
-            <div class="full-lb-meta">${metaText}</div>
-          </div>
-          <div class="full-lb-bc">${fmtBc(s.bc)} BC</div>
-        </div>`;
+    container.innerHTML = data.map((s, i) => {
+      const rankLabel = i === 0 ? '&#x1F947;' : i === 1 ? '&#x1F948;' : i === 2 ? '&#x1F949;' : (i + 1);
+      const avatarStyle = s.processed_avatar
+        ? 'background-image:url(' + s.processed_avatar + '); background-size:cover; background-position:center; border-radius:50%; width:32px; height:32px; display:inline-block;'
+        : 'font-size:20px;';
+      return '<div class="full-lb-row">' +
+        '<div class="full-lb-rank">' + rankLabel + '</div>' +
+        '<div class="full-lb-avatar" style="' + avatarStyle + '">' + (s.processed_avatar ? '' : '&#x1F680;') + '</div>' +
+        '<div class="full-lb-info"><div class="full-lb-name">' + s.display_name + '</div>' +
+        '<div class="full-lb-meta">' + (s.wins||0) + 'W / ' + (s.losses||0) + 'L</div></div>' +
+        '<div class="full-lb-bc">' + (s.chain || '').toUpperCase() + '</div></div>';
     }).join('');
   }
 
@@ -2654,183 +3402,41 @@
     document.querySelectorAll('#view-leaderboard .challenge-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     lbTab = el.getAttribute('data-lbtab');
-    renderFullLeaderboard();
+    fetchPumpLeaderboard();
   }
 
-  function tickMarket() {
-    Object.keys(marketState).forEach(key => {
-      const s = marketState[key];
-      s.mcap = Math.max(0.5, s.mcap + rand(-0.4, 0.4));
-      s.change = Math.max(-99, Math.min(999, s.change + rand(-3, 3)));
-      s.holders = Math.max(1, s.holders + Math.round(rand(-5, 6)));
-      s.rewards = Math.max(0, Math.round(s.rewards + rand(-8, 12)));
-
-      const card = document.querySelector('.fighter-card[data-fc="' + key + '"]');
-      if (!card) return;
-      card.querySelector('.fc-mcap-val').textContent = fmtMcap(s.mcap);
-      const changeEl = card.querySelector('.fc-change-val');
-      changeEl.textContent = fmtChange(s.change);
-      changeEl.classList.toggle('pos', s.change >= 0);
-      changeEl.classList.toggle('neg', s.change < 0);
-      card.querySelector('.fc-holders-val').textContent = fmtBc(s.holders);
-      card.querySelector('.fc-rewards-val').textContent = fmtBc(s.rewards);
-    });
-  }
-
-  function tickLeaderboard() {
-    Object.keys(lbState).forEach(key => {
-      const s = lbState[key];
-      s.bc = Math.max(0, s.bc + rand(-60, 120));
-      if (Math.random() < 0.15) s.wins += 1;
-      if (Math.random() < 0.05) s.losses += 1;
-    });
-    renderSidebarLeaderboard();
-    renderFullLeaderboard();
-  }
-
-  tickMarket();
-  renderSidebarLeaderboard();
-  renderFullLeaderboard();
-  tickLeaderboard();
+  setInterval(fetchPumpState, 5000);
+  setInterval(fetchPumpLeaderboard, 10000);
+  fetchPumpState();
+  fetchPumpLeaderboard();
   loadProfile();
   loadNotifications();
   setInterval(tickMarket, 2500);
   setInterval(tickLeaderboard, 4000);
   setInterval(loadNotifications, 15000);
 
-  // ── Fighter Builder (Create page) ──────────────────────────────────────
-  const CP_PRESETS = {
-    pepe:  { name: 'PEPE', collection: 'Pepe the Frog', emoji: '🐸', className: 'trickster', traits: 'rare, meme, legendary', hp: 110, atk: 30, def: 20, spd: 18 },
-    doge:  { name: 'DOGE', collection: 'Doge NFT',      emoji: '🐕', className: 'striker',   traits: 'much wow, speed, gold',   hp: 100, atk: 35, def: 10, spd: 22 },
-    bonk:  { name: 'BONK', collection: 'Bonk Army',     emoji: '🔨', className: 'tank',      traits: 'powerful, heavy, slow',   hp: 200, atk: 28, def: 30, spd: 8  },
-    mog:   { name: 'MOG',  collection: 'Mog Coin',      emoji: '😺', className: 'frost',     traits: 'cool, slippery, crit',    hp: 90,  atk: 40, def: 12, spd: 20 },
-    wif:   { name: 'WIF',  collection: 'dogwifhat',      emoji: '🎩', className: 'blaster',   traits: 'hat, magic, burst',       hp: 95,  atk: 38, def: 15, spd: 19 },
-  };
 
-  let cpImageDataUrl = '';
 
-  function cpPct(v, min, max) { return Math.round(((v - min) / (max - min)) * 100); }
-
-  function cpSync() {
-    const name       = (document.getElementById('cp-name').value || 'UNNAMED FIGHTER').toUpperCase();
-    const collection = document.getElementById('cp-collection').value || '—';
-    const cls        = document.getElementById('cp-class').value;
-    const traitsRaw  = document.getElementById('cp-traits').value;
-    const traits     = traitsRaw.split(',').map(t => t.trim()).filter(Boolean);
-
-    // heading badge
-    document.getElementById('cp-class-badge').textContent = cls;
-    document.getElementById('cp-preview-name-small').textContent = name;
-
-    // preview
-    document.getElementById('prev-name').textContent = name;
-    document.getElementById('prev-collection').textContent = collection;
-    document.getElementById('prev-class').textContent = cls.toUpperCase();
-    document.getElementById('prev-traits').textContent = traits.length ? traits.join(' · ') : 'No traits yet';
-  }
-
-  function cpSyncImageUrl() {
-    const url = document.getElementById('cp-image-url').value.trim();
-    cpSetImage(url);
-    cpSync();
-  }
-
-  function cpSetImage(src) {
-    const emojiEl  = document.getElementById('cp-avatar-emoji');
-    const imgEl    = document.getElementById('cp-avatar-img');
-    const prevEmoji = document.getElementById('prev-emoji');
-    const prevImg   = document.getElementById('prev-img');
-
-    if (src) {
-      imgEl.src = src; imgEl.style.display = 'block'; emojiEl.style.display = 'none';
-      prevImg.src = src; prevImg.style.display = 'block'; prevEmoji.style.display = 'none';
+  // Restore tab from URL hash on load
+  window.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+      const btn = document.querySelector(`.nav-tab[data-view="${hash}"]`);
+      if (btn) setTab(btn);
     } else {
-      imgEl.style.display = 'none'; emojiEl.style.display = 'block';
-      prevImg.style.display = 'none'; prevEmoji.style.display = 'block';
+      // Default to pumpfighters if no hash
+      const defaultBtn = document.querySelector(`.nav-tab[data-view="pumpfighters"]`);
+      if (defaultBtn) setTab(defaultBtn);
     }
-  }
+  });
 
-  function cpSetEmoji(emoji) {
-    document.getElementById('cp-avatar-emoji').textContent = emoji;
-    document.getElementById('prev-emoji').textContent = emoji;
-    cpSetImage('');
-  }
+  // Handle browser back/forward buttons
+  window.addEventListener('hashchange', () => {
+    const hash = window.location.hash.substring(1) || 'pumpfighters';
+    const btn = document.querySelector(`.nav-tab[data-view="${hash}"]`);
+    if (btn) setTab(btn);
+  });
 
-  function cpHandleFile(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      cpImageDataUrl = String(reader.result);
-      cpSetImage(cpImageDataUrl);
-      document.getElementById('cp-image-url').value = '';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function cpSyncStat(key, min, max) {
-    const raw = parseInt(document.getElementById(`cp-${key}`).value, 10);
-    const val = Math.min(max, Math.max(min, isNaN(raw) ? min : raw));
-    // Write clamped value back so deploy always reads a valid number
-    document.getElementById(`cp-${key}`).value = val;
-    const pct = cpPct(val, min, max) + '%';
-    document.getElementById(`cp-${key}-bar`).style.width = pct;
-    document.getElementById(`prev-${key}-bar`).style.width = pct;
-    document.getElementById(`prev-${key}-val`).textContent = val;
-  }
-
-  // Helper: clamp + read a stat input at deploy time
-  function cpReadStat(key, min, max) {
-    const raw = parseInt(document.getElementById(`cp-${key}`).value, 10);
-    return Math.min(max, Math.max(min, isNaN(raw) ? min : raw));
-  }
-
-  function cpLoadPreset(key) {
-    const p = CP_PRESETS[key];
-    if (!p) return;
-    document.getElementById('cp-name').value       = p.name;
-    document.getElementById('cp-collection').value = p.collection;
-    document.getElementById('cp-class').value      = p.className;
-    document.getElementById('cp-traits').value     = p.traits;
-    document.getElementById('cp-hp').value  = p.hp;
-    document.getElementById('cp-atk').value = p.atk;
-    document.getElementById('cp-def').value = p.def;
-    document.getElementById('cp-spd').value = p.spd;
-    document.getElementById('cp-image-url').value = '';
-    cpImageDataUrl = '';
-    cpSetEmoji(p.emoji);
-    cpSync();
-    cpSyncStat('hp',  60, 220);
-    cpSyncStat('atk', 5, 45);
-    cpSyncStat('def', 0, 35);
-    cpSyncStat('spd', 5, 24);
-  }
-
-  function cpDeploy() {
-    const name = document.getElementById('cp-name').value.trim();
-    if (!name) { alert('Give your fighter a name first.'); return; }
-    if (!window.currentWalletAddress) {
-      alert('Connect your wallet first — click LOGIN in the top bar.');
-      return;
-    }
-    const payload = {
-      name:       name.toUpperCase(),
-      collection: document.getElementById('cp-collection').value.trim(),
-      className:  document.getElementById('cp-class').value,
-      traits:     document.getElementById('cp-traits').value.split(',').map(t => t.trim()).filter(Boolean),
-      image:      cpImageDataUrl || document.getElementById('cp-image-url').value.trim() || '',
-      stats: {
-        hp:      cpReadStat('hp',  60, 220),
-        attack:  cpReadStat('atk',  5,  45),
-        defense: cpReadStat('def',  0,  35),
-        speed:   cpReadStat('spd',  5,  24),
-      },
-      wallet: window.currentWalletAddress,
-    };
-    console.log('Deploy payload:', payload);
-    alert(`⚔️ Fighter "${payload.name}" queued for deployment!\n\n(Onchain signing coming soon)`);
-  }
-  // ── end Fighter Builder ─────────────────────────────────────────────────
 </script>
 <!-- Challenge Modal -->
 <div class="chal-modal-overlay" id="chal-modal-overlay" onclick="closeChallengeModal()">
