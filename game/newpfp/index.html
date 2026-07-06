@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BantahBro Arena</title>
+  <title>BOTA Arena</title>
   <link rel="icon" type="image/jpeg" href="/newpfp/assets/bota-logo.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -562,6 +562,83 @@
       transition: opacity .15s;
     }
     .agent-btn:hover { opacity: .85; }
+    .agent-empty {
+      grid-column: 1/-1; text-align: center; padding: 40px 16px;
+      color: var(--bb-muted-foreground); font-size: 13px;
+    }
+    .agent-empty a { color: hsl(var(--bb-primary)); cursor: pointer; }
+
+    /* Challenge modal */
+    .chal-modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(2,6,23,.7); display: none;
+      align-items: center; justify-content: center;
+    }
+    .chal-modal-overlay.open { display: flex; }
+    .chal-modal-card {
+      background: var(--bb-card); border: 1px solid var(--bb-border);
+      border-radius: 16px; padding: 20px; width: 360px; max-width: calc(100vw - 32px);
+      position: relative;
+    }
+    .chal-modal-close {
+      position: absolute; top: 12px; right: 12px;
+      background: none; border: none; color: var(--bb-muted-foreground);
+      font-size: 16px; cursor: pointer; line-height: 1;
+    }
+    .chal-modal-title { font-size: 14px; font-weight: 800; margin-bottom: 16px; }
+    .chal-your-agent {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bb-input); border-radius: 10px; padding: 10px;
+      margin-bottom: 12px;
+    }
+    .chal-your-avatar {
+      width: 40px; height: 40px; border-radius: 10px; object-fit: cover;
+      font-size: 22px; display: flex; align-items: center; justify-content: center;
+      background: var(--bb-muted); flex-shrink: 0;
+    }
+    .chal-your-info { font-size: 12px; }
+    .chal-your-info strong { font-weight: 800; font-size: 13px; display: block; }
+    .chal-vs-divider {
+      text-align: center; font-size: 11px; font-weight: 800;
+      color: var(--bb-muted-foreground); margin: 4px 0 10px; letter-spacing: 2px;
+    }
+    .chal-fighters-scroll {
+      max-height: 220px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 6px;
+      margin-bottom: 14px;
+    }
+    .chal-fighter-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 9px;
+      border: 1px solid var(--bb-border); cursor: pointer;
+      transition: border-color .12s, background .12s;
+    }
+    .chal-fighter-row:hover { border-color: hsl(var(--bb-primary)); background: var(--bb-input); }
+    .chal-fighter-row.selected { border-color: hsl(var(--bb-primary)); background: rgba(139,92,246,.1); }
+    .chal-fighter-avatar {
+      width: 34px; height: 34px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
+    }
+    .chal-fighter-info { flex: 1; min-width: 0; }
+    .chal-fighter-info strong { font-size: 12px; font-weight: 800; display: block; }
+    .chal-fighter-info span { font-size: 10px; color: var(--bb-muted-foreground); }
+    .chal-stake-row {
+      display: flex; gap: 8px; align-items: center; margin-bottom: 14px;
+    }
+    .chal-stake-row label { font-size: 11px; font-weight: 700; white-space: nowrap; color: var(--bb-muted-foreground); }
+    .chal-stake-input {
+      flex: 1; background: var(--bb-input); border: 1px solid var(--bb-border);
+      border-radius: 8px; padding: 7px 10px; font-size: 12px; font-weight: 700;
+      color: var(--bb-foreground); outline: none;
+    }
+    .chal-stake-input:focus { border-color: hsl(var(--bb-primary)); }
+    .chal-confirm-btn {
+      width: 100%; padding: 10px; border-radius: 9px;
+      font-size: 12px; font-weight: 800; border: none; cursor: pointer;
+      background: hsl(var(--bb-primary)); color: #fff;
+      opacity: .5; transition: opacity .15s;
+    }
+    .chal-confirm-btn.ready { opacity: 1; }
+    .chal-confirm-btn.ready:hover { opacity: .85; }
 
     /* Create view */
     .create-card {
@@ -1166,49 +1243,8 @@
         <div class="view-title">My Agents</div>
         <div class="view-subtitle">Manage, train and deploy your AI fighters</div>
       </div>
-      <div class="agents-grid">
-        <div class="agent-card">
-          <div class="agent-avatar">🤖</div>
-          <div class="agent-name">ROBOT V1</div>
-          <div class="agent-level">LEVEL 12</div>
-          <div class="agent-record"><span class="win">18W</span> · <span class="loss">4L</span> · 1,240,000 BC</div>
-          <button class="agent-btn">CHALLENGE</button>
-        </div>
-        <div class="agent-card">
-          <div class="agent-avatar">🦾</div>
-          <div class="agent-name">FLOATROBO</div>
-          <div class="agent-level">LEVEL 9</div>
-          <div class="agent-record"><span class="win">14W</span> · <span class="loss">7L</span> · 890,000 BC</div>
-          <button class="agent-btn">CHALLENGE</button>
-        </div>
-        <div class="agent-card">
-          <div class="agent-avatar">🐸</div>
-          <div class="agent-name">PEPE</div>
-          <div class="agent-level">LEVEL 15</div>
-          <div class="agent-record"><span class="win">22W</span> · <span class="loss">3L</span> · 676 Holders</div>
-          <button class="agent-btn">CHALLENGE</button>
-        </div>
-        <div class="agent-card">
-          <div class="agent-avatar">🐕</div>
-          <div class="agent-name">DOGE</div>
-          <div class="agent-level">LEVEL 11</div>
-          <div class="agent-record"><span class="win">16W</span> · <span class="loss">6L</span> · 512 Holders</div>
-          <button class="agent-btn">CHALLENGE</button>
-        </div>
-        <div class="agent-card">
-          <div class="agent-avatar">🔨</div>
-          <div class="agent-name">BONK</div>
-          <div class="agent-level">LEVEL 8</div>
-          <div class="agent-record"><span class="win">10W</span> · <span class="loss">9L</span> · 421 Holders</div>
-          <button class="agent-btn">CHALLENGE</button>
-        </div>
-        <div class="agent-card">
-          <div class="agent-avatar">😺</div>
-          <div class="agent-name">MOG</div>
-          <div class="agent-level">LEVEL 6</div>
-          <div class="agent-record"><span class="win">7W</span> · <span class="loss">11L</span> · 289 Holders</div>
-          <button class="agent-btn">CHALLENGE</button>
-        </div>
+      <div class="agents-grid" id="agents-grid">
+        <div class="agent-empty">Loading your agents…</div>
       </div>
     </div>
   </div>
@@ -1521,7 +1557,7 @@
 
   if (privyBootOk) {
     function AuthButton() {
-      const { ready, authenticated } = usePrivy();
+      const { ready, authenticated, user } = usePrivy();
       const { login } = useLogin({
         onComplete: () => {
           if (typeof window !== 'undefined') {
@@ -1534,6 +1570,16 @@
       React.useEffect(() => {
         privyLoginHandler = login;
       }, [login]);
+
+      // Expose wallet address globally so other JS can use it for API calls
+      React.useEffect(() => {
+        if (authenticated && user) {
+          const wallet = user.wallet?.address || user.linkedAccounts?.find(a => a.type === 'wallet')?.address || '';
+          window.currentWalletAddress = wallet.toLowerCase();
+        } else {
+          window.currentWalletAddress = '';
+        }
+      }, [authenticated, user]);
 
       // Sync the real nav button and profile icon to auth state
       React.useEffect(() => {
@@ -1553,6 +1599,13 @@
           btn.disabled = false;
           btn.onclick = () => openProfileView();
           if (profileIcon) profileIcon.style.display = '';
+          // Load live data now that we know the wallet
+          setTimeout(() => {
+            if (window.currentWalletAddress) {
+              loadUserStats(window.currentWalletAddress);
+              loadMyAgents(window.currentWalletAddress);
+            }
+          }, 200);
         } else {
           btn.textContent = 'LOGIN';
           btn.disabled = false;
@@ -1751,13 +1804,144 @@
     if (!profile) return;
     document.getElementById('profile-pill-title').textContent = profile.firstName ? `${profile.firstName} ${profile.lastName || ''}`.trim() : 'Connected';
     document.getElementById('profile-wallet-label').textContent = profile.walletAddress ? `${profile.walletAddress.slice(0, 6)}…${profile.walletAddress.slice(-4)}` : 'Wallet connected';
-    document.getElementById('profile-my-agents').textContent = profile.myAgents ?? 0;
-    document.getElementById('profile-queue').textContent = profile.queue ?? 0;
-    document.getElementById('profile-bantcredit').textContent = profile.bantCredit?.toLocaleString() ?? 0;
-    document.getElementById('profile-bantc-claim').textContent = profile.bantcClaim?.toLocaleString() ?? 0;
-    document.getElementById('profile-earned-usdc').textContent = `$${Number(profile.earnedUsdc || 0).toLocaleString()}`;
-    document.getElementById('profile-status').textContent = profile.status || 'Ready';
   }
+
+  function renderLiveStats(stats) {
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('profile-my-agents', (stats.myAgents ?? 0).toLocaleString());
+    set('profile-queue', (stats.queue ?? 0).toLocaleString());
+    set('profile-bantcredit', Math.round(stats.bantCredit ?? 0).toLocaleString());
+    set('profile-bantc-claim', Math.round(stats.bantcClaim ?? 0).toLocaleString());
+    set('profile-earned-usdc', `${Number(stats.earnedUsdc ?? 0).toLocaleString()}`);
+    set('profile-status', stats.status || 'Ready');
+  }
+
+  async function loadUserStats(wallet) {
+    if (!wallet) return;
+    try {
+      const stats = await api(`/api/stats?wallet=${encodeURIComponent(wallet)}`);
+      renderLiveStats(stats);
+    } catch (e) {
+      console.warn('Stats unavailable', e);
+    }
+  }
+
+  async function loadMyAgents(wallet) {
+    const grid = document.getElementById('agents-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div class="agent-empty">Loading…</div>';
+    try {
+      const agents = await api(`/api/my-agents?wallet=${encodeURIComponent(wallet || '')}`);
+      if (!agents.length) {
+        grid.innerHTML = '<div class="agent-empty">No agents yet. <a onclick="document.querySelector(\'[data-view=create]\').click()">Create your first fighter →</a></div>';
+        return;
+      }
+      grid.innerHTML = agents.map(a => {
+        const avatar = a.avatarUrl
+          ? `<img class="agent-avatar" src="${a.avatarUrl}" alt="${a.name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
+          : `<div class="agent-avatar">🤖</div>`;
+        return `
+          <div class="agent-card">
+            ${avatar}
+            <div class="agent-name">${a.name}</div>
+            <div class="agent-level">${a.status ? a.status.toUpperCase() : 'ACTIVE'}</div>
+            <div class="agent-record"><span class="win">${a.wins}W</span> · <span class="loss">${a.losses}L</span> · ${(a.points || 0).toLocaleString()} BC</div>
+            <button class="agent-btn" onclick="openChallengeModal(${JSON.stringify(a)})">CHALLENGE</button>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      grid.innerHTML = '<div class="agent-empty">Could not load agents.</div>';
+    }
+  }
+
+  /* ── Challenge modal ── */
+  let _fighters = [];
+  let _challengeAgent = null;
+  let _selectedFighter = null;
+
+  async function loadFighters() {
+    if (_fighters.length) return _fighters;
+    try { _fighters = await api('/api/fighters'); } catch (e) { _fighters = []; }
+    return _fighters;
+  }
+
+  function openChallengeModal(agent) {
+    _challengeAgent = agent;
+    _selectedFighter = null;
+    const overlay = document.getElementById('chal-modal-overlay');
+    if (!overlay) return;
+
+    // Your agent header
+    const yourDiv = overlay.querySelector('#chal-your-agent-info');
+    if (yourDiv) {
+      const av = agent.avatarUrl
+        ? `<img src="${agent.avatarUrl}" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">`
+        : `<div class="chal-your-avatar">🤖</div>`;
+      yourDiv.innerHTML = `${av}<div class="chal-your-info"><strong>${agent.name}</strong>${agent.wins}W · ${agent.losses}L · ${(agent.points||0).toLocaleString()} BC</div>`;
+    }
+
+    // Reset confirm button
+    const btn = document.getElementById('chal-confirm-btn');
+    if (btn) { btn.textContent = 'SELECT A FIGHTER FIRST'; btn.classList.remove('ready'); }
+
+    // Render fighters list
+    const list = document.getElementById('chal-fighters-list');
+    if (list) {
+      if (!_fighters.length) {
+        list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--bb-muted-foreground);font-size:12px;">Loading fighters…</div>';
+        loadFighters().then(() => renderFightersList(list));
+      } else {
+        renderFightersList(list);
+      }
+    }
+
+    overlay.classList.add('open');
+  }
+
+  function renderFightersList(list) {
+    if (!_fighters.length) {
+      list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--bb-muted-foreground);font-size:12px;">No fighters available.</div>';
+      return;
+    }
+    list.innerHTML = _fighters.map(f => {
+      const av = f.avatarUrl
+        ? `<img class="chal-fighter-avatar" src="${f.avatarUrl}" alt="${f.name}">`
+        : `<div class="chal-fighter-avatar" style="background:var(--bb-muted);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:18px;">🤖</div>`;
+      return `<div class="chal-fighter-row" data-id="${f.id}" onclick="selectFighter(this, ${JSON.stringify(f)})">
+        ${av}
+        <div class="chal-fighter-info">
+          <strong>${f.name}</strong>
+          <span><span style="color:var(--bb-secondary)">${f.wins}W</span> · <span style="color:var(--bb-destructive)">${f.losses}L</span> · ${Math.round(f.fameScore).toLocaleString()} pts</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function selectFighter(el, fighter) {
+    _selectedFighter = fighter;
+    document.querySelectorAll('.chal-fighter-row').forEach(r => r.classList.remove('selected'));
+    el.classList.add('selected');
+    const btn = document.getElementById('chal-confirm-btn');
+    if (btn) { btn.textContent = `⚔️ CHALLENGE ${fighter.name.toUpperCase()}`; btn.classList.add('ready'); }
+  }
+
+  function closeChallengeModal() {
+    const overlay = document.getElementById('chal-modal-overlay');
+    if (overlay) overlay.classList.remove('open');
+  }
+
+  function confirmChallenge() {
+    if (!_selectedFighter || !_challengeAgent) return;
+    const stake = parseInt(document.getElementById('chal-stake-input').value, 10) || 0;
+    if (stake < 100) { alert('Minimum stake is 100 BC.'); return; }
+    alert(`Challenge sent!\n${_challengeAgent.name} vs ${_selectedFighter.name}\nStake: ${stake.toLocaleString()} BC\n\n(Onchain integration coming soon)`);
+    closeChallengeModal();
+  }
+
+  window.openChallengeModal = openChallengeModal;
+  window.closeChallengeModal = closeChallengeModal;
+  window.selectFighter = selectFighter;
+  window.confirmChallenge = confirmChallenge;
 
   function renderNotifications() {
     const list = document.getElementById('notif-list');
@@ -1790,6 +1974,14 @@
     } catch (error) {
       console.warn('Profile API unavailable', error);
     }
+    // Pull live stats from DB using the connected wallet
+    const wallet = window.currentWalletAddress || profileState.profile?.walletAddress || '';
+    if (wallet) {
+      loadUserStats(wallet);
+      loadMyAgents(wallet);
+    }
+    // Pre-fetch fighters for the challenge modal
+    loadFighters();
   }
 
   async function loadNotifications() {
@@ -2052,5 +2244,20 @@
   setInterval(tickLeaderboard, 4000);
   setInterval(loadNotifications, 15000);
 </script>
+<!-- Challenge Modal -->
+<div class="chal-modal-overlay" id="chal-modal-overlay" onclick="closeChallengeModal()">
+  <div class="chal-modal-card" onclick="event.stopPropagation()">
+    <button class="chal-modal-close" onclick="closeChallengeModal()">✕</button>
+    <div class="chal-modal-title">⚔️ Challenge a Fighter</div>
+    <div class="chal-your-agent" id="chal-your-agent-info"></div>
+    <div class="chal-vs-divider">— CHOOSE YOUR OPPONENT —</div>
+    <div class="chal-fighters-scroll" id="chal-fighters-list"></div>
+    <div class="chal-stake-row">
+      <label>BC Stake</label>
+      <input class="chal-stake-input" type="number" id="chal-stake-input" placeholder="Min 100 BC" min="100" step="100" />
+    </div>
+    <button class="chal-confirm-btn" id="chal-confirm-btn" onclick="confirmChallenge()">SELECT A FIGHTER FIRST</button>
+  </div>
+</div>
 </body>
 </html>

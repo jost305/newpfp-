@@ -3,7 +3,30 @@ import socketserver
 import os
 import json
 from datetime import datetime, timezone
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
+
+try:
+    import psycopg2
+    _HAS_DB = True
+except ImportError:
+    _HAS_DB = False
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+
+def query_db(sql, params=(), fetchone=False):
+    if not _HAS_DB or not DATABASE_URL:
+        return None
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(sql, params)
+        result = cur.fetchone() if fetchone else cur.fetchall()
+        conn.close()
+        return result
+    except Exception as e:
+        print(f"DB error: {e}", flush=True)
+        return None
 
 PORT = 5000
 GAME_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "game")
@@ -120,6 +143,70 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
         if path == "/api/health":
             self.send_json({"ok": True})
+            return
+
+        if path == "/api/stats":
+            qs = parse_qs(urlparse(self.path).query)
+            wallet = (qs.get("wallet") or [""])[0].strip().lower()
+            stats = {"myAgents": 0, "queue": 0, "bantCredit": 0,
+                     "bantcClaim": 0, "earnedUsdc": 0, "status": "Ready"}
+            if wallet:
+                r = query_db("SELECT COUNT(*) FROM agents WHERE LOWER(owner_wallet_address)=%s", (wallet,), fetchone=True)
+                if r: stats["myAgents"] = int(r[0])
+
+                r = query_db("SELECT COUNT(*) FROM matchmaking_queue WHERE LOWER(wallet_address)=%s", (wallet,), fetchone=True)
+                if r: stats["queue"] = int(r[0])
+
+                r = query_db("SELECT COALESCE(balance,0) FROM bantcredit_balances WHERE LOWER(wallet_address)=%s", (wallet,), fetchone=True)
+                if r: stats["bantCredit"] = float(r[0])
+
+                r = query_db(
+                    "SELECT COALESCE(SUM(amount),0) FROM onchain_sim_battle_reward_claims "
+                    "WHERE LOWER(account)=%s AND status NOT IN ('claimed','expired','cancelled')",
+                    (wallet,), fetchone=True)
+                if r: stats["bantcClaim"] = int(r[0])
+
+                r = query_db(
+                    "SELECT COALESCE(SUM(pe.amount),0) FROM payout_entries pe "
+                    "JOIN users u ON pe.user_id=u.id "
+                    "WHERE LOWER(u.primary_wallet_address)=%s AND pe.status='completed'",
+                    (wallet,), fetchone=True)
+                if r: stats["earnedUsdc"] = round(float(r[0]) / 1_000_000, 2)
+
+                r = query_db("SELECT status FROM users WHERE LOWER(primary_wallet_address)=%s", (wallet,), fetchone=True)
+                if r and r[0]: stats["status"] = r[0]
+            self.send_json(stats)
+            return
+
+        if path == "/api/my-agents":
+            qs = parse_qs(urlparse(self.path).query)
+            wallet = (qs.get("wallet") or [""])[0].strip().lower()
+            agents = []
+            if wallet:
+                rows = query_db(
+                    "SELECT agent_id, agent_name, avatar_url, win_count, loss_count, points, status "
+                    "FROM agents WHERE LOWER(owner_wallet_address)=%s ORDER BY created_at DESC",
+                    (wallet,))
+                if rows:
+                    agents = [{"id": r[0], "name": r[1], "avatarUrl": r[2],
+                               "wins": r[3] or 0, "losses": r[4] or 0,
+                               "points": r[5] or 0, "status": r[6]} for r in rows]
+            self.send_json(agents)
+            return
+
+        if path == "/api/fighters":
+            rows = query_db(
+                "SELECT agent_id, display_name, avatar_url, wins, losses, fame_score "
+                "FROM bota_fighter_profiles "
+                "WHERE wins > 0 OR losses > 0 "
+                "ORDER BY (wins + losses) DESC NULLS LAST, fame_score DESC NULLS LAST "
+                "LIMIT 30")
+            fighters = []
+            if rows:
+                fighters = [{"id": r[0], "name": r[1], "avatarUrl": r[2],
+                             "wins": r[3] or 0, "losses": r[4] or 0,
+                             "fameScore": float(r[5] or 0)} for r in rows]
+            self.send_json(fighters)
             return
         if path in {"/", ""}:
             try:
