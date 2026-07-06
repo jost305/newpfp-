@@ -640,47 +640,141 @@
     .chal-confirm-btn.ready { opacity: 1; }
     .chal-confirm-btn.ready:hover { opacity: .85; }
 
-    /* Create view */
-    .create-card {
-      max-width: 480px; background: var(--bb-card);
-      border: 1px solid var(--bb-border); border-radius: 14px; padding: 20px;
+    /* ── Create / Fighter Builder ── */
+    #view-create .view-inner { max-width: 900px; }
+
+    .create-builder {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;
     }
-    .form-group { margin-bottom: 16px; }
-    .form-label {
-      font-size: 10px; font-weight: 700; letter-spacing: .5px;
-      color: var(--bb-muted-foreground); text-transform: uppercase;
-      display: block; margin-bottom: 6px;
+    @media (max-width: 680px) { .create-builder { grid-template-columns: 1fr; } }
+
+    /* Panel shell */
+    .cp-panel {
+      background: var(--bb-card); border: 1px solid var(--bb-border);
+      border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px;
     }
-    .form-input {
-      width: 100%; padding: 9px 10px; border-radius: 8px;
-      background: var(--bb-input); border: 1px solid var(--bb-border);
-      color: var(--bb-foreground); font-size: 13px;
+    .cp-panel-heading {
+      display: flex; align-items: baseline; justify-content: space-between;
+      border-bottom: 1px solid var(--bb-border); padding-bottom: 10px;
     }
-    .emoji-picker { display: flex; gap: 8px; flex-wrap: wrap; }
-    .emoji-option {
-      width: 40px; height: 40px; border-radius: 10px;
-      background: var(--bb-input); border: 2px solid var(--bb-border);
+    .cp-panel-heading > span {
+      font-size: 12px; font-weight: 800; letter-spacing: .8px;
+      text-transform: uppercase; color: hsl(var(--bb-primary));
+    }
+    .cp-panel-heading small {
+      font-size: 10px; color: var(--bb-muted-foreground);
+      text-transform: capitalize; letter-spacing: .4px; transition: color .15s;
+    }
+
+    /* Avatar upload */
+    .cp-avatar-row { display: flex; gap: 14px; align-items: center; }
+    .cp-avatar-wrap {
+      width: 80px; height: 80px; border-radius: 14px; flex-shrink: 0;
+      background: var(--bb-input); border: 2px dashed var(--bb-border);
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px; cursor: pointer; transition: all .15s;
+      font-size: 36px; cursor: pointer; position: relative; overflow: hidden;
+      transition: border-color .15s;
     }
-    .emoji-option:hover { border-color: hsl(var(--bb-primary)); }
-    .emoji-option.selected { border-color: hsl(var(--bb-primary)); background: rgb(var(--bb-primary-rgb) / 0.2); }
-    .stat-row {
-      display: flex; align-items: center; justify-content: space-between;
-      font-size: 11px; color: var(--bb-muted-foreground); margin-bottom: 8px;
+    .cp-avatar-wrap:hover { border-color: hsl(var(--bb-primary)); }
+    .cp-avatar-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+    .cp-avatar-hint { font-size: 10px; color: var(--bb-muted-foreground); line-height: 1.6; }
+    .cp-avatar-hint strong { display: block; font-size: 14px; color: var(--bb-foreground); margin-bottom: 2px; }
+    #cp-file-input { display: none; }
+
+    /* Form labels / inputs */
+    .cp-label { display: flex; flex-direction: column; gap: 5px; }
+    .cp-label > span {
+      font-size: 10px; font-weight: 700; letter-spacing: .5px;
+      text-transform: uppercase; color: var(--bb-muted-foreground);
     }
-    .stat-bar-wrap {
-      flex: 1; height: 6px; border-radius: 4px; background: var(--bb-muted);
-      margin: 0 10px; overflow: hidden;
+    .cp-input {
+      width: 100%; padding: 9px 11px; border-radius: 8px; box-sizing: border-box;
+      background: var(--bb-input); border: 1px solid var(--bb-border);
+      color: var(--bb-foreground); font-size: 13px; outline: none;
+      font-family: inherit; transition: border-color .15s;
     }
-    .stat-bar { height: 6px; border-radius: 4px; background: hsl(var(--bb-primary)); }
-    .create-submit-btn {
-      width: 100%; padding: 11px; border-radius: 9px; margin-top: 4px;
-      font-size: 13px; font-weight: 800; border: none; cursor: pointer;
-      background: hsl(var(--bb-primary)); color: #ffffff;
-      transition: opacity .15s;
+    .cp-input:focus { border-color: hsl(var(--bb-primary)); }
+    .cp-textarea { resize: vertical; min-height: 54px; line-height: 1.4; }
+    .cp-select {
+      appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23888' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 11px center; padding-right: 30px;
     }
-    .create-submit-btn:hover { opacity: .85; }
+
+    /* Stat grid */
+    .cp-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cp-stat-cell { display: flex; flex-direction: column; gap: 4px; }
+    .cp-stat-cell > span {
+      font-size: 10px; font-weight: 700; letter-spacing: .5px;
+      text-transform: uppercase; color: var(--bb-muted-foreground);
+    }
+    .cp-stat-num {
+      width: 100%; padding: 7px 8px; border-radius: 7px; box-sizing: border-box;
+      background: var(--bb-input); border: 1px solid var(--bb-border);
+      color: var(--bb-foreground); font-size: 13px; font-weight: 700;
+      text-align: center; outline: none; font-family: inherit; transition: border-color .15s;
+    }
+    .cp-stat-num:focus { border-color: hsl(var(--bb-primary)); }
+    .cp-stat-bar-wrap { height: 4px; border-radius: 3px; background: var(--bb-muted); overflow: hidden; margin-top: 2px; }
+    .cp-stat-bar { height: 4px; border-radius: 3px; background: hsl(var(--bb-primary)); transition: width .2s; }
+
+    /* Preset buttons */
+    .cp-preset-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .cp-preset-btn {
+      padding: 5px 10px; border-radius: 7px; font-size: 11px; font-weight: 700;
+      background: transparent; border: 1px solid var(--bb-border);
+      color: var(--bb-muted-foreground); cursor: pointer;
+      text-transform: uppercase; letter-spacing: .3px; transition: all .15s;
+    }
+    .cp-preset-btn:hover { border-color: hsl(var(--bb-primary)); color: hsl(var(--bb-primary)); }
+
+    /* Section divider label */
+    .cp-section-lbl {
+      font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+      color: var(--bb-muted-foreground); border-bottom: 1px solid var(--bb-border);
+      padding-bottom: 6px;
+    }
+
+    /* Deploy button */
+    .cp-deploy-btn {
+      width: 100%; padding: 13px; border-radius: 10px;
+      font-size: 13px; font-weight: 900; letter-spacing: .6px;
+      border: none; cursor: pointer;
+      background: linear-gradient(135deg, hsl(var(--bb-primary)), hsl(var(--bb-primary) / .7));
+      color: #fff; transition: opacity .15s, transform .12s;
+    }
+    .cp-deploy-btn:hover { opacity: .9; transform: translateY(-1px); }
+    .cp-deploy-btn:active { transform: translateY(0); }
+
+    /* Preview card (right column) */
+    .cp-preview { position: sticky; top: 80px; }
+    .cp-preview-card {
+      background: linear-gradient(160deg, hsl(var(--bb-primary) / .12), var(--bb-card) 65%);
+      border: 1.5px solid hsl(var(--bb-primary) / .35);
+      border-radius: 20px; padding: 28px 24px;
+      display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center;
+    }
+    .cp-preview-avatar {
+      width: 110px; height: 110px; border-radius: 20px;
+      background: var(--bb-input); border: 2px solid hsl(var(--bb-primary) / .4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 54px; overflow: hidden; transition: all .2s;
+    }
+    .cp-preview-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 18px; }
+    .cp-preview-name { font-size: 19px; font-weight: 900; letter-spacing: .4px; min-height: 26px; }
+    .cp-preview-collection { font-size: 11px; color: var(--bb-muted-foreground); margin-top: -6px; min-height: 16px; }
+    .cp-preview-class {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      color: hsl(var(--bb-primary)); background: hsl(var(--bb-primary) / .14);
+      padding: 3px 12px; border-radius: 20px; border: 1px solid hsl(var(--bb-primary) / .3);
+    }
+    .cp-preview-traits { font-size: 11px; color: var(--bb-muted-foreground); line-height: 1.7; min-height: 18px; }
+    .cp-preview-stats { width: 100%; display: flex; flex-direction: column; gap: 7px; }
+    .cp-preview-stat-row { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+    .cp-preview-stat-lbl { width: 32px; text-align: right; font-weight: 700; color: var(--bb-muted-foreground); }
+    .cp-preview-bar-wrap { flex: 1; height: 5px; border-radius: 3px; background: var(--bb-muted); overflow: hidden; }
+    .cp-preview-bar-fill { height: 5px; border-radius: 3px; background: hsl(var(--bb-primary)); transition: width .2s; }
+    .cp-preview-stat-val { width: 28px; font-weight: 700; }
 
     /* Marketplace view */
     .marketplace-grid {
@@ -1253,35 +1347,154 @@
   <div id="view-create" class="tab-view">
     <div class="view-inner">
       <div class="view-header">
-        <div class="view-title">Create Your Agent</div>
-        <div class="view-subtitle">Build a fighter and enter it into the arena</div>
+        <div class="view-title">Fighter Import Panel</div>
+        <div class="view-subtitle">Configure your NFT fighter and deploy it to the arena</div>
       </div>
-      <div class="create-card">
-        <div class="form-group">
-          <label class="form-label">Agent Name</label>
-          <input class="form-input" type="text" placeholder="e.g. SHADOW FANG" />
+
+      <div class="create-builder">
+
+        <!-- ── LEFT: Configuration Panel ── -->
+        <div class="cp-panel">
+          <div class="cp-panel-heading">
+            <span>FIGHTER CONFIG</span>
+            <small id="cp-class-badge">striker</small>
+          </div>
+
+          <!-- Avatar -->
+          <div class="cp-avatar-row">
+            <label class="cp-avatar-wrap" for="cp-file-input" tabindex="0" role="button"
+              aria-label="Upload fighter avatar image"
+              onkeydown="if(event.key==='Enter'||event.key===' ')this.click()"
+              title="Click or press Enter to upload image">
+              <span id="cp-avatar-emoji">🤖</span>
+              <img id="cp-avatar-img" src="" style="display:none" alt="fighter avatar" />
+            </label>
+            <div class="cp-avatar-hint">
+              <strong id="cp-preview-name-small">UNNAMED FIGHTER</strong>
+              Click avatar to upload image<br/>or enter a URL below
+            </div>
+            <input type="file" id="cp-file-input" accept="image/*" onchange="cpHandleFile(event)" />
+          </div>
+
+          <!-- NFT Name -->
+          <label class="cp-label">
+            <span>NFT Name</span>
+            <input class="cp-input" id="cp-name" type="text" placeholder="e.g. SHADOW FANG"
+              oninput="cpSync()" />
+          </label>
+
+          <!-- Collection -->
+          <label class="cp-label">
+            <span>Collection</span>
+            <input class="cp-input" id="cp-collection" type="text" placeholder="e.g. Bored Ape Yacht Club"
+              oninput="cpSync()" />
+          </label>
+
+          <!-- Image URL -->
+          <label class="cp-label">
+            <span>Image URL</span>
+            <input class="cp-input" id="cp-image-url" type="url" placeholder="https://…"
+              oninput="cpSyncImageUrl()" />
+          </label>
+
+          <!-- Fighter Class -->
+          <label class="cp-label">
+            <span>Fighter Class</span>
+            <select class="cp-input cp-select" id="cp-class" onchange="cpSync()">
+              <option value="striker">Striker</option>
+              <option value="tank">Tank</option>
+              <option value="frost">Frost</option>
+              <option value="trickster">Trickster</option>
+              <option value="blaster">Blaster</option>
+            </select>
+          </label>
+
+          <!-- Traits -->
+          <label class="cp-label">
+            <span>Traits <small style="text-transform:none;font-weight:400">(comma-separated)</small></span>
+            <textarea class="cp-input cp-textarea" id="cp-traits" placeholder="e.g. fire, legendary, swift"
+              oninput="cpSync()"></textarea>
+          </label>
+
+          <!-- Stats -->
+          <div class="cp-section-lbl">Stats</div>
+          <div class="cp-stat-grid">
+            <div class="cp-stat-cell">
+              <span>HP <small style="font-weight:400;text-transform:none">(60–220)</small></span>
+              <input class="cp-stat-num" type="number" id="cp-hp" value="120" min="60" max="220" oninput="cpSyncStat('hp',60,220)" />
+              <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-hp-bar" style="width:37.5%"></div></div>
+            </div>
+            <div class="cp-stat-cell">
+              <span>ATK <small style="font-weight:400;text-transform:none">(5–45)</small></span>
+              <input class="cp-stat-num" type="number" id="cp-atk" value="25" min="5" max="45" oninput="cpSyncStat('atk',5,45)" />
+              <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-atk-bar" style="width:50%"></div></div>
+            </div>
+            <div class="cp-stat-cell">
+              <span>DEF <small style="font-weight:400;text-transform:none">(0–35)</small></span>
+              <input class="cp-stat-num" type="number" id="cp-def" value="15" min="0" max="35" oninput="cpSyncStat('def',0,35)" />
+              <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-def-bar" style="width:42.9%"></div></div>
+            </div>
+            <div class="cp-stat-cell">
+              <span>SPD <small style="font-weight:400;text-transform:none">(5–24)</small></span>
+              <input class="cp-stat-num" type="number" id="cp-spd" value="12" min="5" max="24" oninput="cpSyncStat('spd',5,24)" />
+              <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-spd-bar" style="width:36.8%"></div></div>
+            </div>
+          </div>
+
+          <!-- Presets -->
+          <div class="cp-section-lbl">Quick Presets</div>
+          <div class="cp-preset-row">
+            <button class="cp-preset-btn" onclick="cpLoadPreset('pepe')">🐸 Pepe</button>
+            <button class="cp-preset-btn" onclick="cpLoadPreset('doge')">🐕 Doge</button>
+            <button class="cp-preset-btn" onclick="cpLoadPreset('bonk')">🔨 Bonk</button>
+            <button class="cp-preset-btn" onclick="cpLoadPreset('mog')">😺 Mog</button>
+            <button class="cp-preset-btn" onclick="cpLoadPreset('wif')">🎩 WIF</button>
+          </div>
+
+          <button class="cp-deploy-btn" onclick="cpDeploy()">⚔️ DEPLOY FIGHTER</button>
         </div>
-        <div class="form-group">
-          <label class="form-label">Choose Avatar</label>
-          <div class="emoji-picker">
-            <div class="emoji-option selected">🤖</div>
-            <div class="emoji-option">🦾</div>
-            <div class="emoji-option">🐸</div>
-            <div class="emoji-option">🐕</div>
-            <div class="emoji-option">🔨</div>
-            <div class="emoji-option">😺</div>
-            <div class="emoji-option">🦊</div>
-            <div class="emoji-option">🐶</div>
+
+        <!-- ── RIGHT: Live Preview ── -->
+        <div class="cp-preview">
+          <div class="cp-panel-heading" style="margin-bottom:14px">
+            <span>LIVE PREVIEW</span>
+            <small>updates as you type</small>
+          </div>
+          <div class="cp-preview-card">
+            <div class="cp-preview-avatar" id="prev-avatar">
+              <span id="prev-emoji">🤖</span>
+              <img id="prev-img" src="" style="display:none" alt="" />
+            </div>
+            <div class="cp-preview-name" id="prev-name">UNNAMED FIGHTER</div>
+            <div class="cp-preview-collection" id="prev-collection">—</div>
+            <div class="cp-preview-class" id="prev-class">STRIKER</div>
+            <div class="cp-preview-traits" id="prev-traits">No traits yet</div>
+            <div class="cp-preview-stats">
+              <div class="cp-preview-stat-row">
+                <span class="cp-preview-stat-lbl">HP</span>
+                <div class="cp-preview-bar-wrap"><div class="cp-preview-bar-fill" id="prev-hp-bar" style="width:37.5%"></div></div>
+                <span class="cp-preview-stat-val" id="prev-hp-val">120</span>
+              </div>
+              <div class="cp-preview-stat-row">
+                <span class="cp-preview-stat-lbl">ATK</span>
+                <div class="cp-preview-bar-wrap"><div class="cp-preview-bar-fill" id="prev-atk-bar" style="width:50%"></div></div>
+                <span class="cp-preview-stat-val" id="prev-atk-val">25</span>
+              </div>
+              <div class="cp-preview-stat-row">
+                <span class="cp-preview-stat-lbl">DEF</span>
+                <div class="cp-preview-bar-wrap"><div class="cp-preview-bar-fill" id="prev-def-bar" style="width:42.9%"></div></div>
+                <span class="cp-preview-stat-val" id="prev-def-val">15</span>
+              </div>
+              <div class="cp-preview-stat-row">
+                <span class="cp-preview-stat-lbl">SPD</span>
+                <div class="cp-preview-bar-wrap"><div class="cp-preview-bar-fill" id="prev-spd-bar" style="width:36.8%"></div></div>
+                <span class="cp-preview-stat-val" id="prev-spd-val">12</span>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Stat Allocation</label>
-          <div class="stat-row">Power <div class="stat-bar-wrap"><div class="stat-bar" style="width:70%"></div></div> 70</div>
-          <div class="stat-row">Speed <div class="stat-bar-wrap"><div class="stat-bar" style="width:55%"></div></div> 55</div>
-          <div class="stat-row">Defense <div class="stat-bar-wrap"><div class="stat-bar" style="width:40%"></div></div> 40</div>
-        </div>
-        <button class="create-submit-btn">⚔️ DEPLOY AGENT</button>
-      </div>
+
+      </div><!-- /create-builder -->
     </div>
   </div>
 
@@ -1763,6 +1976,17 @@
   }
 
   window.setTab = setTab;
+
+  // Hash-based tab routing (e.g. /#create)
+  function activateTabByName(name) {
+    const btn = document.querySelector(`.nav-tab[data-view="${name}"]`);
+    if (btn) setTab(btn);
+  }
+  window.addEventListener('hashchange', () => {
+    const h = location.hash.replace('#', '');
+    if (h) activateTabByName(h);
+  });
+  if (location.hash) activateTabByName(location.hash.replace('#', ''));
   window.openProfileView = openProfileView;
   window.toggleSearchModal = toggleSearchModal;
   window.closeSearchModal = closeSearchModal;
@@ -2243,6 +2467,140 @@
   setInterval(tickMarket, 2500);
   setInterval(tickLeaderboard, 4000);
   setInterval(loadNotifications, 15000);
+
+  // ── Fighter Builder (Create page) ──────────────────────────────────────
+  const CP_PRESETS = {
+    pepe:  { name: 'PEPE', collection: 'Pepe the Frog', emoji: '🐸', className: 'trickster', traits: 'rare, meme, legendary', hp: 110, atk: 30, def: 20, spd: 18 },
+    doge:  { name: 'DOGE', collection: 'Doge NFT',      emoji: '🐕', className: 'striker',   traits: 'much wow, speed, gold',   hp: 100, atk: 35, def: 10, spd: 22 },
+    bonk:  { name: 'BONK', collection: 'Bonk Army',     emoji: '🔨', className: 'tank',      traits: 'powerful, heavy, slow',   hp: 200, atk: 28, def: 30, spd: 8  },
+    mog:   { name: 'MOG',  collection: 'Mog Coin',      emoji: '😺', className: 'frost',     traits: 'cool, slippery, crit',    hp: 90,  atk: 40, def: 12, spd: 20 },
+    wif:   { name: 'WIF',  collection: 'dogwifhat',      emoji: '🎩', className: 'blaster',   traits: 'hat, magic, burst',       hp: 95,  atk: 38, def: 15, spd: 19 },
+  };
+
+  let cpImageDataUrl = '';
+
+  function cpPct(v, min, max) { return Math.round(((v - min) / (max - min)) * 100); }
+
+  function cpSync() {
+    const name       = (document.getElementById('cp-name').value || 'UNNAMED FIGHTER').toUpperCase();
+    const collection = document.getElementById('cp-collection').value || '—';
+    const cls        = document.getElementById('cp-class').value;
+    const traitsRaw  = document.getElementById('cp-traits').value;
+    const traits     = traitsRaw.split(',').map(t => t.trim()).filter(Boolean);
+
+    // heading badge
+    document.getElementById('cp-class-badge').textContent = cls;
+    document.getElementById('cp-preview-name-small').textContent = name;
+
+    // preview
+    document.getElementById('prev-name').textContent = name;
+    document.getElementById('prev-collection').textContent = collection;
+    document.getElementById('prev-class').textContent = cls.toUpperCase();
+    document.getElementById('prev-traits').textContent = traits.length ? traits.join(' · ') : 'No traits yet';
+  }
+
+  function cpSyncImageUrl() {
+    const url = document.getElementById('cp-image-url').value.trim();
+    cpSetImage(url);
+    cpSync();
+  }
+
+  function cpSetImage(src) {
+    const emojiEl  = document.getElementById('cp-avatar-emoji');
+    const imgEl    = document.getElementById('cp-avatar-img');
+    const prevEmoji = document.getElementById('prev-emoji');
+    const prevImg   = document.getElementById('prev-img');
+
+    if (src) {
+      imgEl.src = src; imgEl.style.display = 'block'; emojiEl.style.display = 'none';
+      prevImg.src = src; prevImg.style.display = 'block'; prevEmoji.style.display = 'none';
+    } else {
+      imgEl.style.display = 'none'; emojiEl.style.display = 'block';
+      prevImg.style.display = 'none'; prevEmoji.style.display = 'block';
+    }
+  }
+
+  function cpSetEmoji(emoji) {
+    document.getElementById('cp-avatar-emoji').textContent = emoji;
+    document.getElementById('prev-emoji').textContent = emoji;
+    cpSetImage('');
+  }
+
+  function cpHandleFile(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      cpImageDataUrl = String(reader.result);
+      cpSetImage(cpImageDataUrl);
+      document.getElementById('cp-image-url').value = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function cpSyncStat(key, min, max) {
+    const raw = parseInt(document.getElementById(`cp-${key}`).value, 10);
+    const val = Math.min(max, Math.max(min, isNaN(raw) ? min : raw));
+    // Write clamped value back so deploy always reads a valid number
+    document.getElementById(`cp-${key}`).value = val;
+    const pct = cpPct(val, min, max) + '%';
+    document.getElementById(`cp-${key}-bar`).style.width = pct;
+    document.getElementById(`prev-${key}-bar`).style.width = pct;
+    document.getElementById(`prev-${key}-val`).textContent = val;
+  }
+
+  // Helper: clamp + read a stat input at deploy time
+  function cpReadStat(key, min, max) {
+    const raw = parseInt(document.getElementById(`cp-${key}`).value, 10);
+    return Math.min(max, Math.max(min, isNaN(raw) ? min : raw));
+  }
+
+  function cpLoadPreset(key) {
+    const p = CP_PRESETS[key];
+    if (!p) return;
+    document.getElementById('cp-name').value       = p.name;
+    document.getElementById('cp-collection').value = p.collection;
+    document.getElementById('cp-class').value      = p.className;
+    document.getElementById('cp-traits').value     = p.traits;
+    document.getElementById('cp-hp').value  = p.hp;
+    document.getElementById('cp-atk').value = p.atk;
+    document.getElementById('cp-def').value = p.def;
+    document.getElementById('cp-spd').value = p.spd;
+    document.getElementById('cp-image-url').value = '';
+    cpImageDataUrl = '';
+    cpSetEmoji(p.emoji);
+    cpSync();
+    cpSyncStat('hp',  60, 220);
+    cpSyncStat('atk', 5, 45);
+    cpSyncStat('def', 0, 35);
+    cpSyncStat('spd', 5, 24);
+  }
+
+  function cpDeploy() {
+    const name = document.getElementById('cp-name').value.trim();
+    if (!name) { alert('Give your fighter a name first.'); return; }
+    if (!window.currentWalletAddress) {
+      alert('Connect your wallet first — click LOGIN in the top bar.');
+      return;
+    }
+    const payload = {
+      name:       name.toUpperCase(),
+      collection: document.getElementById('cp-collection').value.trim(),
+      className:  document.getElementById('cp-class').value,
+      traits:     document.getElementById('cp-traits').value.split(',').map(t => t.trim()).filter(Boolean),
+      image:      cpImageDataUrl || document.getElementById('cp-image-url').value.trim() || '',
+      stats: {
+        hp:      cpReadStat('hp',  60, 220),
+        attack:  cpReadStat('atk',  5,  45),
+        defense: cpReadStat('def',  0,  35),
+        speed:   cpReadStat('spd',  5,  24),
+      },
+      wallet: window.currentWalletAddress,
+    };
+    console.log('Deploy payload:', payload);
+    alert(`⚔️ Fighter "${payload.name}" queued for deployment!\n\n(Onchain signing coming soon)`);
+  }
+  // ── end Fighter Builder ─────────────────────────────────────────────────
 </script>
 <!-- Challenge Modal -->
 <div class="chal-modal-overlay" id="chal-modal-overlay" onclick="closeChallengeModal()">

@@ -1,0 +1,166 @@
+import type { ChangeEvent } from "react";
+import type { FighterClass, FighterStats, NftFighter } from "../battle/types";
+import { sampleFighters } from "../data/sampleFighters";
+
+interface FighterImportPanelProps {
+  sideLabel: string;
+  fighter: NftFighter;
+  onChange: (fighter: NftFighter) => void;
+}
+
+const classOptions: FighterClass[] = ["striker", "tank", "frost", "trickster", "blaster"];
+
+export function FighterImportPanel({ sideLabel, fighter, onChange }: FighterImportPanelProps) {
+  const update = (patch: Partial<NftFighter>) => {
+    onChange({ ...fighter, ...patch });
+  };
+
+  const updateStats = (stat: keyof FighterStats, value: number) => {
+    onChange({
+      ...fighter,
+      stats: {
+        ...fighter.stats,
+        [stat]: value
+      }
+    });
+  };
+
+  const handleImageFile = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      update({
+        image: String(reader.result),
+        id: `${fighter.collection || "local"}-${Date.now()}`
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <section className="panel fighter-panel" aria-label={`${sideLabel} fighter import`}>
+      <div className="panel-heading">
+        <span>{sideLabel}</span>
+        <small>{fighter.className}</small>
+      </div>
+
+      <div className="fighter-preview-row">
+        <img src={fighter.image} alt={fighter.name} className="fighter-thumb" />
+        <div>
+          <strong>{fighter.name}</strong>
+          <span>{fighter.collection}</span>
+        </div>
+      </div>
+
+      <label>
+        NFT Name
+        <input value={fighter.name} onChange={(event) => update({ name: event.target.value })} />
+      </label>
+
+      <label>
+        Collection
+        <input value={fighter.collection} onChange={(event) => update({ collection: event.target.value })} />
+      </label>
+
+      <label>
+        Image URL
+        <input value={fighter.image} onChange={(event) => update({ image: event.target.value })} />
+      </label>
+
+      <label>
+        Image File
+        <input type="file" accept="image/*" onChange={handleImageFile} />
+      </label>
+
+      <label>
+        Fighter Class
+        <select
+          value={fighter.className}
+          onChange={(event) => update({ className: event.target.value as FighterClass })}
+        >
+          {classOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label>
+        Traits
+        <textarea
+          rows={2}
+          value={fighter.traits.join(", ")}
+          onChange={(event) =>
+            update({
+              traits: event.target.value
+                .split(",")
+                .map((trait) => trait.trim())
+                .filter(Boolean)
+            })
+          }
+        />
+      </label>
+
+      <div className="stat-grid">
+        <StatInput label="HP" value={fighter.stats.hp} min={60} max={220} onChange={(value) => updateStats("hp", value)} />
+        <StatInput
+          label="ATK"
+          value={fighter.stats.attack}
+          min={5}
+          max={45}
+          onChange={(value) => updateStats("attack", value)}
+        />
+        <StatInput
+          label="DEF"
+          value={fighter.stats.defense}
+          min={0}
+          max={35}
+          onChange={(value) => updateStats("defense", value)}
+        />
+        <StatInput
+          label="SPD"
+          value={fighter.stats.speed}
+          min={5}
+          max={24}
+          onChange={(value) => updateStats("speed", value)}
+        />
+      </div>
+
+      <div className="preset-row">
+        {sampleFighters.map((sample) => (
+          <button key={sample.id} type="button" className="ghost-button" onClick={() => onChange(sample)}>
+            {sample.collection.split(" ")[0]}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+interface StatInputProps {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}
+
+function StatInput({ label, value, min, max, onChange }: StatInputProps) {
+  return (
+    <label className="stat-input">
+      <span>{label}</span>
+      <input
+        type="number"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+    </label>
+  );
+}
