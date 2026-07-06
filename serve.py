@@ -38,9 +38,9 @@ def query_db(sql, params=(), fetchone=False):
         print(f"DB error: {e}", flush=True)
         return None
 
-PORT = 5000
+PORT = 8080
 GAME_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "game")
-INDEX_PATH = os.path.join(GAME_DIR, "newpfp", "index.html")
+INDEX_PATH = os.path.join(GAME_DIR, "Arena", "index.html")
 PRIVY_APP_ID = os.environ.get("PRIVY_APP_ID", "")
 STATE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_state.json")
 

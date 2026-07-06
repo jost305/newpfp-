@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BOTA Arena</title>
-  <link rel="icon" type="image/jpeg" href="/newpfp/assets/bota-logo.jpg">
+  <link rel="icon" type="image/jpeg" href="/Arena/assets/bota-logo.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles/styles.css" />
@@ -346,7 +346,7 @@
     /* arena */
     .arena-wrap {
       position: relative;
-      background: url('/newpfp/assets/arena-bg.png');
+      background: url('/Arena/assets/arena-bg.png');
       background-size: cover;
       background-position: center 60%;
       flex: 1; min-height: 400px; max-height: 500px;
@@ -1203,29 +1203,20 @@
     /* ═══ PUMPFIGHTERS ARENA ═══════════════════════════════════════════════ */
     .pf-arena {
       position: relative; border-radius: 16px; overflow: hidden;
-      background: linear-gradient(135deg, #1a0a2e 0%, #0d1b2a 40%, #1a0a2e 100%);
+      background: url('/Arena/pumparena.png') no-repeat center center / cover;
       border: 1px solid rgba(139,92,246,0.3);
-      min-height: 520px; display: flex; flex-direction: column;
+      aspect-ratio: 2056 / 765; width: 100%; display: flex; flex-direction: column;
     }
     .pf-arena::before {
       content: ''; position: absolute; inset: 0; z-index: 0;
-      background:
-        radial-gradient(ellipse at 30% 60%, rgba(153,69,255,0.15) 0%, transparent 50%),
-        radial-gradient(ellipse at 70% 60%, rgba(20,241,149,0.12) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 100%, rgba(243,186,47,0.10) 0%, transparent 40%);
+      background: linear-gradient(to bottom,
+        rgba(0,0,0,0.15) 0%,
+        rgba(0,0,0,0) 40%,
+        rgba(0,0,0,0.05) 100%);
     }
-    .pf-arena-grid {
-      position: absolute; inset: 0; z-index: 0;
-      background-image:
-        linear-gradient(rgba(139,92,246,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(139,92,246,0.05) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
-    .pf-arena-floor {
-      position: absolute; bottom: 0; left: 0; right: 0; height: 35%;
-      background: linear-gradient(to top, rgba(139,92,246,0.08), transparent);
-      z-index: 0;
-    }
+    .pf-arena-grid { display: none; }
+    .pf-arena-floor { display: none; }
+
 
     /* Top bar: round counter */
     .pf-top-bar {
@@ -1267,8 +1258,8 @@
 
     /* Arena center: fighters + VS */
     .pf-battle-zone {
-      flex: 1; display: flex; align-items: center; justify-content: center;
-      position: relative; z-index: 2; gap: 20px; padding: 10px 24px 0;
+      flex: 1; display: flex; align-items: flex-end; justify-content: center;
+      position: relative; z-index: 2; gap: 20px; padding: 10px 24px 10px;
     }
     .pf-combatant {
       display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -1321,7 +1312,7 @@
     /* Battle log sidebar */
     
     .pf-battle-log-panel {
-      position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+      position: absolute; right: 16px; top: 30%; transform: translateY(-50%);
       background: rgba(0,0,0,0.6); border: 1px solid rgba(139,92,246,0.2);
       border-radius: 8px; padding: 10px; z-index: 3; min-width: 160px; max-width: 200px;
     }
@@ -1330,10 +1321,7 @@
     .pf-bl-turn { color: #9945FF; font-weight: 700; margin-right: 4px; }
     .pf-bl-action { color: #14F195; font-weight: 700; }
     .pf-bl-dmg { color: #EF4444; font-weight: 700; }
-.pf-battle-zone {
-      display: flex; align-items: center; justify-content: center;
-      flex: 1; gap: 30px; padding: 20px 80px; z-index: 2; position: relative;
-    }
+    
     .pf-combatant {
       display: flex; flex-direction: column; align-items: center; gap: 12px;
       transition: transform 0.15s ease-out;
@@ -1416,16 +1404,16 @@
       display: flex; justify-content: space-between; padding: 10px 60px; z-index: 2; margin-top: 10px; width: 100%; max-width: 700px; margin-left: auto; margin-right: auto;
     }
     .pf-spells-group {
-      display: flex; gap: 6px;
+      display: flex; gap: 3px;
     }
     .pf-bottom-spell {
       display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: transform 0.2s;
     }
     .pf-bottom-spell:hover { transform: translateY(-3px); }
     .pf-bottom-spell .spell-circle {
-      width: 48px; height: 48px; border-radius: 50%; background: rgba(0,0,0,0.6);
-      display: flex; align-items: center; justify-content: center; font-size: 24px;
-      border: 2px solid; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+      width: 36px; height: 36px; border-radius: 8px; background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center; font-size: 18px;
+      border: 2px solid transparent;
       position: relative;
     }
     .border-gold { border-color: #F59E0B; box-shadow: 0 0 10px rgba(245,158,11,0.4); }
@@ -1437,6 +1425,30 @@
     }
     .pf-bottom-spell .spell-energy {
       font-size: 10px; font-weight: 800; color: #38BDF8; display: flex; align-items: center; gap: 2px;
+    }
+
+    /* Spell cast animation */
+    @keyframes spellCast {
+      0%   { transform: scale(1);    filter: brightness(1); }
+      20%  { transform: scale(1.35); filter: brightness(2.5) drop-shadow(0 0 12px #fff); }
+      40%  { transform: scale(0.9) rotate(-6deg); filter: brightness(1.8); }
+      60%  { transform: scale(1.2)  rotate(5deg);  filter: brightness(2); }
+      80%  { transform: scale(0.95) rotate(-3deg); filter: brightness(1.3); }
+      100% { transform: scale(1)    rotate(0deg);  filter: brightness(1); }
+    }
+    @keyframes spellGlow {
+      0%   { box-shadow: 0 0 6px 2px rgba(255,255,255,0.1); }
+      40%  { box-shadow: 0 0 20px 8px rgba(255,255,255,0.7); }
+      100% { box-shadow: 0 0 6px 2px rgba(255,255,255,0.1); }
+    }
+    .pf-bottom-spell.spell-active .spell-circle {
+      animation: spellCast 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both,
+                 spellGlow 0.55s ease-out both;
+    }
+    .pf-bottom-spell.spell-active .spell-title {
+      color: #FFD700;
+      text-shadow: 0 0 8px #FFD700;
+      transition: color 0.1s, text-shadow 0.1s;
     }
 
     .pf-emojis-bar {
@@ -1460,7 +1472,18 @@
       100% { opacity: 0; transform: translateY(-50px) scale(1.3); }
     }
 
-
+    .pf-waiting-logo {
+      width: 60px; height: 60px; border-radius: 12px;
+      margin-bottom: 16px; object-fit: contain;
+      animation: logoPulse 1.5s ease-in-out infinite;
+      box-shadow: 0 0 20px rgba(139,92,246,0.5);
+      border: 2px solid rgba(139,92,246,0.8);
+    }
+    @keyframes logoPulse {
+      0% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.1); filter: brightness(1.2); box-shadow: 0 0 30px rgba(20,241,149,0.6); border-color: rgba(20,241,149,0.8); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
     </style>
 </head>
 <body class="bantahbro-next-ui dark">
@@ -1468,7 +1491,7 @@
 <!-- TOP NAV -->
 <nav class="topnav">
   <a class="logo" href="#">
-    <div class="logo-icon"><img src="/newpfp/assets/bota-logo.jpg" alt="BOTA"></div>
+    <div class="logo-icon"><img src="/Arena/assets/bota-logo.jpg" alt="BOTA"></div>
     <div class="logo-text">BOTA<span>ARENA</span></div>
   </a>
   <button class="search-btn" type="button" onclick="toggleSearchModal(event)" aria-label="Open search">🔍</button>
@@ -1598,7 +1621,7 @@
 
         <!-- Center NFT -->
         <div class="arena-center">
-          <div class="nft-card"><img src="/newpfp/assets/bota-logo.jpg" alt="Battle of the Agents"></div>
+          <div class="nft-card"><img src="/Arena/assets/bota-logo.jpg" alt="Battle of the Agents"></div>
           <div class="vs-text">⚔ BATTLE IN PROGRESS ⚔</div>
         </div>
 
@@ -1657,7 +1680,7 @@
 
       <!-- Waiting state (shown when no live match) -->
       <div class="pf-waiting" id="pf-waiting">
-        <div class="pf-waiting-spinner"></div>
+        <img src="/Arena/assets/bota-logo.jpg" class="pf-waiting-logo" alt="Loading...">
         <div class="pf-waiting-text">Fetching Trending Coins...</div>
         <div class="pf-waiting-sub">DexScreener data loading across Solana, BSC, and Base</div>
       </div>
@@ -1689,13 +1712,8 @@
           </div>
         </div>
 
-        <!-- Battle log (right) -->
-        <div class="pf-battle-log-panel" id="pf-battle-log">
-          <div class="pf-bl-title">Battle Log</div>
-          <div id="pf-bl-entries">
-            <div class="pf-bl-entry"><span class="pf-bl-turn">Waiting...</span></div>
-          </div>
-        </div>
+        <!-- Battle log moved to trollbox -->
+        <div id="pf-bl-entries" style="display:none"></div>
 
         <!-- Battle zone -->
         <div class="pf-battle-zone">
@@ -1805,7 +1823,7 @@
           </div>
         </div>
         <div class="arena-center">
-          <div class="nft-card"><img src="/newpfp/assets/bota-logo.jpg" alt="PFP Mode"></div>
+          <div class="nft-card"><img src="/Arena/assets/bota-logo.jpg" alt="PFP Mode"></div>
           <div class="vs-text">🖼 PFP MODE — COMING SOON 🖼</div>
         </div>
         <div class="fighter-panel" style="align-items:flex-end">
@@ -2381,7 +2399,7 @@
             appearance: {
               theme: 'dark',
               accentColor: '#f59e0b',
-              logo: '/newpfp/assets/bota-logo.jpg',
+              logo: '/Arena/assets/bota-logo.jpg',
             },
           },
         },
@@ -3255,11 +3273,22 @@
       // Flip attacker for next turn
       turnSide = isLeftAttacking ? 'right' : 'left';
 
-      // ── Highlight active spell card ──
-      const spellCards = document.querySelectorAll('.pf-spell-card');
-      spellCards.forEach(c => c.style.borderColor = '');
-      const activeSpell = spellCards[Math.floor(Math.random() * spellCards.length)];
-      if (activeSpell) activeSpell.style.borderColor = '#14F195';
+      // ── Animate active spell icon on the attacking side ──
+      const spellGroups = document.querySelectorAll('.pf-spells-group');
+      // left side = spellGroups[0], right side = spellGroups[1]
+      const activeGroup = isLeftAttacking ? spellGroups[0] : spellGroups[1];
+      if (activeGroup) {
+        const spells = activeGroup.querySelectorAll('.pf-bottom-spell');
+        // Clear previous active
+        document.querySelectorAll('.pf-bottom-spell.spell-active').forEach(s => s.classList.remove('spell-active'));
+        // Pick a random spell from that side
+        if (spells.length) {
+          const picked = spells[Math.floor(Math.random() * spells.length)];
+          picked.classList.add('spell-active');
+          // Remove after animation completes
+          setTimeout(() => picked.classList.remove('spell-active'), 700);
+        }
+      }
 
       if (hpA <= 0 || hpB <= 0) {
         clearInterval(pfBattleAnimTimer);
@@ -3288,21 +3317,25 @@
     }, 800);
   }
 
+  // Track last rendered battle count to avoid duplicate trollbox entries
+  let _lastBattleCount = 0;
   function renderBattleLog() {
-    const el = document.getElementById('pf-bl-entries');
-    if (!el || !pfState || !pfState.recent_battles) return;
-    const recent = pfState.recent_battles.slice(-5).reverse();
-    if (recent.length === 0) {
-      el.innerHTML = '<div class="pf-bl-entry"><span class="pf-bl-turn">No battles yet</span></div>';
-      return;
-    }
-    el.innerHTML = recent.map((b, i) =>
-      '<div class="pf-bl-entry">' +
-        '<span class="pf-bl-turn">Match ' + (i + 1) + '</span>' +
-        '<span class="pf-bl-action">' + b.winner_name + '</span> defeated ' +
-        '<span class="pf-bl-dmg">' + b.loser_name + '</span> (' + b.rounds + ' rounds)' +
-      '</div>'
-    ).join('');
+    if (!pfState || !pfState.recent_battles) return;
+    const recent = pfState.recent_battles;
+    if (recent.length <= _lastBattleCount) return;
+    // Only post new battles since last render
+    const newBattles = recent.slice(_lastBattleCount);
+    _lastBattleCount = recent.length;
+    const box = document.getElementById('trollbox');
+    if (!box) return;
+    newBattles.forEach((b, i) => {
+      const div = document.createElement('div');
+      div.className = 'troll-msg';
+      div.innerHTML = `<span class="troll-user" style="color:#F3BA2F">⚔️ Battle:</span> <span style="color:#14F195">${b.winner_name}</span> defeated <span style="color:#EF4444">${b.loser_name}</span> <span style="color:rgba(255,255,255,0.5)">(${b.rounds} rounds)</span>`;
+      box.appendChild(div);
+      if (box.children.length > 12) box.removeChild(box.children[0]);
+    });
+    box.scrollTop = box.scrollHeight;
   }
 
   
