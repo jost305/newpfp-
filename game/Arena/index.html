@@ -2432,6 +2432,8 @@
           <a href="#doc-buy-bc">Buy BC</a>
           <a href="#doc-queue">Queue</a>
           <a href="#doc-rewards">Rewards</a>
+          <a href="#doc-pumpfighters">PumpFighters</a>
+          <a href="#doc-pfp">PFP Mode</a>
           <a href="#doc-marketplace">Marketplace</a>
         </div>
       </div>
@@ -2718,6 +2720,52 @@
           <div class="doc-card"><div class="doc-card-icon">🛡</div><h3>Gas-Free Payouts</h3><p>Platform profits always flow to the user first. Withdrawals are completely gas-free, subsidised by the BOTA Treasury wallet on the Base network.</p></div>
           <div class="doc-card"><div class="doc-card-icon">👛</div><h3>Earning paths</h3><p>Eligible users can earn from signup, daily login, watching, challenge participation, and fighter performance when those reward paths are active.</p></div>
           <div class="doc-card"><div class="doc-card-icon">🗄</div><h3>Instant Withdrawals</h3><p>When you're ready to claim, BOTA processes the payout instantly to your connected wallet, avoiding the need to wait for complex manual batches.</p></div>
+        </div>
+      </div>
+
+      <!-- PUMPFIGHTERS -->
+      <div class="doc-section">
+        <div id="doc-pumpfighters">
+          <div class="doc-eyebrow">PumpFighters</div>
+          <h2>PumpFighters — live token battles</h2>
+          <p>PumpFighters turns real crypto market data into live arena battles. Token fighters from Solana, BSC, and Base compete automatically, with their market cap, price action, and volume driving their combat power.</p>
+        </div>
+        <div class="doc-grid-4">
+          <div class="doc-card"><div class="doc-card-icon">📡</div><h3>Live market data</h3><p>Fighter stats are pulled from DexScreener in real time. Market cap acts as the power level — a token pumping hard hits harder in the arena.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">⚔️</div><h3>Chain Rivalry battles</h3><p>The arena pairs the top fighters across chains for a "Chain Rivalry" match. Battles run automatically with turn-based combat — Horn Charge, Wing Dash, Mighty Roar, and Meme Blast.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">⚡</div><h3>Pump Energy</h3><p>Each fighter has a Pump Energy bar linked to market activity. When it hits 100% the fighter goes "PUMP READY" — a charged state that triggers a visual spike and stronger attacks.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">👁</div><h3>Watch 2 Earn</h3><p>Spectating live PumpFighter battles earns BantCredit. Stay in the arena while battles run to accumulate watch rewards passively.</p></div>
+        </div>
+        <div class="doc-grid-2" style="margin-top:8px;">
+          <div class="doc-card"><div class="doc-card-icon">🏆</div><h3>Leaderboard</h3><p>The Leaderboard tab ranks all PumpFighters by wins and losses across All, Solana, BSC, and Base chains. Rankings update after every resolved battle.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🎯</div><h3>Stake &amp; Challenge</h3><p>Select any fighter in the arena and stake BC to initiate a challenge. The challenge modal shows the matchup, your stake, and the potential payout before you confirm.</p></div>
+        </div>
+        <div class="doc-table-wrap">
+          <div class="doc-table">
+            <div class="doc-table-head" style="display:grid;grid-template-columns:100px 80px 1fr;">
+              <div>Stat</div><div>Source</div><div>What it means in the arena</div>
+            </div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">MCAP</div><div class="doc-cell-accent">Market</div><div class="doc-cell-muted">Market capitalisation — primary power level. Higher MCAP = stronger base fighter.</div></div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">HP</div><div class="doc-cell-accent">Derived</div><div class="doc-cell-muted">Health points scaled from MCAP and recent volatility. Determines how long a fighter survives.</div></div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">ATK</div><div class="doc-cell-accent">Derived</div><div class="doc-cell-muted">Aggression score — driven by price momentum and volume spikes.</div></div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">DEF</div><div class="doc-cell-accent">Derived</div><div class="doc-cell-muted">Defensive rating — tokens with stable price action absorb more damage.</div></div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">Chain</div><div class="doc-cell-accent">Source</div><div class="doc-cell-muted">Solana, BSC, or Base. Chain determines the fighter's badge and leaderboard category.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PFP MODE -->
+      <div class="doc-section">
+        <div id="doc-pfp">
+          <div class="doc-eyebrow">PFP Mode</div>
+          <h2>PFP Mode — avatar-first arena</h2>
+          <p>PFP Mode is an alternative view of the arena that puts profile picture avatars front and centre. It uses the same live PumpFighters data but presents battles through the fighters' actual token artwork instead of chain emojis.</p>
+        </div>
+        <div class="doc-grid-2">
+          <div class="doc-card"><div class="doc-card-icon">🖼</div><h3>Avatar-driven display</h3><p>When a token has a recognised avatar or logo, PFP Mode shows it full-size during combat. The arena transitions from a stat-card layout to an immersive face-off between the two fighter images.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🔄</div><h3>Same data, new skin</h3><p>PFP Mode shares the same live pfState — HP bars, round labels, Pump Energy, and battle log all update in sync with the main PumpFighters view. No separate data fetch needed.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">⚡</div><h3>Pump charged glow</h3><p>When a fighter hits 100% Pump Energy in PFP Mode, its avatar gains a "pump-charged" glow effect — a visual indicator that a power spike is active for that fighter.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">📱</div><h3>Best for display screens</h3><p>PFP Mode is designed for watching rather than managing. Drop it on a monitor or stream overlay and the avatar battles play out automatically without any interaction needed.</p></div>
         </div>
       </div>
 
