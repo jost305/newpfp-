@@ -568,6 +568,61 @@
     }
     .agent-empty a { color: hsl(var(--bb-primary)); cursor: pointer; }
 
+    /* ── Agent Skeleton Loading ── */
+    .agent-card.skel-card {
+      pointer-events: none;
+      background: var(--bb-card);
+      border: 1px solid var(--bb-border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .skel-card .skel-avatar {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 8px;
+      border-radius: 14px;
+      background: var(--bb-muted);
+      animation: pulse 1.5s infinite;
+    }
+    .skel-card .skel-name {
+      width: 70%;
+      height: 14px;
+      margin: 8px auto 6px;
+      border-radius: 4px;
+      background: var(--bb-muted);
+      animation: pulse 1.5s infinite;
+    }
+    .skel-card .skel-level {
+      width: 50%;
+      height: 10px;
+      margin: 6px auto;
+      border-radius: 4px;
+      background: var(--bb-muted);
+      animation: pulse 1.5s infinite;
+    }
+    .skel-card .skel-record {
+      width: 60%;
+      height: 10px;
+      margin: 8px auto;
+      border-radius: 4px;
+      background: var(--bb-muted);
+      animation: pulse 1.5s infinite;
+    }
+    .skel-card .skel-btn {
+      width: 100%;
+      height: 32px;
+      margin-top: 10px;
+      border-radius: 7px;
+      background: var(--bb-muted);
+      animation: pulse 1.5s infinite;
+      border: none;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
     /* Challenge modal */
     .chal-modal-overlay {
       position: fixed; inset: 0; z-index: 200;
@@ -1711,8 +1766,8 @@
   <div class="nav-tabs">
     <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)">🚀 PumpFighters</button>
     <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)">🖼 PFP Mode</button>
-    <button class="nav-tab" data-view="agents" onclick="setTab(this)">Fighters</button>
-    <button class="nav-tab create" data-view="create" onclick="setTab(this)">⚔️ Create</button>
+    <button class="nav-tab" data-view="agents" onclick="setTab(this)">⚔️ Fighters</button>
+    <button class="nav-tab create" data-view="create" onclick="setTab(this)">✨ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this)">Marketplace</button>
     <button class="nav-tab" data-view="leaderboard" onclick="setTab(this)">Leaderboard</button>
     <button class="nav-tab" data-view="doc" onclick="setTab(this)">📖 Doc</button>
@@ -1721,8 +1776,8 @@
   <div class="mobile-nav-dropdown" id="mobile-nav-dropdown">
     <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">🚀 PumpFighters</button>
     <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();">🖼 PFP Mode</button>
-    <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">Fighters</button>
-    <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">⚔️ Create</button>
+    <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">⚔️ Fighters</button>
+    <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">✨ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this); closeMobileMenu();">Marketplace</button>
     <button class="nav-tab" data-view="leaderboard" onclick="setTab(this); closeMobileMenu();">Leaderboard</button>
     <button class="nav-tab" data-view="doc" onclick="setTab(this); closeMobileMenu();">📖 Doc</button>
@@ -2150,17 +2205,27 @@
 
 
 
-  <!-- AGENTS VIEW -->
+  <!-- FIGHTERS VIEW (with sub-tabs) -->
   <div id="view-agents" class="tab-view">
     <div class="view-inner">
       <div class="view-header">
-        <div class="view-title">My Agents</div>
-        <div class="view-subtitle">Manage, train and deploy your AI fighters</div>
+        <div class="view-title">Fighters</div>
+        <div class="view-subtitle">Discover and challenge fighters</div>
+      </div>
+      <div class="challenge-tabs" style="margin-bottom: 16px;">
+        <button class="challenge-tab active" data-fighters-tab="pumpfighters" onclick="setFightersTab(this)">🚀 Pumpfighters</button>
+        <button class="challenge-tab" data-fighters-tab="pfp" onclick="setFightersTab(this)">🖼 PFP</button>
+        <button class="challenge-tab" data-fighters-tab="all" onclick="setFightersTab(this)">⚔️ All Fighters</button>
+        <button class="challenge-tab" data-fighters-tab="your" onclick="setFightersTab(this)">👤 Your Agents</button>
       </div>
       <div class="agents-grid" id="agents-grid">
-        <div class="agent-empty">Loading your agents…</div>
+        <!-- Skeleton loading will be inserted here -->
       </div>
     </div>
+  </div>
+
+  <!-- YOUR AGENTS VIEW (kept but hidden) -->
+  <div id="view-your-agents" class="tab-view" style="display: none;">
   </div>
 
   <!-- CREATE VIEW -->
@@ -2805,24 +2870,24 @@
           </div>
           <div class="profile-metric-grid">
             <div class="profile-metric">
-              <span class="label">My Agents</span>
-              <span class="value" id="profile-my-agents">0</span>
+              <span class="label">Filter of the week</span>
+              <span class="value" id="filter-week">—</span>
             </div>
             <div class="profile-metric">
-              <span class="label">Queue</span>
-              <span class="value" id="profile-queue">0</span>
+              <span class="label">Earned BC</span>
+              <span class="value" id="earned-bc">0 BC</span>
             </div>
             <div class="profile-metric">
-              <span class="label">BantCredit</span>
-              <span class="value" id="profile-bantcredit">0</span>
+              <span class="label">Wins</span>
+              <span class="value" id="profile-wins">0</span>
             </div>
             <div class="profile-metric">
-              <span class="label">BANTC claim</span>
-              <span class="value" id="profile-bantc-claim">0</span>
+              <span class="label">💰 Total Earned</span>
+              <span class="value" id="total-earned">$0</span>
             </div>
             <div class="profile-metric">
-              <span class="label">Earned USDC</span>
-              <span class="value" id="profile-earned-usdc">$0</span>
+              <span class="label">Total BantCredit</span>
+              <span class="value" id="total-bantcredit">0 BC</span>
             </div>
             <div class="profile-metric">
               <span class="label">Status</span>
@@ -3080,6 +3145,12 @@
 
     document.getElementById('notif-dropdown').classList.remove('open');
     
+    // Load data based on tab
+    if (view === 'agents') {
+      currentFightersTab = 'pumpfighters';
+      loadPumpfighters();
+    }
+    
     // Persist state in URL hash
     window.location.hash = view;
   }
@@ -3190,6 +3261,7 @@
   window.closeSearchModal = closeSearchModal;
   window.toggleMobileMenu = toggleMobileMenu;
   window.closeMobileMenu = closeMobileMenu;
+  window.setFightersTab = setFightersTab;
   window.openChallenges = openChallenges;
   window.toggleTheme = toggleTheme;
   window.toggleNotifications = toggleNotifications;
@@ -3248,20 +3320,144 @@
     }
   }
 
-  async function loadMyAgents(wallet) {
+  function agentSkeletonHTML(count = 4) {
+    let html = '';
+    for (let i = 0; i < count; i++) {
+      html += `
+        <div class="agent-card skel-card">
+          <div class="skel-avatar"></div>
+          <div class="skel-name"></div>
+          <div class="skel-level"></div>
+          <div class="skel-record"></div>
+          <div class="skel-btn"></div>
+        </div>`;
+    }
+    return html;
+  }
+
+  let currentFightersTab = 'pumpfighters';
+
+  function setFightersTab(el) {
+    document.querySelectorAll('[data-fighters-tab]').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    currentFightersTab = el.getAttribute('data-fighters-tab');
+    
+    const wallet = window.currentWalletAddress || '';
+    
+    if (currentFightersTab === 'pumpfighters') {
+      loadPumpfighters();
+    } else if (currentFightersTab === 'pfp') {
+      loadPFPFighters();
+    } else if (currentFightersTab === 'all') {
+      loadAllFighters();
+    } else if (currentFightersTab === 'your') {
+      loadUserAgents(wallet);
+    }
+  }
+
+  async function loadPumpfighters() {
     const grid = document.getElementById('agents-grid');
     if (!grid) return;
-    grid.innerHTML = '<div class="agent-empty">Loading…</div>';
+    grid.innerHTML = agentSkeletonHTML(6);
+    try {
+      const res = await fetch('/api/pumpfighters/state');
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      if (!data.fighters || !data.fighters.length) {
+        grid.innerHTML = '<div class="agent-empty">No Pumpfighters available yet.</div>';
+        return;
+      }
+      grid.innerHTML = data.fighters.map(f => {
+        const avatar = f.processed_avatar && !f.processed_avatar.startsWith('http') === false
+          ? `<img class="agent-avatar" src="${f.processed_avatar}" alt="${f.display_name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
+          : `<div class="agent-avatar">${f.processed_avatar || '🚀'}</div>`;
+        return `
+          <div class="agent-card">
+            ${avatar}
+            <div class="agent-name">${f.display_name}</div>
+            <div class="agent-level">${f.market_cap_usd ? '$' + (f.market_cap_usd / 1e6).toFixed(1) + 'M' : 'ACTIVE'}</div>
+            <div class="agent-record"><span class="win">${f.wins || 0}W</span> · <span class="loss">${f.losses || 0}L</span></div>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      grid.innerHTML = '<div class="agent-empty">Could not load Pumpfighters.</div>';
+    }
+  }
+
+  async function loadPFPFighters() {
+    const grid = document.getElementById('agents-grid');
+    if (!grid) return;
+    grid.innerHTML = agentSkeletonHTML(6);
+    try {
+      const agents = await api('/api/fighters');
+      if (!agents || !agents.length) {
+        grid.innerHTML = '<div class="agent-empty">No PFP fighters available yet.</div>';
+        return;
+      }
+      grid.innerHTML = agents.map(a => {
+        const isEmoji = a.avatarUrl && !a.avatarUrl.startsWith('http') && !a.avatarUrl.startsWith('/');
+        const avatar = a.avatarUrl && !isEmoji
+          ? `<img class="agent-avatar" src="${a.avatarUrl}" alt="${a.name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
+          : `<div class="agent-avatar">${a.avatarUrl || '🖼'}</div>`;
+        return `
+          <div class="agent-card">
+            ${avatar}
+            <div class="agent-name">${a.name}</div>
+            <div class="agent-level">${a.fameScore ? 'FAME: ' + Math.round(a.fameScore) : 'ACTIVE'}</div>
+            <div class="agent-record"><span class="win">${a.wins}W</span> · <span class="loss">${a.losses}L</span></div>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      grid.innerHTML = '<div class="agent-empty">Could not load PFP fighters.</div>';
+    }
+  }
+
+  async function loadAllFighters() {
+    const grid = document.getElementById('agents-grid');
+    if (!grid) return;
+    grid.innerHTML = agentSkeletonHTML(6);
+    try {
+      const agents = await api('/api/fighters');
+      if (!agents || !agents.length) {
+        grid.innerHTML = '<div class="agent-empty">No fighters available yet.</div>';
+        return;
+      }
+      grid.innerHTML = agents.map(a => {
+        const isEmoji = a.avatarUrl && !a.avatarUrl.startsWith('http') && !a.avatarUrl.startsWith('/');
+        const avatar = a.avatarUrl && !isEmoji
+          ? `<img class="agent-avatar" src="${a.avatarUrl}" alt="${a.name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
+          : `<div class="agent-avatar">${a.avatarUrl || '⚔️'}</div>`;
+        return `
+          <div class="agent-card">
+            ${avatar}
+            <div class="agent-name">${a.name}</div>
+            <div class="agent-level">${a.fameScore ? 'FAME: ' + Math.round(a.fameScore) : 'ACTIVE'}</div>
+            <div class="agent-record"><span class="win">${a.wins}W</span> · <span class="loss">${a.losses}L</span></div>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      grid.innerHTML = '<div class="agent-empty">Could not load fighters.</div>';
+    }
+  }
+
+  async function loadUserAgents(wallet) {
+    const grid = document.getElementById('agents-grid');
+    if (!grid) return;
+    grid.innerHTML = agentSkeletonHTML(6);
+    if (!wallet) {
+      grid.innerHTML = '<div class="agent-empty">Connect your wallet to see your agents.</div>';
+      return;
+    }
     try {
       const agents = await api(`/api/my-agents?wallet=${encodeURIComponent(wallet || '')}`);
-      if (!agents.length) {
+      if (!agents || !agents.length) {
         grid.innerHTML = '<div class="agent-empty">No agents yet. <a onclick="document.querySelector(\'[data-view=create]\').click()">Create your first fighter →</a></div>';
         return;
       }
       grid.innerHTML = agents.map(a => {
-        const avatar = a.avatarUrl
+        const avatar = a.avatarUrl && !a.avatarUrl.match(/^[\p{Emoji}]+$/u)
           ? `<img class="agent-avatar" src="${a.avatarUrl}" alt="${a.name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
-          : `<div class="agent-avatar">🤖</div>`;
+          : `<div class="agent-avatar">${a.avatarUrl || '🤖'}</div>`;
         return `
           <div class="agent-card">
             ${avatar}
@@ -3272,7 +3468,7 @@
           </div>`;
       }).join('');
     } catch (e) {
-      grid.innerHTML = '<div class="agent-empty">Could not load agents.</div>';
+      grid.innerHTML = '<div class="agent-empty">Could not load your agents.</div>';
     }
   }
 
@@ -3422,7 +3618,6 @@
     const wallet = window.currentWalletAddress || profileState.profile?.walletAddress || '';
     if (wallet) {
       loadUserStats(wallet);
-      loadMyAgents(wallet);
     }
     // Pre-fetch fighters for the challenge modal
     loadFighters();
