@@ -1208,6 +1208,9 @@
       border: 1px solid rgba(139,92,246,0.3);
       aspect-ratio: 2056 / 765; width: 100%; display: flex; flex-direction: column;
     }
+    #av-arena-container {
+      background: url('/Arena/assets/arena-bg.png') no-repeat center center / cover;
+    }
     .pf-arena::before {
       content: ''; position: absolute; inset: 0; z-index: 0;
       background: linear-gradient(to bottom,
@@ -1225,11 +1228,16 @@
       padding: 14px 18px 0; position: relative; z-index: 2;
     }
     .pf-fighter-info {
-      display: flex; align-items: center; gap: 10px; max-width: 220px;
+      display: flex; align-items: center; gap: 10px; max-width: 250px;
+      background: rgba(0,0,0,0.5); border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 8px; padding: 6px 12px;
     }
-    .pf-fighter-info.right { flex-direction: row-reverse; text-align: right; }
+    .pf-fighter-info.right { 
+      flex-direction: row-reverse; text-align: right; 
+      border-color: rgba(20,241,149,0.3);
+    }
     .pf-fi-avatar {
-      width: 48px; height: 48px; border-radius: 50%; overflow: hidden;
+      width: 48px; height: 48px; border-radius: 8px; overflow: hidden;
       border: 2px solid rgba(139,92,246,0.6); flex-shrink: 0;
       box-shadow: 0 0 12px rgba(139,92,246,0.4);
     }
@@ -1334,7 +1342,9 @@
       0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
       100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
     }
+
     .pf-big-avatar {
+
       width: 140px; height: 140px; border-radius: 50%; overflow: hidden;
       position: relative;
       box-shadow: 0 0 40px rgba(139,92,246,0.5), 0 0 80px rgba(139,92,246,0.2);
@@ -1459,7 +1469,8 @@
     .pf-match-label { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 8px; font-weight: 600; }
 
     .pf-battle-bottom-spells {
-      display: flex; justify-content: space-between; padding: 10px 20px; z-index: 2; margin-top: 10px; width: 100%;
+      display: flex; justify-content: space-between; padding: 0 20px; z-index: 5;
+      position: absolute; bottom: 8px; left: 0; right: 0;
     }
     .pf-spells-group {
       display: flex; gap: 3px;
@@ -1755,6 +1766,11 @@
               <div class="pf-fi-name" id="pf-fin-left">---</div>
               <div class="pf-fi-chain" id="pf-fic-left">---</div>
               <div class="pf-fi-bc" id="pf-fib-left">0 BC</div>
+              <div class="pf-pump-bar-wrap" id="pf-pump-wrap-left" style="margin-top: 4px;">
+                <span>⚡</span>
+                <div class="pf-pump-bar-bg"><div class="pf-pump-bar-fill" id="pf-pump-left" style="width:0%"></div></div>
+                <span class="pf-pump-ready-label" id="pf-pump-ready-left">PUMP READY</span>
+              </div>
             </div>
           </div>
           <div class="pf-round-badge">
@@ -1768,6 +1784,11 @@
               <div class="pf-fi-name" id="pf-fin-right">---</div>
               <div class="pf-fi-chain" id="pf-fic-right">---</div>
               <div class="pf-fi-bc" id="pf-fib-right">0 BC</div>
+              <div class="pf-pump-bar-wrap" id="pf-pump-wrap-right" style="flex-direction: row-reverse; margin-top: 4px;">
+                <span>⚡</span>
+                <div class="pf-pump-bar-bg"><div class="pf-pump-bar-fill" id="pf-pump-right" style="width:0%"></div></div>
+                <span class="pf-pump-ready-label" id="pf-pump-ready-right">PUMP READY</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1782,11 +1803,6 @@
               <span id="pf-hp-left-val">100</span>
               <div class="pf-hp-bar-bg"><div class="pf-hp-bar-fill green" id="pf-hp-left" style="width:100%"></div></div>
             </div>
-            <div class="pf-pump-bar-wrap" id="pf-pump-wrap-left">
-              <span>⚡</span>
-              <div class="pf-pump-bar-bg"><div class="pf-pump-bar-fill" id="pf-pump-left" style="width:0%"></div></div>
-              <span class="pf-pump-ready-label" id="pf-pump-ready-left">PUMP READY</span>
-            </div>
             <div class="pf-big-avatar" id="pf-ba-left">
               <div class="pf-glow-ring"></div>
               <img src="" alt="" id="pf-ba-left-img"/>
@@ -1799,11 +1815,6 @@
           </div>
 
           <div class="pf-combatant">
-            <div class="pf-pump-bar-wrap" id="pf-pump-wrap-right" style="flex-direction: row-reverse;">
-              <span>⚡</span>
-              <div class="pf-pump-bar-bg"><div class="pf-pump-bar-fill" id="pf-pump-right" style="width:0%"></div></div>
-              <span class="pf-pump-ready-label" id="pf-pump-ready-right">PUMP READY</span>
-            </div>
             <div class="pf-hp-bar-wrap">
               <span id="pf-hp-right-val">100</span>
               <div class="pf-hp-bar-bg"><div class="pf-hp-bar-fill green" id="pf-hp-right" style="width:100%"></div></div>
@@ -1866,6 +1877,8 @@
             </div>
           </div>
         </div>
+      </div> <!-- End pf-live-match -->
+    </div> <!-- End pf-arena -->
 
     <!-- Fighter cards below arena -->
     <div class="fighter-cards-row" id="pf-fighters-list">
@@ -1873,118 +1886,151 @@
     </div>
   </div>
 
-  <!-- PFP MODE VIEW -->
+  <!-- PFP MODE VIEW — AVATAR MODE ARENA -->
   <div id="view-pfpmode" class="tab-view">
-    <div class="arena-wrap">
-      <div class="arena-bg-glow"></div>
-      <div class="arena-grid"></div>
-      <div class="arena-floor"></div>
-      <div class="arena-content">
-        <div class="fighter-panel">
-          <div class="fighter-card-arena">
-            <div class="arena-avatar" id="pfp-left-avatar">🖼</div>
-            <div class="fighter-info-arena">
-              <div class="fighter-name-arena" id="pfp-left-name">APE #3429</div>
-              <div class="fighter-bc" id="pfp-left-bc">1,240,000 BC</div>
-              <div class="spell-icons">
-                <div class="spell-icon">✏️</div>
-                <div class="spell-icon">🛡</div>
-                <div class="spell-icon">⚡</div>
-                <div class="spell-icon locked">🔒</div>
+    <div class="pf-arena" id="av-arena-container">
+      <div class="pf-arena-grid"></div>
+      <div class="pf-arena-floor"></div>
+
+      <!-- Waiting state (shown when no live match) -->
+      <div class="pf-waiting" id="av-waiting" style="display:none;">
+        <img src="/Arena/assets/bota-logo.jpg" class="pf-waiting-logo" alt="Loading...">
+        <div class="pf-loading-bar"><div class="pf-loading-bar-fill"></div></div>
+      </div>
+
+      <!-- Live match (hidden until data arrives) -->
+      <div id="av-live-match" style="display:flex; flex-direction:column; flex:1;">
+        <!-- Top bar -->
+        <div class="pf-top-bar">
+          <div class="pf-fighter-info" id="av-fi-left">
+            <div class="pf-fi-avatar" id="av-fia-left"><img src="" alt=""/></div>
+            <div>
+              <div class="pf-fi-name" id="av-fin-left">---</div>
+              <div class="pf-fi-chain" id="av-fic-left">---</div>
+              <div class="pf-fi-bc" id="av-fib-left">0 BC</div>
+              <div class="pf-pump-bar-wrap" id="av-pump-wrap-left" style="margin-top: 4px;">
+                <span>⚡</span>
+                <div class="pf-pump-bar-bg"><div class="pf-pump-bar-fill" id="av-pump-left" style="width:0%"></div></div>
+                <span class="pf-pump-ready-label" id="av-pump-ready-left">PUMP READY</span>
+              </div>
+            </div>
+          </div>
+          <div class="pf-round-badge">
+            <div class="pf-round-label" id="av-round-label">ROUND 1</div>
+            <div class="pf-round-turn" id="av-round-turn">TURN 1</div>
+            <div class="pf-round-energy" id="av-round-energy">576 BC Pool</div>
+          </div>
+          <div class="pf-fighter-info right" id="av-fi-right">
+            <div class="pf-fi-avatar right" id="av-fia-right"><img src="" alt=""/></div>
+            <div>
+              <div class="pf-fi-name" id="av-fin-right">---</div>
+              <div class="pf-fi-chain" id="av-fic-right">---</div>
+              <div class="pf-fi-bc" id="av-fib-right">0 BC</div>
+              <div class="pf-pump-bar-wrap" id="av-pump-wrap-right" style="flex-direction: row-reverse; margin-top: 4px;">
+                <span>⚡</span>
+                <div class="pf-pump-bar-bg"><div class="pf-pump-bar-fill" id="av-pump-right" style="width:0%"></div></div>
+                <span class="pf-pump-ready-label" id="av-pump-ready-right">PUMP READY</span>
               </div>
             </div>
           </div>
         </div>
-        <div class="arena-center">
-          <div class="nft-card"><img src="/Arena/assets/bota-logo.jpg" alt="PFP Mode"></div>
-          <div class="vs-text">🖼 PFP MODE — COMING SOON 🖼</div>
-        </div>
-        <div class="fighter-panel" style="align-items:flex-end">
-          <div class="fighter-card-arena">
-            <div class="fighter-info-arena" style="text-align:right">
-              <div class="fighter-name-arena" id="pfp-right-name">PUNK #7804</div>
-              <div class="fighter-bc" id="pfp-right-bc">890,000 BC</div>
-              <div class="spell-icons" style="justify-content:flex-end">
-                <div class="spell-icon locked">🔒</div>
-                <div class="spell-icon">⚡</div>
-                <div class="spell-icon">🛡</div>
-                <div class="spell-icon">✏️</div>
-              </div>
+
+        <!-- Battle log moved to trollbox -->
+        <div id="av-bl-entries" style="display:none"></div>
+
+        <!-- Battle zone -->
+        <div class="pf-battle-zone">
+          <div class="pf-combatant">
+            <div class="pf-hp-bar-wrap">
+              <span id="av-hp-left-val">100</span>
+              <div class="pf-hp-bar-bg"><div class="pf-hp-bar-fill green" id="av-hp-left" style="width:100%"></div></div>
             </div>
-            <div class="arena-avatar alt" id="pfp-right-avatar">👾</div>
+            <div class="pf-big-avatar" id="av-ba-left">
+              <div class="pf-glow-ring"></div>
+              <img src="" alt="" id="av-ba-left-img"/>
+            </div>
+          </div>
+
+          <div class="pf-vs-center">
+            <div class="pf-vs-text">VS</div>
+            <div class="pf-match-label" id="av-match-label">Avatar Mode</div>
+          </div>
+
+          <div class="pf-combatant">
+            <div class="pf-hp-bar-wrap">
+              <span id="av-hp-right-val">100</span>
+              <div class="pf-hp-bar-bg"><div class="pf-hp-bar-fill green" id="av-hp-right" style="width:100%"></div></div>
+            </div>
+            <div class="pf-big-avatar right" id="av-ba-right">
+              <div class="pf-glow-ring"></div>
+              <img src="" alt="" id="av-ba-right-img"/>
+            </div>
+          </div>
+
+          <!-- Pump Ready banner (shows briefly when ability fires) -->
+          <div class="pf-pump-banner" id="av-pump-banner">⚡ PUMP READY</div>
+        </div>
+
+        <!-- Spells bar below the arena (horizontal) -->
+        <div class="pf-battle-bottom-spells">
+          <div class="pf-spells-group">
+            <div class="pf-bottom-spell">
+              <div class="spell-circle border-gold">⚔️</div>
+              <div class="spell-title">HORN CHARGE</div>
+              <div class="spell-energy">⚡ 1</div>
+            </div>
+            <div class="pf-bottom-spell">
+              <div class="spell-circle border-purple">🐾</div>
+              <div class="spell-title">WING DASH</div>
+              <div class="spell-energy">⚡ 2</div>
+            </div>
+            <div class="pf-bottom-spell">
+              <div class="spell-circle border-orange">🔥</div>
+              <div class="spell-title">MIGHTY ROAR</div>
+              <div class="spell-energy">⚡ 1</div>
+            </div>
+            <div class="pf-bottom-spell">
+              <div class="spell-circle border-green">💥</div>
+              <div class="spell-title">MEME BLAST</div>
+              <div class="spell-energy">⚡ 1</div>
+            </div>
+          </div>
+
+          <div class="pf-spells-group">
+            <div class="pf-bottom-spell">
+              <div class="spell-circle border-gold">⚔️</div>
+              <div class="spell-title">HORN CHARGE</div>
+              <div class="spell-energy">⚡ 1</div>
+            </div>
+            <div class="pf-bottom-spell">
+              <div class="spell-circle border-purple">🐾</div>
+              <div class="spell-title">WING DASH</div>
+              <div class="spell-energy">⚡ 2</div>
+            </div>
+            <div class="pf-bottom-spell">
+              <div class="spell-circle border-orange">🔥</div>
+              <div class="spell-title">MIGHTY ROAR</div>
+              <div class="spell-energy">⚡ 1</div>
+            </div>
+            <div class="pf-bottom-spell">
+              <div class="spell-circle border-green">💥</div>
+              <div class="spell-title">MEME BLAST</div>
+              <div class="spell-energy">⚡ 1</div>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="spells-row">
-        <div class="spells-group">
-          <div class="spell-btn"><div class="spell-circle">🧪</div><div class="spell-label">Potion</div></div>
-          <div class="spell-btn"><div class="spell-circle">🛡</div><div class="spell-label">Shield</div></div>
-          <div class="spell-btn"><div class="spell-circle">⚡</div><div class="spell-label">Thunder</div></div>
-          <div class="spell-btn"><div class="spell-circle locked">🔒</div><div class="spell-label">Locked</div></div>
-        </div>
-        <div class="spells-group">
-          <div class="spell-btn"><div class="spell-circle locked">🔒</div><div class="spell-label">Locked</div></div>
-          <div class="spell-btn"><div class="spell-circle">⚡</div><div class="spell-label">Thunder</div></div>
-          <div class="spell-btn"><div class="spell-circle">🛡</div><div class="spell-label">Shield</div></div>
-          <div class="spell-btn"><div class="spell-circle">🧪</div><div class="spell-label">Potion</div></div>
-        </div>
-      </div>
-    </div>
-    <div class="fighter-cards-row">
-      <div class="fighter-card" data-fc="pfp1">
-        <div class="rank-badge">1</div>
-        <div class="fc-header">
-          <div class="fc-avatar">🖼</div>
-          <div class="fc-meta"><div class="fc-name">APE #3429</div><div class="fc-holders">👥 676 Holders</div></div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$12.5M</span></div>
-          <div class="fc-stat">24H <span class="pos">+85.2%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn">● WATCH 2 EARN</button>
-      </div>
-      <div class="fighter-card" data-fc="pfp2">
-        <div class="rank-badge orange">2</div>
-        <div class="fc-header">
-          <div class="fc-avatar">👾</div>
-          <div class="fc-meta"><div class="fc-name">PUNK #7804</div><div class="fc-holders">👥 512 Holders</div></div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$8.3M</span></div>
-          <div class="fc-stat">24H <span class="pos">+63.1%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn primary">● WATCH 2 EARN</button>
-      </div>
-      <div class="fighter-card" data-fc="pfp3">
-        <div class="rank-badge secondary">3</div>
-        <div class="fc-header">
-          <div class="fc-avatar">🐱</div>
-          <div class="fc-meta"><div class="fc-name">COOL CAT #22</div><div class="fc-holders">👥 421 Holders</div></div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$5.1M</span></div>
-          <div class="fc-stat">24H <span class="pos">+41.6%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn">● WATCH 2 EARN</button>
-      </div>
-      <div class="fighter-card" data-fc="pfp4">
-        <div class="rank-badge destructive">4</div>
-        <div class="fc-header">
-          <div class="fc-avatar">🤖</div>
-          <div class="fc-meta"><div class="fc-name">ROBOT #9001</div><div class="fc-holders">👥 289 Holders</div></div>
-        </div>
-        <div class="fc-stats">
-          <div class="fc-stat">MCAP <span class="fc-mcap-val">$3.2M</span></div>
-          <div class="fc-stat">24H <span class="neg">-28.4%</span></div>
-        </div>
-        <div class="fc-rewards">🏆 576 BC Rewards</div>
-        <button class="watch-btn primary">● WATCH 2 EARN</button>
-      </div>
+      </div> <!-- End av-live-match -->
+    </div> <!-- End av-arena -->
+
+    <!-- Fighter cards below arena -->
+    <div class="fighter-cards-row" id="av-fighters-list">
+      <!-- Injected via JS -->
     </div>
   </div>
+
+
+
+
 
   <!-- AGENTS VIEW -->
   <div id="view-agents" class="tab-view">
@@ -2805,6 +2851,26 @@
   window.watchToEarn = watchToEarn;
   window.setLbTab = setLbTab;
 
+  // ── Avatar Mode stubs ──
+  function avJoinQueue() {
+    const btn = document.getElementById('av-queue-btn');
+    const info = document.getElementById('av-queue-info');
+    if (btn) { btn.textContent = '⏳ SEARCHING…'; btn.disabled = true; }
+    if (info) info.textContent = 'Finding your opponent…';
+    // Future: call WebSocket queue endpoint
+    setTimeout(() => {
+      if (btn) { btn.textContent = '⚔️ JOIN QUEUE'; btn.disabled = false; }
+      if (info) info.textContent = 'No opponent found. Try again.';
+    }, 5000);
+  }
+  function avWatchToEarn() {
+    // Future: subscribe as spectator via WebSocket
+    const btn = document.querySelector('.av-watch2earn-btn');
+    if (btn) { btn.textContent = '✅ WATCHING'; btn.style.background = 'linear-gradient(135deg,#059669,#10b981)'; }
+  }
+  window.avJoinQueue = avJoinQueue;
+  window.avWatchToEarn = avWatchToEarn;
+
   function renderNotifications() {
     const list = document.getElementById('notif-list');
     const badge = document.querySelector('#notif-btn .badge');
@@ -3414,9 +3480,13 @@
       if (i >= 6) break; // Limit to 3 battles max
       const f1 = fighters[i];
       const f2 = fighters[i+1];
+      const aStyle = f1.processed_avatar ? `background-image:url(${f1.processed_avatar}); background-size:cover; background-position:center; font-size:0; color:transparent; display:inline-block; width:16px; height:16px; vertical-align:middle; border-radius:4px; margin-right:4px;` : '';
+      const bStyle = f2.processed_avatar ? `background-image:url(${f2.processed_avatar}); background-size:cover; background-position:center; font-size:0; color:transparent; display:inline-block; width:16px; height:16px; vertical-align:middle; border-radius:4px; margin-right:4px;` : '';
+      const aFallback = f1.processed_avatar ? '' : (f1.emoji || '🥊') + ' ';
+      const bFallback = f2.processed_avatar ? '' : (f2.emoji || '🥊') + ' ';
       html += `
         <div class="pfpmode-item">
-          <div class="pfpmode-match"><span>${f1.emoji || '🥊'} ${f1.name}</span> <span style="color:#666; font-size:10px;">VS</span> <span>${f2.emoji || '🥊'} ${f2.name}</span></div>
+          <div class="pfpmode-match"><span style="${aStyle}">${aFallback}</span><span>${f1.name}</span> <span style="color:#666; font-size:10px;">VS</span> <span style="${bStyle}">${bFallback}</span><span>${f2.name}</span></div>
           <div class="pfpmode-badge">LIVE</div>
         </div>
       `;
@@ -3435,10 +3505,14 @@
     for (let i = 0; i < fighters.length - 1 && i < 6; i += 2) {
       const fA = fighters[i];
       const fB = fighters[i + 1];
+      const aStyle = fA.processed_avatar ? 'background-image:url(' + fA.processed_avatar + '); background-size:cover; background-position:center; font-size:0; color:transparent;' : '';
+      const bStyle = fB.processed_avatar ? 'background-image:url(' + fB.processed_avatar + '); background-size:cover; background-position:center; font-size:0; color:transparent;' : '';
+      const aFallback = fA.processed_avatar ? '' : (fA.emoji || '&#x1F94A;');
+      const bFallback = fB.processed_avatar ? '' : (fB.emoji || '&#x1F94A;');
       html += '<div class="battle-item">' +
-        '<div class="fighter-mini"><div class="avatar-sm">' + (fA.emoji || '&#x1F94A;') + '</div><div class="fname">' + (fA.display_name || fA.name) + '</div></div>' +
+        '<div class="fighter-mini"><div class="avatar-sm" style="' + aStyle + '">' + aFallback + '</div><div class="fname">' + (fA.display_name || fA.name) + '</div></div>' +
         '<div class="vs-badge">VS</div>' +
-        '<div class="fighter-mini"><div class="avatar-sm">' + (fB.emoji || '&#x1F94A;') + '</div><div class="fname">' + (fB.display_name || fB.name) + '</div></div>' +
+        '<div class="fighter-mini"><div class="avatar-sm" style="' + bStyle + '">' + bFallback + '</div><div class="fname">' + (fB.display_name || fB.name) + '</div></div>' +
         '<span class="live-badge">LIVE</span>' +
       '</div>';
     }
@@ -3456,9 +3530,11 @@
     let html = '';
     fighters.forEach((f, i) => {
       const rankLabel = i === 0 ? '&#x1F947;' : i === 1 ? '&#x1F948;' : i === 2 ? '&#x1F949;' : (i + 1);
+      const avatarStyle = f.processed_avatar ? 'background-image:url(' + f.processed_avatar + '); background-size:cover; background-position:center; font-size:0; color:transparent;' : '';
+      const fallback = f.processed_avatar ? '' : (f.emoji || '&#x1F94A;');
       html += '<div class="lb-item" onclick="watchToEarn(\'' + f.unique_id + '\', null)">' +
         '<div class="lb-rank">' + rankLabel + '</div>' +
-        '<div class="lb-avatar">' + (f.emoji || '&#x1F94A;') + '</div>' +
+        '<div class="lb-avatar" style="' + avatarStyle + '">' + fallback + '</div>' +
         '<div class="lb-info">' +
           '<div class="lb-name">' + (f.display_name || f.name) + '</div>' +
           '<div class="lb-meta"><span class="wins lb-wins-val">' + (f.wins || 0) + ' W</span> &bull; <span class="lb-bc">' + (f.market_cap_usd ? '$' + (f.market_cap_usd/1000).toFixed(1) + 'K' : '0 BC') + '</span></div>' +
@@ -3471,9 +3547,10 @@
   function renderPumpFighters() {
 
     const list = document.getElementById('pf-fighters-list');
-    if (!list || !pfState || !pfState.fighters) return;
+    const avList = document.getElementById('av-fighters-list');
+    if ((!list && !avList) || !pfState || !pfState.fighters) return;
 
-    list.innerHTML = pfState.fighters.slice(0, 4).map((f, i) => {
+    const html = pfState.fighters.slice(0, 4).map((f, i) => {
       let chainEmoji = '&#x1F680;';
       let badgeClass = '';
       if (f.chain === 'solana') { chainEmoji = '&#x1F7E3;'; badgeClass = 'secondary'; }
@@ -3499,6 +3576,9 @@
         '<button class="watch-btn' + (i === 0 ? ' primary' : '') + '" onclick="watchToEarn(\'' + f.unique_id + '\', this)">WATCH 2 EARN</button>' +
       '</div>';
     }).join('');
+
+    if (list) list.innerHTML = html;
+    if (avList) avList.innerHTML = html;
   }
 
   function renderPumpLeaderboard(data) {
