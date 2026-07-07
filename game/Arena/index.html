@@ -1084,80 +1084,82 @@
 
     /* Left Panel: Config */
     .cp-panel {
-      flex: 1; min-width: 320px; background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(139,92,246,0.3); border-radius: 16px;
-      padding: 24px; box-shadow: inset 0 0 40px rgba(139,92,246,0.05);
+      flex: 1; min-width: 280px; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(139,92,246,0.3); border-radius: 14px;
+      padding: 14px; box-shadow: inset 0 0 40px rgba(139,92,246,0.05);
+      display: flex; flex-direction: column; gap: 8px;
     }
     .cp-panel-heading {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 20px; font-weight: 800; color: #fff;
-      font-size: 14px; letter-spacing: 1px;
+      margin-bottom: 4px; font-weight: 800; color: #fff;
+      font-size: 13px; letter-spacing: 1px;
     }
     .cp-panel-heading small {
       font-size: 10px; font-weight: 700; color: #9945FF;
-      background: rgba(153,69,255,0.15); padding: 4px 10px;
+      background: rgba(153,69,255,0.15); padding: 3px 8px;
       border-radius: 12px; text-transform: uppercase;
     }
 
     .cp-avatar-row {
-      display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px; margin-bottom: 4px;
     }
     .cp-avatar-wrap {
-      width: 80px; height: 80px; border-radius: 50%;
+      width: 60px; height: 60px; border-radius: 50%;
       border: 2px dashed rgba(139,92,246,0.5); cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 32px; background: rgba(0,0,0,0.3); position: relative;
+      font-size: 26px; background: rgba(0,0,0,0.3); position: relative;
       overflow: hidden; transition: all 0.2s; flex-shrink: 0;
     }
     .cp-avatar-wrap:hover { border-color: #14F195; background: rgba(20,241,149,0.1); }
     .cp-avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
-    .cp-avatar-hint { font-size: 11px; color: var(--bb-muted-foreground); line-height: 1.5; }
-    .cp-avatar-hint strong { color: #fff; display: block; font-size: 13px; margin-bottom: 4px; }
+    .cp-avatar-hint { font-size: 10px; color: var(--bb-muted-foreground); line-height: 1.4; }
+    .cp-avatar-hint strong { color: #fff; display: block; font-size: 12px; margin-bottom: 3px; }
     #cp-file-input { display: none; }
 
-    .cp-label { display: block; margin-bottom: 16px; }
+    .cp-inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .cp-label { display: block; margin-bottom: 0; }
     .cp-label span {
-      display: block; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.6);
-      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+      display: block; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.6);
+      margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
     }
     .cp-input {
       width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 13px;
-      transition: border-color 0.2s; outline: none;
+      border-radius: 7px; padding: 7px 10px; color: #fff; font-size: 12px;
+      transition: border-color 0.2s; outline: none; box-sizing: border-box;
     }
     .cp-input:focus { border-color: #9945FF; }
-    .cp-textarea { resize: vertical; min-height: 60px; font-family: inherit; }
-    .cp-select { cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; }
+    .cp-textarea { resize: vertical; min-height: 42px; font-family: inherit; }
+    .cp-select { cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 18px; }
 
     .cp-section-lbl {
-      font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.6);
-      margin: 24px 0 12px; text-transform: uppercase; letter-spacing: 0.5px;
-      border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;
+      font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5);
+      margin: 4px 0 4px; text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;
     }
-    .cp-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-    .cp-stat-cell { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); }
-    .cp-stat-cell span { display: block; font-size: 10px; font-weight: 800; color: #F3BA2F; margin-bottom: 4px; }
+    .cp-stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 0; }
+    .cp-stat-cell { background: rgba(0,0,0,0.3); border-radius: 7px; padding: 7px 8px; border: 1px solid rgba(255,255,255,0.05); }
+    .cp-stat-cell span { display: block; font-size: 9px; font-weight: 800; color: #F3BA2F; margin-bottom: 3px; }
     .cp-stat-num {
       width: 100%; background: transparent; border: none; color: #fff;
-      font-size: 16px; font-weight: 900; outline: none; margin-bottom: 6px;
+      font-size: 14px; font-weight: 900; outline: none; margin-bottom: 4px;
     }
-    .cp-stat-bar-wrap { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+    .cp-stat-bar-wrap { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
     .cp-stat-bar { height: 100%; background: linear-gradient(90deg, #F3BA2F, #EF4444); border-radius: 2px; transition: width 0.3s; }
 
-    .cp-preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .cp-preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0; align-items: center; }
     .cp-preset-btn {
       background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 20px; padding: 6px 12px; font-size: 11px; color: #fff;
+      border-radius: 20px; padding: 4px 10px; font-size: 11px; color: #fff;
       cursor: pointer; transition: all 0.2s; font-weight: 600;
     }
     .cp-preset-btn:hover { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.5); }
 
     .cp-deploy-btn {
-      width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 900;
+      width: 100%; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 900;
       color: #000; background: linear-gradient(90deg, #14F195, #22C55E); border: none;
-      cursor: pointer; box-shadow: 0 0 20px rgba(20,241,149,0.3); transition: all 0.2s;
+      cursor: pointer; box-shadow: 0 0 16px rgba(20,241,149,0.3); transition: all 0.2s;
     }
-    .cp-deploy-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(20,241,149,0.5); }
+    .cp-deploy-btn:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(20,241,149,0.5); }
 
     /* Right Panel: Live Preview */
     .cp-preview { flex: 1; max-width: 400px; display: flex; flex-direction: column; }
@@ -2049,11 +2051,6 @@
   <!-- CREATE VIEW -->
   <div id="view-create" class="tab-view">
     <div class="view-inner">
-      <div class="view-header">
-        <div class="view-title">Fighter Import Panel</div>
-        <div class="view-subtitle">Configure your NFT fighter and deploy it to the arena</div>
-      </div>
-
       <div class="create-builder">
 
         <!-- ── LEFT: Configuration Panel ── -->
@@ -2084,44 +2081,40 @@
             <input type="file" id="cp-file-input" accept="image/*" onchange="cpHandleFile(event)" />
           </div>
 
-          <!-- NFT Name -->
-          <label class="cp-label">
-            <span>NFT Name</span>
-            <input class="cp-input" id="cp-name" type="text" placeholder="e.g. SHADOW FANG"
-              oninput="cpSync()" />
-          </label>
+          <!-- Name + Collection -->
+          <div class="cp-inline-row">
+            <label class="cp-label">
+              <span>NFT Name</span>
+              <input class="cp-input" id="cp-name" type="text" placeholder="e.g. SHADOW FANG" oninput="cpSync()" />
+            </label>
+            <label class="cp-label">
+              <span>Collection</span>
+              <input class="cp-input" id="cp-collection" type="text" placeholder="e.g. Bored Ape" oninput="cpSync()" />
+            </label>
+          </div>
 
-          <!-- Collection -->
-          <label class="cp-label">
-            <span>Collection</span>
-            <input class="cp-input" id="cp-collection" type="text" placeholder="e.g. Bored Ape Yacht Club"
-              oninput="cpSync()" />
-          </label>
-
-          <!-- Image URL -->
-          <label class="cp-label">
-            <span>Image URL</span>
-            <input class="cp-input" id="cp-image-url" type="url" placeholder="https://…"
-              oninput="cpSyncImageUrl()" />
-          </label>
-
-          <!-- Fighter Class -->
-          <label class="cp-label">
-            <span>Fighter Class</span>
-            <select class="cp-input cp-select" id="cp-class" onchange="cpSync()">
-              <option value="striker">Striker</option>
-              <option value="tank">Tank</option>
-              <option value="frost">Frost</option>
-              <option value="trickster">Trickster</option>
-              <option value="blaster">Blaster</option>
-            </select>
-          </label>
+          <!-- Image URL + Class -->
+          <div class="cp-inline-row">
+            <label class="cp-label">
+              <span>Image URL</span>
+              <input class="cp-input" id="cp-image-url" type="url" placeholder="https://…" oninput="cpSyncImageUrl()" />
+            </label>
+            <label class="cp-label">
+              <span>Class</span>
+              <select class="cp-input cp-select" id="cp-class" onchange="cpSync()">
+                <option value="striker">Striker</option>
+                <option value="tank">Tank</option>
+                <option value="frost">Frost</option>
+                <option value="trickster">Trickster</option>
+                <option value="blaster">Blaster</option>
+              </select>
+            </label>
+          </div>
 
           <!-- Traits -->
           <label class="cp-label">
             <span>Traits <small style="text-transform:none;font-weight:400">(comma-separated)</small></span>
-            <textarea class="cp-input cp-textarea" id="cp-traits" placeholder="e.g. fire, legendary, swift"
-              oninput="cpSync()"></textarea>
+            <input class="cp-input" id="cp-traits" type="text" placeholder="e.g. fire, legendary, swift" oninput="cpSync()" />
           </label>
 
           <!-- Stats -->
@@ -2149,31 +2142,22 @@
             </div>
           </div>
 
-          <!-- AI Brain Config -->
+          <!-- AI Brain + AgentKit row -->
           <div class="cp-section-lbl">AI Brain (Eliza OS)</div>
-          <label class="cp-label">
-            <span>Archetype Presets</span>
-            <div class="cp-preset-row" style="margin-bottom: 8px;">
-              <button class="cp-preset-btn" onclick="cpLoadEliza('degen')">🤬 Aggressive Degen</button>
-              <button class="cp-preset-btn" onclick="cpLoadEliza('sniper')">🎯 Calculated Sniper</button>
-              <button class="cp-preset-btn" onclick="cpLoadEliza('meme')">🤣 Meme Lord</button>
-            </div>
-          </label>
-          <label class="cp-label">
-            <span>Persona & Lore</span>
-            <textarea class="cp-input cp-textarea" id="cp-eliza-persona" placeholder="Describe how your agent talks and acts in the arena..."
-              oninput="cpSync()" style="min-height: 60px;"></textarea>
-          </label>
-          <label class="cp-label" style="flex-direction: row; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid rgba(139,92,246,0.3);">
-            <div style="display:flex; flex-direction:column; gap:4px;">
-              <span style="margin:0; font-size:12px; color:#fff;">Base AgentKit Wallet</span>
-              <span style="font-size:10px; color:rgba(255,255,255,0.5);">Allow agent to autonomously buy runes & trade</span>
-            </div>
-            <input type="checkbox" id="cp-agentkit-toggle" checked style="accent-color: #8B5CF6; width:16px; height:16px; cursor:pointer;" onchange="cpSync()">
-          </label>
+          <div class="cp-preset-row" style="margin-bottom:6px;">
+            <button class="cp-preset-btn" onclick="cpLoadEliza('degen')">🤬 Degen</button>
+            <button class="cp-preset-btn" onclick="cpLoadEliza('sniper')">🎯 Sniper</button>
+            <button class="cp-preset-btn" onclick="cpLoadEliza('meme')">🤣 Meme</button>
+            <label style="display:flex;align-items:center;gap:5px;margin-left:auto;cursor:pointer;font-size:11px;color:rgba(255,255,255,0.7);">
+              <input type="checkbox" id="cp-agentkit-toggle" checked style="accent-color:#8B5CF6;width:14px;height:14px;cursor:pointer;" onchange="cpSync()">
+              🔗 AgentKit
+            </label>
+          </div>
+          <textarea class="cp-input cp-textarea" id="cp-eliza-persona" placeholder="Persona & lore — how your agent talks and acts..."
+            oninput="cpSync()" style="min-height:42px;"></textarea>
 
-          <!-- Presets -->
-          <div class="cp-section-lbl">Quick Presets</div>
+          <!-- Quick Presets -->
+          <div class="cp-section-lbl" style="margin-top:10px;">Quick Presets</div>
           <div class="cp-preset-row">
             <button class="cp-preset-btn" onclick="cpLoadPreset('pepe')">🐸 Pepe</button>
             <button class="cp-preset-btn" onclick="cpLoadPreset('doge')">🐕 Doge</button>
