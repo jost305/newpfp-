@@ -1116,20 +1116,20 @@
     .cp-avatar-hint strong { color: #fff; display: block; font-size: 12px; margin-bottom: 3px; }
     #cp-file-input { display: none; }
 
-    .cp-inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .cp-inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .cp-label { display: block; margin-bottom: 0; }
     .cp-label span {
-      display: block; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.6);
-      margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+      display: block; font-size: 9px; font-weight: 700; color: var(--bb-muted-foreground);
+      margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;
     }
     .cp-input {
-      width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 7px; padding: 7px 10px; color: #fff; font-size: 12px;
+      width: 100%; background: var(--bb-input); border: 1px solid var(--bb-border);
+      border-radius: 6px; padding: 4px 7px; color: var(--bb-foreground); font-size: 11px;
       transition: border-color 0.2s; outline: none; box-sizing: border-box;
     }
-    .cp-input:focus { border-color: #9945FF; }
-    .cp-textarea { resize: vertical; min-height: 42px; font-family: inherit; }
-    .cp-select { cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 18px; }
+    .cp-input:focus { border-color: hsl(var(--bb-primary)); }
+    .cp-textarea { resize: vertical; min-height: 36px; font-family: inherit; }
+    .cp-select { cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23888" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 6px center; background-size: 16px; padding-right: 22px; }
 
     .cp-section-lbl {
       font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5);
