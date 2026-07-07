@@ -834,6 +834,25 @@
     .full-lb-meta { font-size: 10px; color: var(--bb-muted-foreground); }
     .full-lb-bc { font-size: 12px; font-weight: 800; color: var(--extra-gold); text-align: right; }
 
+    /* ── Skeleton loading ── */
+    @keyframes lb-shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
+    }
+    .skel {
+      border-radius: 4px; background: var(--bb-muted);
+      background-image: linear-gradient(90deg,
+        var(--bb-muted) 0%, var(--bb-border) 40%, var(--bb-muted) 80%);
+      background-size: 800px 100%;
+      animation: lb-shimmer 1.4s infinite linear;
+    }
+    .full-lb-row.skel-row { pointer-events: none; }
+    .full-lb-row.skel-row .skel-rank  { width: 16px; height: 14px; }
+    .full-lb-row.skel-row .skel-avatar{ width: 36px; height: 36px; border-radius: 10px; flex-shrink:0; }
+    .full-lb-row.skel-row .skel-name  { width: 100px; height: 12px; margin-bottom: 5px; }
+    .full-lb-row.skel-row .skel-meta  { width: 60px;  height: 9px; }
+    .full-lb-row.skel-row .skel-bc    { width: 36px;  height: 12px; margin-left: auto; }
+
     /* ── CHALLENGES VIEW ── */
     .challenge-tabs {
       display: flex; gap: 6px; margin-bottom: 14px;
@@ -3678,12 +3697,26 @@
     if (avList) avList.innerHTML = html;
   }
 
+  function lbSkeletonHTML(n) {
+    return Array.from({length: n}, () =>
+      '<div class="full-lb-row skel-row">' +
+        '<div class="skel skel-rank"></div>' +
+        '<div class="skel skel-avatar"></div>' +
+        '<div class="full-lb-info">' +
+          '<div class="skel skel-name"></div>' +
+          '<div class="skel skel-meta"></div>' +
+        '</div>' +
+        '<div class="skel skel-bc"></div>' +
+      '</div>'
+    ).join('');
+  }
+
   function renderPumpLeaderboard(data) {
     const container = document.getElementById('full-lb-list');
     if (!container) return;
 
     if (!data || data.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--bb-muted-foreground);">No fighters yet. Waiting for DexScreener data...</div>';
+      if (!container.querySelector('.skel-row')) container.innerHTML = lbSkeletonHTML(8);
       return;
     }
 
@@ -3705,12 +3738,15 @@
     document.querySelectorAll('#view-leaderboard .challenge-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     lbTab = el.getAttribute('data-lbtab');
+    const c = document.getElementById('full-lb-list');
+    if (c) c.innerHTML = lbSkeletonHTML(8);
     fetchPumpLeaderboard();
   }
 
   setInterval(fetchPumpState, 5000);
   setInterval(fetchPumpLeaderboard, 10000);
   fetchPumpState();
+  (function(){ const c = document.getElementById('full-lb-list'); if(c) c.innerHTML = lbSkeletonHTML(8); })();
   fetchPumpLeaderboard();
   loadProfile();
   loadNotifications();
