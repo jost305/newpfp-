@@ -281,6 +281,24 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"ok": False, "message": "engine not available"})
             return
 
+        if path == "/api/pumpfighters/market-energy":
+            try:
+                from market_energy_engine import market_energy_engine as _mee
+                states = _mee.all_states()
+                # Sanitise: remove non-serialisable fields
+                out = {}
+                for uid, s in states.items():
+                    out[uid] = {
+                        "energy":        s.get("energy", 0),
+                        "ability_ready": s.get("ability_ready", False),
+                        "ability":       s.get("ability", {}),
+                        "events":        s.get("events_this_tick", []),
+                    }
+                self.send_json(out)
+            except Exception as e:
+                self.send_json({"error": str(e)})
+            return
+
         if path in {"/", ""}:
             try:
                 with open(INDEX_PATH, "r", encoding="utf-8") as f:

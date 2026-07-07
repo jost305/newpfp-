@@ -979,11 +979,11 @@
     /* ── RIGHT SIDEBAR ── */
     .sidebar-right {
       width: var(--right-w);
-      min-height: calc(100vh - var(--top-h));
+      height: calc(100vh - var(--top-h));
       background: var(--bb-sidebar);
       border-left: 1px solid var(--bb-border);
       position: fixed; top: var(--top-h); right: 0; bottom: 0;
-      overflow-y: auto; padding: 14px 12px;
+      overflow: hidden; padding: 14px 12px;
       display: flex; flex-direction: column; gap: 0;
     }
 
@@ -1010,7 +1010,7 @@
     .lb-divider { height: 1px; background: var(--bb-border); margin: 6px 0; }
 
     /* trollbox */
-    .trollbox-section { margin-top: 12px; flex: 1; display: flex; flex-direction: column; }
+    .trollbox-section { margin-top: 12px; flex: 1; display: flex; flex-direction: column; min-height: 0; }
     .trollbox-header {
       display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
     }
@@ -1026,7 +1026,8 @@
     }
     .trollbox-messages {
       flex: 1; display: flex; flex-direction: column;
-      gap: 5px; margin-bottom: 10px; overflow: hidden;
+      gap: 5px; margin-bottom: 10px; overflow-y: auto;
+      min-height: 0; padding-right: 4px;
     }
     .troll-msg { font-size: 11px; line-height: 1.4; color: var(--bb-foreground); }
     .troll-user { font-weight: 700; color: hsl(var(--bb-primary)); }
@@ -1259,10 +1260,17 @@
     /* Arena center: fighters + VS */
     .pf-battle-zone {
       flex: 1; display: flex; align-items: flex-end; justify-content: center;
-      position: relative; z-index: 2; gap: 20px; padding: 10px 24px 10px;
+      position: relative; z-index: 2; gap: 20px; padding: 10px 24px 40px;
     }
     .pf-combatant {
       display: flex; flex-direction: column; align-items: center; gap: 6px;
+      position: relative;
+    }
+    .pf-combatant::after {
+      content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);\
+      width: 110px; height: 12px; border-radius: 50%;
+      background: rgba(0,0,0,0.85); filter: blur(4px);
+      z-index: -1; pointer-events: none;
     }
     .pf-hp-bar-wrap {
       display: flex; align-items: center; gap: 6px; font-size: 11px; color: #fff; font-weight: 700;
@@ -1276,6 +1284,56 @@
     }
     .pf-hp-bar-fill.green { background: linear-gradient(90deg, #22C55E, #14F195); }
     .pf-hp-bar-fill.red { background: linear-gradient(90deg, #EF4444, #F97316); }
+
+    /* ---- Pump Energy Bar ---- */
+    .pf-pump-bar-wrap {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.7);
+    }
+    .pf-pump-bar-bg {
+      width: 120px; height: 5px; background: rgba(255,255,255,0.08);
+      border-radius: 3px; overflow: hidden; position: relative;
+    }
+    .pf-pump-bar-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, #14F195, #9945FF);
+      transition: width 0.6s ease;
+      box-shadow: 0 0 6px rgba(20,241,149,0.5);
+    }
+    .pf-pump-ready-label {
+      display: none; font-size: 10px; font-weight: 900;
+      color: #14F195; letter-spacing: 1px; text-transform: uppercase;
+      animation: pumpReadyFlash 0.8s ease-in-out infinite;
+      text-shadow: 0 0 8px rgba(20,241,149,0.8);
+    }
+    .pf-pump-ready-label.active { display: block; }
+    @keyframes pumpReadyFlash {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    /* Aura glow when pump energy > 75% */
+    .pf-big-avatar.pump-charged {
+      animation: pumpAura 1.2s ease-in-out infinite;
+    }
+    @keyframes pumpAura {
+      0%, 100% { box-shadow: 0 0 40px rgba(139,92,246,0.5), 0 0 80px rgba(139,92,246,0.2); }
+      50% { box-shadow: 0 0 60px rgba(20,241,149,0.8), 0 0 100px rgba(20,241,149,0.4); }
+    }
+    /* Arena PUMP READY banner */
+    .pf-pump-banner {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.85); border: 2px solid #14F195;
+      border-radius: 10px; padding: 10px 24px; z-index: 20;
+      font-size: 18px; font-weight: 900; color: #14F195;
+      text-shadow: 0 0 20px rgba(20,241,149,0.8); letter-spacing: 2px;
+      animation: bannerPop 0.3s ease-out;
+      display: none;
+    }
+    .pf-pump-banner.show { display: block; }
+    @keyframes bannerPop {
+      0% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
     .pf-big-avatar {
       width: 140px; height: 140px; border-radius: 50%; overflow: hidden;
       position: relative;
@@ -1401,7 +1459,7 @@
     .pf-match-label { color: rgba(255,255,255,0.5); font-size: 11px; margin-top: 8px; font-weight: 600; }
 
     .pf-battle-bottom-spells {
-      display: flex; justify-content: space-between; padding: 10px 60px; z-index: 2; margin-top: 10px; width: 100%; max-width: 700px; margin-left: auto; margin-right: auto;
+      display: flex; justify-content: space-between; padding: 10px 20px; z-index: 2; margin-top: 10px; width: 100%;
     }
     .pf-spells-group {
       display: flex; gap: 3px;
@@ -1472,12 +1530,34 @@
       100% { opacity: 0; transform: translateY(-50px) scale(1.3); }
     }
 
+    .pf-waiting {
+      position: absolute; inset: 0; z-index: 50;
+      background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(10px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+    }
     .pf-waiting-logo {
-      width: 60px; height: 60px; border-radius: 12px;
-      margin-bottom: 16px; object-fit: contain;
+      width: 100px; height: 100px; border-radius: 20px;
+      margin-bottom: 24px; object-fit: contain;
       animation: logoPulse 1.5s ease-in-out infinite;
-      box-shadow: 0 0 20px rgba(139,92,246,0.5);
-      border: 2px solid rgba(139,92,246,0.8);
+      box-shadow: 0 0 30px rgba(139,92,246,0.6);
+      border: 3px solid rgba(139,92,246,0.9);
+    }
+    .pf-loading-bar {
+      width: 250px; height: 6px; border-radius: 3px;
+      background: rgba(255, 255, 255, 0.15);
+      overflow: hidden; margin-top: 10px;
+      position: relative;
+    }
+    .pf-loading-bar-fill {
+      width: 50%; height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, transparent, #14F195, #9945FF, transparent);
+      position: absolute; left: 0; top: 0;
+      animation: loadBarIndeterminate 1.5s infinite linear;
+    }
+    @keyframes loadBarIndeterminate {
+      0% { transform: translateX(-150%); }
+      100% { transform: translateX(250%); }
     }
     @keyframes logoPulse {
       0% { transform: scale(1); filter: brightness(1); }
@@ -1564,30 +1644,11 @@
     </div>
 
     <div>
-      <div class="sidebar-section-title">⚡ Live Predictions</div>
-      <div class="predictions-box">
-        <div class="pred-header">
-          <span class="pred-title">Who wins?</span>
-          <span class="timer" id="timer">00:45</span>
-        </div>
-        <div class="fighters-pred">
-          <div class="fighter-pred">
-            <div class="avatar-pred">🤖</div>
-            <div class="pred-name">ROBOT V1</div>
-            <div class="pred-pct primary">52%</div>
-          </div>
-          <div style="font-size:11px;font-weight:800;color:var(--bb-muted-foreground)">VS</div>
-          <div class="fighter-pred">
-            <div class="avatar-pred alt">🦾</div>
-            <div class="pred-name">FLOATROBO</div>
-            <div class="pred-pct alt">48%</div>
-          </div>
-        </div>
-        <div class="pred-bar-wrap"><div class="pred-bar" style="width:52%"></div></div>
-        <div class="pred-pool">POOL: <span>128,450 BC</span></div>
-        <div class="pred-btns">
-          <button class="pred-yes">✓ YES</button>
-          <button class="pred-no">✗ NO</button>
+      <div class="sidebar-section-title">💰 Total Earned</div>
+      <div class="predictions-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 10px; text-align: center; background: rgba(20,241,149,0.05); border-color: rgba(20,241,149,0.2);">
+        <div style="font-size: 11px; font-weight: 800; color: var(--bb-muted-foreground); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;">Total BantCredit</div>
+        <div style="font-size: 36px; font-weight: 900; color: #14F195; text-shadow: 0 0 20px rgba(20,241,149,0.5); line-height: 1;">
+          0 <span style="font-size: 16px; color: #fff; vertical-align: super;">BC</span>
         </div>
       </div>
     </div>
@@ -1681,8 +1742,7 @@
       <!-- Waiting state (shown when no live match) -->
       <div class="pf-waiting" id="pf-waiting">
         <img src="/Arena/assets/bota-logo.jpg" class="pf-waiting-logo" alt="Loading...">
-        <div class="pf-waiting-text">Fetching Trending Coins...</div>
-        <div class="pf-waiting-sub">DexScreener data loading across Solana, BSC, and Base</div>
+        <div class="pf-loading-bar"><div class="pf-loading-bar-fill"></div></div>
       </div>
 
       <!-- Live match (hidden until data arrives) -->
@@ -1722,6 +1782,11 @@
               <span id="pf-hp-left-val">100</span>
               <div class="pf-hp-bar-bg"><div class="pf-hp-bar-fill green" id="pf-hp-left" style="width:100%"></div></div>
             </div>
+            <div class="pf-pump-bar-wrap" id="pf-pump-wrap-left">
+              <span>⚡</span>
+              <div class="pf-pump-bar-bg"><div class="pf-pump-bar-fill" id="pf-pump-left" style="width:0%"></div></div>
+              <span class="pf-pump-ready-label" id="pf-pump-ready-left">PUMP READY</span>
+            </div>
             <div class="pf-big-avatar" id="pf-ba-left">
               <div class="pf-glow-ring"></div>
               <img src="" alt="" id="pf-ba-left-img"/>
@@ -1734,6 +1799,11 @@
           </div>
 
           <div class="pf-combatant">
+            <div class="pf-pump-bar-wrap" id="pf-pump-wrap-right" style="flex-direction: row-reverse;">
+              <span>⚡</span>
+              <div class="pf-pump-bar-bg"><div class="pf-pump-bar-fill" id="pf-pump-right" style="width:0%"></div></div>
+              <span class="pf-pump-ready-label" id="pf-pump-ready-right">PUMP READY</span>
+            </div>
             <div class="pf-hp-bar-wrap">
               <span id="pf-hp-right-val">100</span>
               <div class="pf-hp-bar-bg"><div class="pf-hp-bar-fill green" id="pf-hp-right" style="width:100%"></div></div>
@@ -1743,6 +1813,9 @@
               <img src="" alt="" id="pf-ba-right-img"/>
             </div>
           </div>
+
+          <!-- Pump Ready banner (shows briefly when ability fires) -->
+          <div class="pf-pump-banner" id="pf-pump-banner">⚡ PUMP READY</div>
         </div>
 
         <!-- Spells bar below the arena (horizontal) -->
@@ -3130,15 +3203,6 @@
     if (!pfState.live_match) {
       if (waiting) {
         waiting.style.display = 'flex';
-        if (pfState.is_refreshing) {
-          waiting.querySelector('.pf-waiting-text').textContent = 'Fetching Trending Coins...';
-        } else if (pfState.fighters && pfState.fighters.length > 0) {
-          waiting.querySelector('.pf-waiting-text').textContent = 'Processing next match...';
-        } else {
-          waiting.querySelector('.pf-waiting-text').textContent = 'Waiting for coins from DexScreener...';
-          waiting.querySelector('.pf-waiting-sub').textContent =
-            pfState.next_refresh_in ? 'Next refresh in ' + pfState.next_refresh_in + 's' : '';
-        }
       }
       liveEl.style.display = 'none';
       return;
@@ -3387,7 +3451,7 @@
     if (!container || !pfState || !pfState.fighters) return;
     
     // Sort fighters by wins or rank
-    const fighters = [...pfState.fighters].sort((a, b) => (b.wins || 0) - (a.wins || 0)).slice(0, 5);
+    const fighters = [...pfState.fighters].sort((a, b) => (b.wins || 0) - (a.wins || 0)).slice(0, 3);
     
     let html = '';
     fighters.forEach((f, i) => {
@@ -3474,6 +3538,62 @@
   loadProfile();
   loadNotifications();
   setInterval(loadNotifications, 15000);
+
+  // ── Market Energy Polling ──────────────────────────────────────────────────
+  let _pumpBannerTimeout = null;
+
+  function updatePumpEnergyUI(energyStates) {
+    if (!pfState || !pfState.live_match) return;
+    const fA = pfState.live_match.fighter_a;
+    const fB = pfState.live_match.fighter_b;
+    if (!fA || !fB) return;
+
+    function applyEnergy(uid, barId, readyId, avatarId) {
+      const es = energyStates[uid];
+      if (!es) return;
+      const bar    = document.getElementById(barId);
+      const ready  = document.getElementById(readyId);
+      const avatar = document.getElementById(avatarId);
+      if (!bar || !ready) return;
+
+      const pct = Math.min(100, es.energy || 0);
+      bar.style.width = pct + '%';
+
+      if (pct >= 100) {
+        ready.classList.add('active');
+        if (avatar) avatar.classList.add('pump-charged');
+        // Show arena banner
+        const banner = document.getElementById('pf-pump-banner');
+        if (banner) {
+          const name = avatar ? avatar.getAttribute('alt') : '???';
+          banner.textContent = `\u26a1 ${name.toUpperCase()} PUMP READY!`;
+          banner.classList.add('show');
+          clearTimeout(_pumpBannerTimeout);
+          _pumpBannerTimeout = setTimeout(() => banner.classList.remove('show'), 2500);
+        }
+      } else {
+        ready.classList.remove('active');
+        if (avatar) avatar.classList.remove('pump-charged');
+      }
+    }
+
+    applyEnergy(fA.unique_id, 'pf-pump-left',  'pf-pump-ready-left',  'pf-ba-left-img');
+    applyEnergy(fB.unique_id, 'pf-pump-right', 'pf-pump-ready-right', 'pf-ba-right-img');
+  }
+
+  async function fetchMarketEnergy() {
+    try {
+      const res  = await fetch('/api/pumpfighters/market-energy');
+      if (!res.ok) return;
+      const data = await res.json();
+      updatePumpEnergyUI(data);
+    } catch (e) { /* silent fail */ }
+  }
+
+  setInterval(fetchMarketEnergy, 5000);
+  fetchMarketEnergy();
+
+
 
 
 

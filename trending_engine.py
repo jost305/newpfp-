@@ -32,6 +32,18 @@ except ImportError:
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
+# Market Energy Engine (Pump Meter)
+try:
+    from market_energy_engine import (
+        market_energy_engine as _mee,
+        ai_should_cast_ability,
+        apply_pump_ability,
+    )
+    _HAS_MEE = True
+except Exception as _mee_err:
+    print(f"[TrendingEngine] market_energy_engine import failed: {_mee_err}", flush=True)
+    _HAS_MEE = False
+
 # ─────────────────────────────────────────────────────────────────────────────
 # CONSTANTS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -684,15 +696,35 @@ def simulate_battle(fighter_a, fighter_b):
     """
     Simulate a fight round-by-round.
     Damage formula adapted from ECPS traits.
+    Now includes Pump Ability activation via MarketEnergyEngine.
     Returns a battle result dict.
     """
     hp_a = float(fighter_a.get("hp", 100))
     hp_b = float(fighter_b.get("hp", 100))
     rounds = 0
     max_rounds = 25
+    battle_log_pump = []  # pump ability events for frontend
+
+    uid_a = fighter_a.get("unique_id", "")
+    uid_b = fighter_b.get("unique_id", "")
+    energy_a = _mee.get(uid_a) if _HAS_MEE else {}
+    energy_b = _mee.get(uid_b) if _HAS_MEE else {}
 
     while hp_a > 0 and hp_b > 0 and rounds < max_rounds:
         rounds += 1
+        is_last = rounds == max_rounds - 1
+
+        # --- Pump Ability check for A ---
+        if _HAS_MEE and ai_should_cast_ability(
+            energy_a, hp_a / 100.0, hp_b / 100.0, is_last
+        ):
+            ability_a = energy_a.get("ability", {})
+            hp_b, hp_a, eff, log = apply_pump_ability(ability_a, hp_a, hp_b)
+            _mee.consume_ability(uid_a)
+            energy_a = _mee.get(uid_a)  # refresh state
+            battle_log_pump.append({"fighter": fighter_a["display_name"], "log": log})
+            if hp_b <= 0:
+                break
 
         # A attacks B
         atk_a   = fighter_a.get("aggression",   50) / 100.0
@@ -706,6 +738,18 @@ def simulate_battle(fighter_a, fighter_b):
         hp_b -= dmg_a
         if hp_b <= 0:
             break
+
+        # --- Pump Ability check for B ---
+        if _HAS_MEE and ai_should_cast_ability(
+            energy_b, hp_b / 100.0, hp_a / 100.0, is_last
+        ):
+            ability_b = energy_b.get("ability", {})
+            hp_a, hp_b, eff, log = apply_pump_ability(ability_b, hp_b, hp_a)
+            _mee.consume_ability(uid_b)
+            energy_b = _mee.get(uid_b)
+            battle_log_pump.append({"fighter": fighter_b["display_name"], "log": log})
+            if hp_a <= 0:
+                break
 
         # B attacks A
         atk_b   = fighter_b.get("aggression",   50) / 100.0
@@ -737,6 +781,7 @@ def simulate_battle(fighter_a, fighter_b):
         "rounds_fought":        rounds,
         "bc_pool":              bc_pool,
         "created_at":           datetime.now(timezone.utc).isoformat(),
+        "pump_events":          battle_log_pump,
     }
 
 
@@ -963,6 +1008,20 @@ def _refresh_cycle():
                 f["global_rank"] = 999
                 f["chain_rank"]  = 999
             active_fighters = new_fighters
+
+        # ---- Market Energy: update per-fighter pump energy ----------------
+        if _HAS_MEE:
+            for f in active_fighters:
+                _mee.update(f)
+
+        # ---- Inject market_energy into each fighter dict ------------------
+        if _HAS_MEE:
+            for f in active_fighters:
+                uid = f.get("unique_id", "")
+                es = _mee.get(uid)
+                f["market_energy"]    = es.get("energy", 0)
+                f["pump_ready"]       = es.get("ability_ready", False)
+                f["pump_ability"]     = es.get("ability", {})
 
         # ── 6. Build match queue + simulate battles ───────────────────────────
         match_queue = build_match_queue(active_fighters)
