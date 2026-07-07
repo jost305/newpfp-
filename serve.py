@@ -38,7 +38,7 @@ def query_db(sql, params=(), fetchone=False):
         print(f"DB error: {e}", flush=True)
         return None
 
-PORT = 8080
+PORT = int(os.environ.get("PORT", 3000))
 GAME_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "game")
 INDEX_PATH = os.path.join(GAME_DIR, "Arena", "index.html")
 PRIVY_APP_ID = os.environ.get("PRIVY_APP_ID", "")
@@ -216,6 +216,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 fighters = [{"id": r[0], "name": r[1], "avatarUrl": r[2],
                              "wins": r[3] or 0, "losses": r[4] or 0,
                              "fameScore": float(r[5] or 0)} for r in rows]
+            
+            # If no DB results, fallback to trending engine fighters
+            if not fighters and _HAS_TRENDING:
+                state = _te.get_state()
+                if state and state.get("fighters"):
+                    fighters = [{"id": f.get("unique_id", ""), 
+                                "name": f.get("display_name", "Unknown"),
+                                "avatarUrl": f.get("processed_avatar", ""),
+                                "wins": f.get("wins", 0),
+                                "losses": f.get("losses", 0),
+                                "fameScore": float(f.get("fame_score", 0))} 
+                               for f in state["fighters"][:30]]
+            
             self.send_json(fighters)
             return
         # ── PumpFighters Engine endpoints ──────────────────────────────────

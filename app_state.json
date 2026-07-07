@@ -1,0 +1,53 @@
+{
+  "profile": {
+    "id": "demo-user",
+    "username": "bantahbro",
+    "firstName": "Bantah",
+    "lastName": "Bro",
+    "bio": "Building the next arena layer for onchain battles.",
+    "profileImageUrl": "",
+    "walletAddress": "0x4C24768D98F2D30d3AB827d463d7a8A05c66bD0c",
+    "primaryWalletAddress": "0x4C24768D98F2D30d3AB827d463d7a8A05c66bD0c",
+    "points": 12680,
+    "balance": "1234.50",
+    "coins": 2400,
+    "level": 12,
+    "xp": 8400,
+    "streak": 5,
+    "status": "Ready",
+    "myAgents": 3,
+    "queue": 2,
+    "bantCredit": 12840,
+    "bantcClaim": 1240000,
+    "earnedUsdc": 1250
+  },
+  "notifications": [
+    {
+      "id": "notif-1",
+      "type": "challenge",
+      "title": "New challenge ready",
+      "message": "ROBOT V1 is live against FLOATROBO. Jump in before the queue closes.",
+      "icon": "\u2694\ufe0f",
+      "read": true,
+      "createdAt": "2026-07-05T10:00:00Z"
+    },
+    {
+      "id": "notif-2",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 576 BC from your latest watch streak.",
+      "icon": "\ud83d\udcb0",
+      "read": true,
+      "createdAt": "2026-07-05T09:15:00Z"
+    },
+    {
+      "id": "notif-3",
+      "type": "market",
+      "title": "Marketplace update",
+      "message": "Golden Skin is back in stock for your next loadout.",
+      "icon": "\ud83d\uded2",
+      "read": true,
+      "createdAt": "2026-07-05T08:00:00Z"
+    }
+  ]
+}
