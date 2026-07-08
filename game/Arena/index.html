@@ -120,6 +120,9 @@
       font-size: 9px; font-weight: 700; letter-spacing: .5px;
     }
     .nav-tabs { display: flex; gap: 2px; margin: 0 auto; }
+    @media (min-width: 901px) {
+      .mobile-menu-btn, .mobile-footer-nav, .mobile-nav-dropdown { display: none !important; }
+    }
     .nav-tab {
       padding: 5px 12px; border-radius: 7px;
       font-size: 12px; font-weight: 600;
@@ -136,6 +139,7 @@
       background: hsl(var(--bb-primary));
     }
     .nav-tab.create { color: var(--bb-accent); }
+    .nav-tab-icon { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 2px; display: inline-block; }
     .mobile-menu-btn {
       display: none;
       width: 28px; height: 28px; border-radius: 7px;
@@ -155,6 +159,41 @@
     .mobile-nav-dropdown.open { display: flex; }
     .mobile-nav-dropdown .nav-tab {
       width: 100%; text-align: left; padding: 10px 12px;
+    }
+    .mobile-footer-nav {
+      display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 100;
+      background: rgba(17, 24, 39, 0.96);
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+      backdrop-filter: blur(12px);
+      padding: 6px 10px;
+      gap: 6px;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mobile-footer-nav .footer-nav-btn {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      border-radius: 12px;
+      background: var(--bb-card);
+      color: var(--bb-muted-foreground);
+      font-size: 12px;
+      padding: 8px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .mobile-footer-nav .footer-nav-btn.active {
+      color: var(--bb-foreground);
+      background: hsl(var(--bb-primary));
     }
     .nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .icon-btn {
@@ -379,11 +418,12 @@
       width: 140px; flex-shrink: 0;
     }
     .fighter-card-arena {
-      background: rgb(var(--bb-background-rgb) / 0.7);
-      border: 1px solid var(--bb-border);
+      background: rgb(var(--bb-background-rgb) / 0.85);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 10px; padding: 7px;
       display: flex; align-items: center; gap: 6px;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
     }
     .arena-avatar {
       width: 36px; height: 36px; border-radius: 10px;
@@ -568,6 +608,61 @@
     }
     .agent-empty a { color: hsl(var(--bb-primary)); cursor: pointer; }
 
+    /* ── Agent Skeleton Loading ── */
+    .agent-card.skel-card {
+      pointer-events: none;
+      background: var(--bb-card);
+      border: 1px solid var(--bb-border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .skel-card .skel-avatar {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 8px;
+      border-radius: 14px;
+      background: var(--bb-muted);
+      animation: pulse 1.5s infinite;
+    }
+    .skel-card .skel-name {
+      width: 70%;
+      height: 14px;
+      margin: 8px auto 6px;
+      border-radius: 4px;
+      background: var(--bb-muted);
+      animation: pulse 1.5s infinite;
+    }
+    .skel-card .skel-level {
+      width: 50%;
+      height: 10px;
+      margin: 6px auto;
+      border-radius: 4px;
+      background: var(--bb-muted);
+      animation: pulse 1.5s infinite;
+    }
+    .skel-card .skel-record {
+      width: 60%;
+      height: 10px;
+      margin: 8px auto;
+      border-radius: 4px;
+      background: var(--bb-muted);
+      animation: pulse 1.5s infinite;
+    }
+    .skel-card .skel-btn {
+      width: 100%;
+      height: 32px;
+      margin-top: 10px;
+      border-radius: 7px;
+      background: var(--bb-muted);
+      animation: pulse 1.5s infinite;
+      border: none;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
     /* Challenge modal */
     .chal-modal-overlay {
       position: fixed; inset: 0; z-index: 200;
@@ -580,6 +675,37 @@
       border-radius: 16px; padding: 20px; width: 360px; max-width: calc(100vw - 32px);
       position: relative;
     }
+    .winner-modal-overlay {
+      position: fixed; inset: 0; z-index: 210;
+      background: rgba(2,6,23,0.85); display: none;
+      align-items: center; justify-content: center;
+    }
+    .winner-modal-overlay.open { display: flex; }
+    .winner-modal-card {
+      background: rgba(15,23,42,0.98); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px; padding: 24px; width: 360px; max-width: calc(100vw - 32px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      text-align: center;
+    }
+    .winner-modal-title {
+      font-size: 18px; font-weight: 900; color: #FACC15;
+      margin-bottom: 14px;
+    }
+    .winner-matchup {
+      font-size: 24px; font-weight: 900; color: #fff;
+      margin-bottom: 8px;
+    }
+    .winner-detail {
+      font-size: 13px; color: rgba(255,255,255,0.8);
+      margin-bottom: 18px;
+    }
+    .winner-modal-btn {
+      width: 100%; border: none; border-radius: 999px;
+      padding: 14px 18px; font-size: 13px; font-weight: 800;
+      color: #0f172a; background: #FACC15;
+      cursor: pointer; transition: transform .15s ease, background .15s ease;
+    }
+    .winner-modal-btn:hover { transform: translateY(-1px); background: #eab308; }
     .chal-modal-close {
       position: absolute; top: 12px; right: 12px;
       background: none; border: none; color: var(--bb-muted-foreground);
@@ -777,6 +903,102 @@
     .cp-preview-bar-fill { height: 4px; border-radius: 3px; background: hsl(var(--bb-primary)); transition: width .2s; }
     .cp-preview-stat-val { width: 24px; font-weight: 700; font-size: 10px; }
 
+    /* ── DOC VIEW ── */
+    #view-doc .view-inner { max-width: 900px; }
+    .doc-quick-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .doc-quick-links a {
+      padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .3px; text-decoration: none;
+      border: 1px solid var(--bb-border); background: var(--bb-card);
+      color: var(--bb-foreground); transition: border-color .15s, color .15s;
+    }
+    .doc-quick-links a:hover { border-color: hsl(var(--bb-primary)); color: hsl(var(--bb-primary)); }
+    .doc-section {
+      border-top: 1px solid var(--bb-border); padding-top: 18px; margin-top: 18px;
+    }
+    .doc-eyebrow {
+      font-size: 9px; font-weight: 900; letter-spacing: .18em;
+      text-transform: uppercase; color: hsl(var(--bb-primary));
+    }
+    .doc-section h2 { font-size: 16px; font-weight: 900; color: var(--bb-foreground); margin: 3px 0 4px; }
+    .doc-section > p, .doc-section > .doc-section-body {
+      font-size: 12px; line-height: 1.6; color: var(--bb-muted-foreground); max-width: 680px;
+    }
+    .doc-grid-4 { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-top: 10px; }
+    @media (min-width: 700px) { .doc-grid-4 { grid-template-columns: repeat(4,1fr); } }
+    .doc-grid-2 { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
+    @media (min-width: 560px) { .doc-grid-2 { grid-template-columns: repeat(2,1fr); } }
+    .doc-grid-5 { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-top: 10px; }
+    @media (min-width: 700px) { .doc-grid-5 { grid-template-columns: repeat(5,1fr); } }
+    .doc-card {
+      background: var(--bb-card); border: 1px solid var(--bb-border);
+      border-radius: 10px; padding: 12px;
+    }
+    .doc-card-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 8px;
+      background: hsl(var(--bb-primary) / .12); font-size: 14px;
+      color: hsl(var(--bb-primary)); margin-bottom: 7px;
+    }
+    .doc-card h3 { font-size: 12px; font-weight: 900; color: var(--bb-foreground); margin: 0 0 5px; }
+    .doc-card p { font-size: 11px; line-height: 1.5; color: var(--bb-muted-foreground); margin: 0; }
+    .doc-step {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: var(--bb-card); border: 1px solid var(--bb-border);
+      border-radius: 8px; padding: 10px;
+    }
+    .doc-step-num {
+      flex-shrink: 0; width: 24px; height: 24px; border-radius: 6px;
+      background: hsl(var(--bb-primary)); color: #fff;
+      font-size: 11px; font-weight: 900; display: grid; place-items: center;
+    }
+    .doc-step p { font-size: 11px; font-weight: 700; line-height: 1.5; color: var(--bb-foreground); margin: 0; }
+    .doc-step-label {
+      font-size: 9px; font-weight: 900; letter-spacing: .08em;
+      text-transform: uppercase; color: hsl(var(--bb-primary)); margin-bottom: 3px;
+    }
+    .doc-table-wrap { margin-top: 10px; overflow-x: auto; border-radius: 8px; border: 1px solid var(--bb-border); }
+    .doc-table { min-width: 560px; background: var(--bb-card); }
+    .doc-table-head {
+      display: grid; background: var(--bb-muted);
+      font-size: 9px; font-weight: 900; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--bb-muted-foreground);
+    }
+    .doc-table-head div, .doc-table-row div { padding: 7px 10px; }
+    .doc-table-row { display: grid; border-top: 1px solid var(--bb-border); font-size: 11px; line-height: 1.5; }
+    .doc-table-row .doc-cell-key {
+      background: var(--bb-input); font-weight: 900; color: var(--bb-foreground);
+    }
+    .doc-table-row .doc-cell-accent { color: hsl(var(--bb-primary)); font-weight: 700; }
+    .doc-table-row .doc-cell-muted { color: var(--bb-muted-foreground); font-weight: 600; }
+    .doc-cols-sources { grid-template-columns: 110px 1.2fr 1.2fr 1fr; }
+    .doc-cols-ens     { grid-template-columns: 200px 100px 1fr; }
+    .doc-cols-bnb     { grid-template-columns: 260px 1fr; }
+    .doc-cols-matrix  { grid-template-columns: 120px 1fr 1fr; }
+    .doc-note {
+      margin-top: 10px; padding: 10px 12px; border-radius: 8px;
+      border: 1px solid hsl(var(--bb-primary) / .25);
+      background: hsl(var(--bb-primary) / .08);
+    }
+    .doc-note-label { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; color: hsl(var(--bb-primary)); margin-bottom: 4px; }
+    .doc-note p { font-size: 11px; font-weight: 600; line-height: 1.5; color: var(--bb-muted-foreground); margin: 0; }
+    .doc-note-alt { background: var(--bb-card); border-color: var(--bb-border); }
+    .doc-note-alt .doc-note-label { color: var(--bb-foreground); }
+    .doc-mode-card { background: var(--bb-card); border: 1px solid var(--bb-border); border-radius: 10px; padding: 12px; }
+    .doc-mode-card h3 { font-size: 13px; font-weight: 900; color: var(--bb-foreground); margin: 6px 0 4px; }
+    .doc-mode-card > p { font-size: 11px; line-height: 1.5; color: var(--bb-muted-foreground); margin: 0 0 8px; }
+    .doc-mode-badge { display:inline-block; font-size:8px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; padding:2px 8px; border-radius:20px; background:hsl(var(--bb-primary)/.12); color:hsl(var(--bb-primary)); border:1px solid hsl(var(--bb-primary)/.25); }
+    .doc-mode-points { display:flex; flex-direction:column; gap:5px; }
+    .doc-mode-point { font-size:10px; line-height:1.5; color:var(--bb-muted-foreground); display:flex; gap:6px; }
+    .doc-mode-point::before { content:'→'; color:hsl(var(--bb-primary)); font-weight:900; flex-shrink:0; }
+    .doc-notif-list { display:flex; flex-direction:column; gap:4px; margin-top:10px; }
+    .doc-notif-item { font-size:11px; line-height:1.5; color:var(--bb-muted-foreground); padding:8px 10px; background:var(--bb-card); border:1px solid var(--bb-border); border-radius:7px; display:flex; gap:8px; align-items:center; }
+    .doc-notif-item::before { content:'🔔'; font-size:12px; flex-shrink:0; }
+    .doc-badges { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .doc-badge-chip { display:flex; align-items:center; gap:6px; padding:6px 10px; background:var(--bb-card); border:1px solid var(--bb-border); border-radius:8px; font-size:11px; font-weight:800; color:var(--bb-foreground); }
+    .doc-badge-chip img { width:18px; height:18px; border-radius:3px; object-fit:cover; }
+    .doc-ownership-badge { font-size:9px; font-weight:900; text-transform:uppercase; padding:2px 7px; border-radius:20px; background:var(--bb-muted); color:var(--bb-muted-foreground); }
+
     /* Marketplace view */
     .marketplace-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -833,6 +1055,25 @@
     .full-lb-name { font-size: 13px; font-weight: 700; color: var(--bb-foreground); }
     .full-lb-meta { font-size: 10px; color: var(--bb-muted-foreground); }
     .full-lb-bc { font-size: 12px; font-weight: 800; color: var(--extra-gold); text-align: right; }
+
+    /* ── Skeleton loading ── */
+    @keyframes lb-shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
+    }
+    .skel {
+      border-radius: 4px; background: var(--bb-muted);
+      background-image: linear-gradient(90deg,
+        var(--bb-muted) 0%, var(--bb-border) 40%, var(--bb-muted) 80%);
+      background-size: 800px 100%;
+      animation: lb-shimmer 1.4s infinite linear;
+    }
+    .full-lb-row.skel-row { pointer-events: none; }
+    .full-lb-row.skel-row .skel-rank  { width: 16px; height: 14px; }
+    .full-lb-row.skel-row .skel-avatar{ width: 36px; height: 36px; border-radius: 10px; flex-shrink:0; }
+    .full-lb-row.skel-row .skel-name  { width: 100px; height: 12px; margin-bottom: 5px; }
+    .full-lb-row.skel-row .skel-meta  { width: 60px;  height: 9px; }
+    .full-lb-row.skel-row .skel-bc    { width: 36px;  height: 12px; margin-left: auto; }
 
     /* ── CHALLENGES VIEW ── */
     .challenge-tabs {
@@ -1064,14 +1305,29 @@
       .main { margin: 0; }
       .fighter-cards-row {
         display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
+        -webkit-overflow-scrolling: touch; padding-left: 12px;
       }
       .fighter-cards-row::-webkit-scrollbar { display: none; }
       .fighter-cards-row .fighter-card {
-        flex: 0 0 78%; scroll-snap-align: start;
+        flex: 0 0 43%; min-width: 43%; scroll-snap-align: start;
+      }
+      .fighter-cards-row .fighter-card + .fighter-card {
+        margin-left: 8px;
       }
       .nav-stats, .nav-tabs { display: none; }
       .mobile-menu-btn { display: flex; }
+      .mobile-footer-nav { display: flex; }
+      .pf-waiting-logo {
+        width: 70px;
+        height: 70px;
+        margin-bottom: 16px;
+      }
+      .pf-loading-bar {
+        width: 180px;
+        height: 5px;
+      }
+      body { padding-bottom: 72px; }
+      .main { margin-bottom: 0; }
     }
 
     
@@ -1084,127 +1340,129 @@
 
     /* Left Panel: Config */
     .cp-panel {
-      flex: 1; min-width: 320px; background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(139,92,246,0.3); border-radius: 16px;
-      padding: 24px; box-shadow: inset 0 0 40px rgba(139,92,246,0.05);
+      flex: 1; min-width: 280px; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(139,92,246,0.3); border-radius: 14px;
+      padding: 14px; box-shadow: inset 0 0 40px rgba(139,92,246,0.05);
+      display: flex; flex-direction: column; gap: 8px;
     }
     .cp-panel-heading {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 20px; font-weight: 800; color: #fff;
-      font-size: 14px; letter-spacing: 1px;
+      margin-bottom: 4px; font-weight: 800; color: #fff;
+      font-size: 13px; letter-spacing: 1px;
     }
     .cp-panel-heading small {
       font-size: 10px; font-weight: 700; color: #9945FF;
-      background: rgba(153,69,255,0.15); padding: 4px 10px;
+      background: rgba(153,69,255,0.15); padding: 3px 8px;
       border-radius: 12px; text-transform: uppercase;
     }
 
     .cp-avatar-row {
-      display: flex; align-items: center; gap: 16px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px; margin-bottom: 4px;
     }
     .cp-avatar-wrap {
-      width: 80px; height: 80px; border-radius: 50%;
+      width: 60px; height: 60px; border-radius: 50%;
       border: 2px dashed rgba(139,92,246,0.5); cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: 32px; background: rgba(0,0,0,0.3); position: relative;
+      font-size: 26px; background: rgba(0,0,0,0.3); position: relative;
       overflow: hidden; transition: all 0.2s; flex-shrink: 0;
     }
     .cp-avatar-wrap:hover { border-color: #14F195; background: rgba(20,241,149,0.1); }
     .cp-avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
-    .cp-avatar-hint { font-size: 11px; color: var(--bb-muted-foreground); line-height: 1.5; }
-    .cp-avatar-hint strong { color: #fff; display: block; font-size: 13px; margin-bottom: 4px; }
+    .cp-avatar-hint { font-size: 10px; color: var(--bb-muted-foreground); line-height: 1.4; }
+    .cp-avatar-hint strong { color: #fff; display: block; font-size: 12px; margin-bottom: 3px; }
     #cp-file-input { display: none; }
 
-    .cp-label { display: block; margin-bottom: 16px; }
+    .cp-inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .cp-label { display: block; margin-bottom: 0; }
     .cp-label span {
-      display: block; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.6);
-      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+      display: block; font-size: 9px; font-weight: 700; color: var(--bb-muted-foreground);
+      margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px;
     }
     .cp-input {
-      width: 100%; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 13px;
-      transition: border-color 0.2s; outline: none;
+      width: 100%; background: var(--bb-input); border: 1px solid var(--bb-border);
+      border-radius: 6px; padding: 4px 7px; color: var(--bb-foreground); font-size: 11px;
+      transition: border-color 0.2s; outline: none; box-sizing: border-box;
     }
-    .cp-input:focus { border-color: #9945FF; }
-    .cp-textarea { resize: vertical; min-height: 60px; font-family: inherit; }
-    .cp-select { cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23fff" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 20px; }
+    .cp-input:focus { border-color: hsl(var(--bb-primary)); }
+    .cp-textarea { resize: vertical; min-height: 36px; font-family: inherit; }
+    .cp-select { cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill="%23888" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 6px center; background-size: 16px; padding-right: 22px; }
 
     .cp-section-lbl {
-      font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.6);
-      margin: 24px 0 12px; text-transform: uppercase; letter-spacing: 0.5px;
-      border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;
+      font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5);
+      margin: 4px 0 4px; text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px;
     }
-    .cp-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-    .cp-stat-cell { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); }
-    .cp-stat-cell span { display: block; font-size: 10px; font-weight: 800; color: #F3BA2F; margin-bottom: 4px; }
+    .cp-stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 0; }
+    .cp-stat-cell { background: rgba(0,0,0,0.3); border-radius: 7px; padding: 7px 8px; border: 1px solid rgba(255,255,255,0.05); }
+    .cp-stat-cell span { display: block; font-size: 9px; font-weight: 800; color: #F3BA2F; margin-bottom: 3px; }
     .cp-stat-num {
       width: 100%; background: transparent; border: none; color: #fff;
-      font-size: 16px; font-weight: 900; outline: none; margin-bottom: 6px;
+      font-size: 14px; font-weight: 900; outline: none; margin-bottom: 4px;
     }
-    .cp-stat-bar-wrap { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+    .cp-stat-bar-wrap { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
     .cp-stat-bar { height: 100%; background: linear-gradient(90deg, #F3BA2F, #EF4444); border-radius: 2px; transition: width 0.3s; }
 
-    .cp-preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .cp-preset-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 0; align-items: center; }
     .cp-preset-btn {
       background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 20px; padding: 6px 12px; font-size: 11px; color: #fff;
+      border-radius: 20px; padding: 4px 10px; font-size: 11px; color: #fff;
       cursor: pointer; transition: all 0.2s; font-weight: 600;
     }
     .cp-preset-btn:hover { background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.5); }
 
     .cp-deploy-btn {
-      width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 900;
+      width: 100%; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 900;
       color: #000; background: linear-gradient(90deg, #14F195, #22C55E); border: none;
-      cursor: pointer; box-shadow: 0 0 20px rgba(20,241,149,0.3); transition: all 0.2s;
+      cursor: pointer; box-shadow: 0 0 16px rgba(20,241,149,0.3); transition: all 0.2s;
     }
-    .cp-deploy-btn:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(20,241,149,0.5); }
+    .cp-deploy-btn:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(20,241,149,0.5); }
 
     /* Right Panel: Live Preview */
-    .cp-preview { flex: 1; max-width: 400px; display: flex; flex-direction: column; }
+    .cp-preview { flex: 0 0 200px; max-width: 200px; display: flex; flex-direction: column; }
     .cp-preview-card {
-      background: linear-gradient(180deg, #1a0a2e 0%, #0d1b2a 100%);
-      border: 1px solid rgba(139,92,246,0.4); border-radius: 20px;
-      padding: 30px; position: relative; overflow: hidden;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1);
+      background: var(--bb-card);
+      border: 1px solid rgba(139,92,246,0.4); border-radius: 14px;
+      padding: 14px 12px; position: relative; overflow: hidden;
+      box-shadow: none;
       display: flex; flex-direction: column; align-items: center; text-align: center;
     }
     .cp-preview-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 120px;
-      background: linear-gradient(180deg, rgba(139,92,246,0.2) 0%, transparent 100%);
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 60px;
+      background: linear-gradient(180deg, rgba(139,92,246,0.15) 0%, transparent 100%);
     }
     .cp-preview-avatar {
-      width: 140px; height: 140px; border-radius: 50%; border: 4px solid #1a0a2e;
-      background: #000; z-index: 1; margin-bottom: 16px;
-      box-shadow: 0 0 0 2px rgba(139,92,246,0.5), 0 10px 30px rgba(0,0,0,0.5);
-      display: flex; align-items: center; justify-content: center; font-size: 60px;
+      width: 64px; height: 64px; border-radius: 50%; border: 2px solid var(--bb-border);
+      background: var(--bb-input); z-index: 1; margin-bottom: 8px;
+      box-shadow: 0 0 0 1px rgba(139,92,246,0.5), 0 4px 12px rgba(0,0,0,0.2);
+      display: flex; align-items: center; justify-content: center; font-size: 28px;
       overflow: hidden;
     }
     .cp-preview-avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .cp-preview-name { font-size: 24px; font-weight: 900; color: #fff; z-index: 1; letter-spacing: 1px; }
-    .cp-preview-collection { font-size: 13px; color: #9945FF; font-weight: 700; z-index: 1; margin-top: 4px; }
+    .cp-preview-name { font-size: 13px; font-weight: 900; color: var(--bb-foreground); z-index: 1; letter-spacing: .5px; }
+    .cp-preview-collection { font-size: 10px; color: hsl(var(--bb-primary)); font-weight: 700; z-index: 1; margin-top: 2px; }
     .cp-preview-class {
-      margin-top: 12px; background: rgba(20,241,149,0.1); border: 1px solid rgba(20,241,149,0.3);
-      color: #14F195; font-size: 11px; font-weight: 800; padding: 4px 12px;
+      margin-top: 6px; background: rgba(20,241,149,0.1); border: 1px solid rgba(20,241,149,0.3);
+      color: #14F195; font-size: 9px; font-weight: 800; padding: 2px 8px;
       border-radius: 20px; text-transform: uppercase; z-index: 1; letter-spacing: 1px;
     }
     .cp-preview-traits {
-      margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.5);
-      line-height: 1.6; z-index: 1;
+      margin-top: 6px; font-size: 10px; color: var(--bb-muted-foreground);
+      line-height: 1.4; z-index: 1;
     }
     .cp-preview-stats {
-      margin-top: 30px; width: 100%; z-index: 1; background: rgba(0,0,0,0.4);
-      border-radius: 12px; padding: 16px; border: 1px solid rgba(255,255,255,0.05);
+      margin-top: 10px; width: 100%; z-index: 1; background: var(--bb-input);
+      border-radius: 8px; padding: 8px; border: 1px solid var(--bb-border);
     }
-    .cp-preview-stat-row { display: flex; align-items: center; margin-bottom: 10px; }
+    .cp-preview-stat-row { display: flex; align-items: center; margin-bottom: 5px; }
     .cp-preview-stat-row:last-child { margin-bottom: 0; }
-    .cp-preview-stat-lbl { width: 36px; font-size: 11px; font-weight: 800; color: #F3BA2F; text-align: left; }
-    .cp-preview-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin: 0 12px; overflow: hidden; }
-    .cp-preview-bar-fill { height: 100%; background: linear-gradient(90deg, #9945FF, #14F195); border-radius: 3px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .cp-preview-stat-val { width: 24px; font-size: 12px; font-weight: 900; color: #fff; text-align: right; }
+    .cp-preview-stat-lbl { width: 28px; font-size: 9px; font-weight: 800; color: #F3BA2F; text-align: left; }
+    .cp-preview-bar-wrap { flex: 1; height: 4px; background: var(--bb-muted); border-radius: 3px; margin: 0 6px; overflow: hidden; }
+    .cp-preview-bar-fill { height: 100%; background: linear-gradient(90deg, hsl(var(--bb-primary)), #14F195); border-radius: 3px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .cp-preview-stat-val { width: 22px; font-size: 9px; font-weight: 900; color: var(--bb-foreground); text-align: right; }
 
     /* ═══ PUMPFIGHTERS ARENA ═══════════════════════════════════════════════ */
     .pf-arena {
-      position: relative; border-radius: 16px; overflow: hidden;
+      position: relative; overflow: hidden;
       background: url('/Arena/pumparena.png') no-repeat center center / cover;
       border: 1px solid rgba(139,92,246,0.3);
       aspect-ratio: 2056 / 765; width: 100%; display: flex; flex-direction: column;
@@ -1263,8 +1521,8 @@
       border-radius: 8px; padding: 6px 12px;
     }
     .pf-round-label { color: #F3BA2F; font-weight: 900; font-size: 11px; letter-spacing: 0.5px; }
-    .pf-round-turn { color: rgba(255,255,255,0.5); font-size: 9px; margin-top: 0px; }
-    .pf-round-energy { color: #14F195; font-size: 10px; font-weight: 700; margin-top: 2px; }
+    .pf-round-energy-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+    .pf-round-energy { color: #14F195; font-size: 10px; font-weight: 900; }
 
     /* Arena center: fighters + VS */
     .pf-battle-zone {
@@ -1276,10 +1534,11 @@
       position: relative;
     }
     .pf-combatant::after {
-      content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);\
+      content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
       width: 110px; height: 12px; border-radius: 50%;
       background: rgba(0,0,0,0.85); filter: blur(4px);
       z-index: -1; pointer-events: none;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
     .pf-hp-bar-wrap {
       display: flex; align-items: center; gap: 6px; font-size: 11px; color: #fff; font-weight: 700;
@@ -1289,8 +1548,10 @@
       border: 1px solid rgba(255,255,255,0.15);
     }
     .pf-hp-bar-fill {
-      height: 100%; border-radius: 6px; transition: width 0.6s ease;
+      height: 100%; border-radius: 6px; transition: width 0.4s ease-out, transform 0.2s ease, box-shadow 0.2s ease;
+      transform-origin: left center;
     }
+    .pf-hp-bar-fill.pulse { box-shadow: 0 0 12px rgba(255,255,255,0.35); transform: scaleX(1.02); }
     .pf-hp-bar-fill.green { background: linear-gradient(90deg, #22C55E, #14F195); }
     .pf-hp-bar-fill.red { background: linear-gradient(90deg, #EF4444, #F97316); }
 
@@ -1393,11 +1654,28 @@
     
     .pf-combatant {
       display: flex; flex-direction: column; align-items: center; gap: 12px;
-      transition: transform 0.15s ease-out;
+      position: relative;
+      animation: floatIdle 4s ease-in-out infinite;
     }
-    .pf-combatant.attack-left { animation: attackLeft 0.4s ease-out; }
-    .pf-combatant.attack-right { animation: attackRight 0.4s ease-out; }
-    .pf-combatant.hit { animation: hitShake 0.3s ease-out; }
+    .pf-combatant::after {
+      content: '';
+      position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      width: 110px; height: 12px; border-radius: 999px;
+      background: rgba(0,0,0,0.25);
+      filter: blur(4px);
+      opacity: 0.85;
+      z-index: -1;
+      pointer-events: none;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .pf-combatant.attack-left { animation: attackLeft 0.4s ease-out, floatIdle 4s ease-in-out infinite; }
+    .pf-combatant.attack-right { animation: attackRight 0.4s ease-out, floatIdle 4s ease-in-out infinite; }
+    .pf-combatant.hit { animation: hitShake 0.3s ease-out, floatIdle 4s ease-in-out infinite; }
+
+    @keyframes floatIdle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
 
     @keyframes attackLeft {
       0% { transform: translateX(0); }
@@ -1478,12 +1756,15 @@
     }
     .pf-bottom-spell {
       display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: transform 0.2s;
+      position: relative;
+      padding-bottom: 8px;
     }
     .pf-bottom-spell:hover { transform: translateY(-3px); }
     .pf-bottom-spell .spell-circle {
-      width: 36px; height: 36px; border-radius: 8px; background: rgba(0,0,0,0.6);
+      width: 36px; height: 36px; border-radius: 8px; background: rgba(0,0,0,0.85);
       display: flex; align-items: center; justify-content: center; font-size: 18px;
       border: 2px solid transparent;
+      box-shadow: inset 0 0 6px rgba(0,0,0,0.9);
       position: relative;
     }
     .border-gold { border-color: #F59E0B; box-shadow: 0 0 10px rgba(245,158,11,0.4); }
@@ -1494,7 +1775,19 @@
       font-size: 9px; font-weight: 800; color: #fff; text-align: center; white-space: nowrap; letter-spacing: 0.5px;
     }
     .pf-bottom-spell .spell-energy {
-      font-size: 10px; font-weight: 800; color: #38BDF8; display: flex; align-items: center; gap: 2px;
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(18px);
+      font-size: 10px;
+      font-weight: 800;
+      color: #38BDF8;
+      background: transparent;
+      border-radius: 0;
+      padding: 0;
+      border: none;
+      box-shadow: none;
+      white-space: nowrap;
     }
 
     /* Spell cast animation */
@@ -1592,23 +1885,30 @@
     <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong>50 <span class="live-badge">LIVE</span></strong></div>
   </div>
   <div class="nav-tabs">
-    <button class="nav-tab" data-view="arena" onclick="setTab(this)">Arena</button>
-    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)">🚀 PumpFighters</button>
-    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)">🖼 PFP Mode</button>
-    <button class="nav-tab" data-view="agents" onclick="setTab(this)">Agents</button>
-    <button class="nav-tab create" data-view="create" onclick="setTab(this)">⚔️ Create</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)"><img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)"><img src="/Arena/loading%20screen/pfp-arena-loading.jpg" class="nav-tab-icon" alt=""> PFP Mode</button>
+    <button class="nav-tab" data-view="agents" onclick="setTab(this)">Fighters</button>
+    <button class="nav-tab create" data-view="create" onclick="setTab(this)">Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this)">Marketplace</button>
     <button class="nav-tab" data-view="leaderboard" onclick="setTab(this)">Leaderboard</button>
+    <button class="nav-tab" data-view="doc" onclick="setTab(this)">📖 Doc</button>
   </div>
   <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
   <div class="mobile-nav-dropdown" id="mobile-nav-dropdown">
-    <button class="nav-tab" data-view="arena" onclick="setTab(this); closeMobileMenu();">Arena</button>
-    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">🚀 PumpFighters</button>
-    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();">🖼 PFP Mode</button>
-    <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">Agents</button>
-    <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">⚔️ Create</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();"><img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();"><img src="/Arena/loading%20screen/pfp-arena-loading.jpg" class="nav-tab-icon" alt=""> PFP Mode</button>
+    <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">Fighters</button>
+    <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this); closeMobileMenu();">Marketplace</button>
     <button class="nav-tab" data-view="leaderboard" onclick="setTab(this); closeMobileMenu();">Leaderboard</button>
+    <button class="nav-tab" data-view="doc" onclick="setTab(this); closeMobileMenu();">📖 Doc</button>
+  </div>
+  <div class="mobile-footer-nav" id="mobile-footer-nav">
+    <button class="footer-nav-btn nav-tab" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">PumpFighters</button>
+    <button class="footer-nav-btn nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();">PFP Mode</button>
+    <button class="footer-nav-btn nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">Fighters</button>
+    <button class="footer-nav-btn nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">Create</button>
+    <button class="footer-nav-btn nav-tab" data-view="leaderboard" onclick="setTab(this); closeMobileMenu();">Leaderboard</button>
   </div>
   <div class="nav-right">
     <div style="position:relative;">
@@ -1656,12 +1956,16 @@
     </div>
 
     <div>
-      <div class="sidebar-section-title">💰 Total Earned</div>
+      <div class="sidebar-section-title">Fighter Of The Week</div>
       <div class="predictions-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 10px; text-align: center; background: rgba(20,241,149,0.05); border-color: rgba(20,241,149,0.2);">
-        <div style="font-size: 11px; font-weight: 800; color: var(--bb-muted-foreground); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px;">Total BantCredit</div>
-        <div style="font-size: 36px; font-weight: 900; color: #14F195; text-shadow: 0 0 20px rgba(20,241,149,0.5); line-height: 1;">
-          0 <span style="font-size: 16px; color: #fff; vertical-align: super;">BC</span>
+        <div style="display:flex; align-items:center; gap:10px; justify-content:center; width:100%;">
+          <div style="width:34px; height:34px; border-radius:999px; background:rgba(255,215,0,0.14); display:flex; align-items:center; justify-content:center; font-size:18px;">🪙</div>
+          <div style="display:flex; flex-direction:column; gap:2px; text-align:left;">
+            <span style="font-size:13px; font-weight:700; color: var(--text-primary);">💰 Total Earned</span>
+            <span style="font-size:11px; color: var(--bb-muted-foreground);">Total BantCredit</span>
+          </div>
         </div>
+        <div style="font-size:16px; font-weight:900; color:#14F195; text-shadow: 0 0 20px rgba(20,241,149,0.5); line-height: 1;">0 BC</div>
       </div>
     </div>
   </aside>
@@ -1753,7 +2057,7 @@
 
       <!-- Waiting state (shown when no live match) -->
       <div class="pf-waiting" id="pf-waiting">
-        <img src="/Arena/assets/bota-logo.jpg" class="pf-waiting-logo" alt="Loading...">
+        <img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="pf-waiting-logo" alt="Loading...">
         <div class="pf-loading-bar"><div class="pf-loading-bar-fill"></div></div>
       </div>
 
@@ -1776,8 +2080,10 @@
           </div>
           <div class="pf-round-badge">
             <div class="pf-round-label" id="pf-round-label">ROUND 1</div>
-            <div class="pf-round-turn" id="pf-round-turn">TURN 1</div>
-            <div class="pf-round-energy" id="pf-round-energy">576 BC Pool</div>
+            <div class="pf-round-energy-row">
+              <div class="pf-round-energy" id="pf-round-energy">🪙 576 BC Pool</div>
+              <div class="pf-round-timer timer">00:45</div>
+            </div>
           </div>
           <div class="pf-fighter-info right" id="pf-fi-right">
             <div class="pf-fi-avatar right" id="pf-fia-right"><img src="" alt=""/></div>
@@ -1835,46 +2141,46 @@
           <div class="pf-spells-group">
             <div class="pf-bottom-spell">
               <div class="spell-circle border-gold">⚔️</div>
-              <div class="spell-title">HORN CHARGE</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">HornCharge</div>
+              <div class="spell-energy">1</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-purple">🐾</div>
-              <div class="spell-title">WING DASH</div>
-              <div class="spell-energy">⚡ 2</div>
+              <div class="spell-title">WingDash</div>
+              <div class="spell-energy">2</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-orange">🔥</div>
-              <div class="spell-title">MIGHTY ROAR</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">MightyRoar</div>
+              <div class="spell-energy">1</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-green">💥</div>
-              <div class="spell-title">MEME BLAST</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">MemeBlast</div>
+              <div class="spell-energy">1</div>
             </div>
           </div>
 
           <div class="pf-spells-group">
             <div class="pf-bottom-spell">
               <div class="spell-circle border-gold">⚔️</div>
-              <div class="spell-title">HORN CHARGE</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">HornCharge</div>
+              <div class="spell-energy">1</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-purple">🐾</div>
-              <div class="spell-title">WING DASH</div>
-              <div class="spell-energy">⚡ 2</div>
+              <div class="spell-title">WingDash</div>
+              <div class="spell-energy">2</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-orange">🔥</div>
-              <div class="spell-title">MIGHTY ROAR</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">MightyRoar</div>
+              <div class="spell-energy">1</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-green">💥</div>
-              <div class="spell-title">MEME BLAST</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">MemeBlast</div>
+              <div class="spell-energy">1</div>
             </div>
           </div>
         </div>
@@ -1895,7 +2201,7 @@
 
       <!-- Waiting state (shown when no live match) -->
       <div class="pf-waiting" id="av-waiting" style="display:none;">
-        <img src="/Arena/assets/bota-logo.jpg" class="pf-waiting-logo" alt="Loading...">
+        <img src="/Arena/loading%20screen/pfp-arena-loading.jpg" class="pf-waiting-logo" alt="Loading...">
         <div class="pf-loading-bar"><div class="pf-loading-bar-fill"></div></div>
       </div>
 
@@ -1918,8 +2224,10 @@
           </div>
           <div class="pf-round-badge">
             <div class="pf-round-label" id="av-round-label">ROUND 1</div>
-            <div class="pf-round-turn" id="av-round-turn">TURN 1</div>
-            <div class="pf-round-energy" id="av-round-energy">576 BC Pool</div>
+            <div class="pf-round-energy-row">
+              <div class="pf-round-energy" id="av-round-energy">🪙 576 BC Pool</div>
+              <div class="pf-round-timer timer">00:45</div>
+            </div>
           </div>
           <div class="pf-fighter-info right" id="av-fi-right">
             <div class="pf-fi-avatar right" id="av-fia-right"><img src="" alt=""/></div>
@@ -1977,46 +2285,46 @@
           <div class="pf-spells-group">
             <div class="pf-bottom-spell">
               <div class="spell-circle border-gold">⚔️</div>
-              <div class="spell-title">HORN CHARGE</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">HornCharge</div>
+              <div class="spell-energy">1</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-purple">🐾</div>
-              <div class="spell-title">WING DASH</div>
-              <div class="spell-energy">⚡ 2</div>
+              <div class="spell-title">WingDash</div>
+              <div class="spell-energy">2</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-orange">🔥</div>
-              <div class="spell-title">MIGHTY ROAR</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">MightyRoar</div>
+              <div class="spell-energy">1</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-green">💥</div>
-              <div class="spell-title">MEME BLAST</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">MemeBlast</div>
+              <div class="spell-energy">1</div>
             </div>
           </div>
 
           <div class="pf-spells-group">
             <div class="pf-bottom-spell">
               <div class="spell-circle border-gold">⚔️</div>
-              <div class="spell-title">HORN CHARGE</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">HornCharge</div>
+              <div class="spell-energy">1</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-purple">🐾</div>
-              <div class="spell-title">WING DASH</div>
-              <div class="spell-energy">⚡ 2</div>
+              <div class="spell-title">WingDash</div>
+              <div class="spell-energy">2</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-orange">🔥</div>
-              <div class="spell-title">MIGHTY ROAR</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">MightyRoar</div>
+              <div class="spell-energy">1</div>
             </div>
             <div class="pf-bottom-spell">
               <div class="spell-circle border-green">💥</div>
-              <div class="spell-title">MEME BLAST</div>
-              <div class="spell-energy">⚡ 1</div>
+              <div class="spell-title">MemeBlast</div>
+              <div class="spell-energy">1</div>
             </div>
           </div>
         </div>
@@ -2033,27 +2341,32 @@
 
 
 
-  <!-- AGENTS VIEW -->
+  <!-- FIGHTERS VIEW (with sub-tabs) -->
   <div id="view-agents" class="tab-view">
     <div class="view-inner">
       <div class="view-header">
-        <div class="view-title">My Agents</div>
-        <div class="view-subtitle">Manage, train and deploy your AI fighters</div>
+        <div class="view-title">Fighters</div>
+        <div class="view-subtitle">Discover and challenge fighters</div>
+      </div>
+      <div class="challenge-tabs" style="margin-bottom: 16px;">
+        <button class="challenge-tab active" data-fighters-tab="pumpfighters" onclick="setFightersTab(this)">🚀 Pumpfighters</button>
+        <button class="challenge-tab" data-fighters-tab="pfp" onclick="setFightersTab(this)">🖼 PFP</button>
+        <button class="challenge-tab" data-fighters-tab="all" onclick="setFightersTab(this)">⚔️ All Fighters</button>
+        <button class="challenge-tab" data-fighters-tab="your" onclick="setFightersTab(this)">👤 Your Agents</button>
       </div>
       <div class="agents-grid" id="agents-grid">
-        <div class="agent-empty">Loading your agents…</div>
+        <!-- Skeleton loading will be inserted here -->
       </div>
     </div>
+  </div>
+
+  <!-- YOUR AGENTS VIEW (kept but hidden) -->
+  <div id="view-your-agents" class="tab-view" style="display: none;">
   </div>
 
   <!-- CREATE VIEW -->
   <div id="view-create" class="tab-view">
     <div class="view-inner">
-      <div class="view-header">
-        <div class="view-title">Fighter Import Panel</div>
-        <div class="view-subtitle">Configure your NFT fighter and deploy it to the arena</div>
-      </div>
-
       <div class="create-builder">
 
         <!-- ── LEFT: Configuration Panel ── -->
@@ -2084,44 +2397,40 @@
             <input type="file" id="cp-file-input" accept="image/*" onchange="cpHandleFile(event)" />
           </div>
 
-          <!-- NFT Name -->
-          <label class="cp-label">
-            <span>NFT Name</span>
-            <input class="cp-input" id="cp-name" type="text" placeholder="e.g. SHADOW FANG"
-              oninput="cpSync()" />
-          </label>
+          <!-- Name + Collection -->
+          <div class="cp-inline-row">
+            <label class="cp-label">
+              <span>NFT Name</span>
+              <input class="cp-input" id="cp-name" type="text" placeholder="e.g. SHADOW FANG" oninput="cpSync()" />
+            </label>
+            <label class="cp-label">
+              <span>Collection</span>
+              <input class="cp-input" id="cp-collection" type="text" placeholder="e.g. Bored Ape" oninput="cpSync()" />
+            </label>
+          </div>
 
-          <!-- Collection -->
-          <label class="cp-label">
-            <span>Collection</span>
-            <input class="cp-input" id="cp-collection" type="text" placeholder="e.g. Bored Ape Yacht Club"
-              oninput="cpSync()" />
-          </label>
-
-          <!-- Image URL -->
-          <label class="cp-label">
-            <span>Image URL</span>
-            <input class="cp-input" id="cp-image-url" type="url" placeholder="https://…"
-              oninput="cpSyncImageUrl()" />
-          </label>
-
-          <!-- Fighter Class -->
-          <label class="cp-label">
-            <span>Fighter Class</span>
-            <select class="cp-input cp-select" id="cp-class" onchange="cpSync()">
-              <option value="striker">Striker</option>
-              <option value="tank">Tank</option>
-              <option value="frost">Frost</option>
-              <option value="trickster">Trickster</option>
-              <option value="blaster">Blaster</option>
-            </select>
-          </label>
+          <!-- Image URL + Class -->
+          <div class="cp-inline-row">
+            <label class="cp-label">
+              <span>Image URL</span>
+              <input class="cp-input" id="cp-image-url" type="url" placeholder="https://…" oninput="cpSyncImageUrl()" />
+            </label>
+            <label class="cp-label">
+              <span>Class</span>
+              <select class="cp-input cp-select" id="cp-class" onchange="cpSync()">
+                <option value="striker">Striker</option>
+                <option value="tank">Tank</option>
+                <option value="frost">Frost</option>
+                <option value="trickster">Trickster</option>
+                <option value="blaster">Blaster</option>
+              </select>
+            </label>
+          </div>
 
           <!-- Traits -->
           <label class="cp-label">
             <span>Traits <small style="text-transform:none;font-weight:400">(comma-separated)</small></span>
-            <textarea class="cp-input cp-textarea" id="cp-traits" placeholder="e.g. fire, legendary, swift"
-              oninput="cpSync()"></textarea>
+            <input class="cp-input" id="cp-traits" type="text" placeholder="e.g. fire, legendary, swift" oninput="cpSync()" />
           </label>
 
           <!-- Stats -->
@@ -2149,31 +2458,22 @@
             </div>
           </div>
 
-          <!-- AI Brain Config -->
+          <!-- AI Brain + AgentKit row -->
           <div class="cp-section-lbl">AI Brain (Eliza OS)</div>
-          <label class="cp-label">
-            <span>Archetype Presets</span>
-            <div class="cp-preset-row" style="margin-bottom: 8px;">
-              <button class="cp-preset-btn" onclick="cpLoadEliza('degen')">🤬 Aggressive Degen</button>
-              <button class="cp-preset-btn" onclick="cpLoadEliza('sniper')">🎯 Calculated Sniper</button>
-              <button class="cp-preset-btn" onclick="cpLoadEliza('meme')">🤣 Meme Lord</button>
-            </div>
-          </label>
-          <label class="cp-label">
-            <span>Persona & Lore</span>
-            <textarea class="cp-input cp-textarea" id="cp-eliza-persona" placeholder="Describe how your agent talks and acts in the arena..."
-              oninput="cpSync()" style="min-height: 60px;"></textarea>
-          </label>
-          <label class="cp-label" style="flex-direction: row; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border: 1px solid rgba(139,92,246,0.3);">
-            <div style="display:flex; flex-direction:column; gap:4px;">
-              <span style="margin:0; font-size:12px; color:#fff;">Base AgentKit Wallet</span>
-              <span style="font-size:10px; color:rgba(255,255,255,0.5);">Allow agent to autonomously buy runes & trade</span>
-            </div>
-            <input type="checkbox" id="cp-agentkit-toggle" checked style="accent-color: #8B5CF6; width:16px; height:16px; cursor:pointer;" onchange="cpSync()">
-          </label>
+          <div class="cp-preset-row" style="margin-bottom:6px;">
+            <button class="cp-preset-btn" onclick="cpLoadEliza('degen')">🤬 Degen</button>
+            <button class="cp-preset-btn" onclick="cpLoadEliza('sniper')">🎯 Sniper</button>
+            <button class="cp-preset-btn" onclick="cpLoadEliza('meme')">🤣 Meme</button>
+            <label style="display:flex;align-items:center;gap:5px;margin-left:auto;cursor:pointer;font-size:11px;color:rgba(255,255,255,0.7);">
+              <input type="checkbox" id="cp-agentkit-toggle" checked style="accent-color:#8B5CF6;width:14px;height:14px;cursor:pointer;" onchange="cpSync()">
+              🔗 AgentKit
+            </label>
+          </div>
+          <textarea class="cp-input cp-textarea" id="cp-eliza-persona" placeholder="Persona & lore — how your agent talks and acts..."
+            oninput="cpSync()" style="min-height:42px;"></textarea>
 
-          <!-- Presets -->
-          <div class="cp-section-lbl">Quick Presets</div>
+          <!-- Quick Presets -->
+          <div class="cp-section-lbl" style="margin-top:10px;">Quick Presets</div>
           <div class="cp-preset-row">
             <button class="cp-preset-btn" onclick="cpLoadPreset('pepe')">🐸 Pepe</button>
             <button class="cp-preset-btn" onclick="cpLoadPreset('doge')">🐕 Doge</button>
@@ -2187,10 +2487,7 @@
 
         <!-- ── RIGHT: Live Preview ── -->
         <div class="cp-preview">
-          <div class="cp-panel-heading" style="margin-bottom:14px">
-            <span>LIVE PREVIEW</span>
-            <small>updates as you type</small>
-          </div>
+
           <div class="cp-preview-card">
             <div class="cp-preview-avatar" id="prev-avatar">
               <span id="prev-emoji">🤖</span>
@@ -2201,15 +2498,15 @@
             <div class="cp-preview-class" id="prev-class">STRIKER</div>
             <div class="cp-preview-traits" id="prev-traits">No traits yet</div>
             
-            <div style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; border: 1px dashed rgba(139,92,246,0.5); font-size: 11px; color: #aaa;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                <span style="color: #fff; font-weight: bold;">🧠 Eliza OS</span>
-                <span id="prev-eliza-status" style="color: #14F195;">Active</span>
+            <div style="margin-top:6px; padding:6px 8px; background:var(--bb-input); border-radius:6px; border:1px dashed rgba(139,92,246,0.4); font-size:9px; color:var(--bb-muted-foreground); width:100%;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:3px;">
+                <span style="color:var(--bb-foreground); font-weight:bold;">🧠 Eliza</span>
+                <span id="prev-eliza-status" style="color:#14F195;">Active</span>
               </div>
-              <div id="prev-eliza-persona" style="font-style: italic; margin-bottom: 8px; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">Custom persona pending...</div>
-              <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span style="color: #fff; font-weight: bold;">🔗 Base AgentKit</span>
-                <span id="prev-agentkit-status" style="color: #14F195;">Enabled</span>
+              <div id="prev-eliza-persona" style="font-style:italic; margin-bottom:3px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Persona pending...</div>
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="color:var(--bb-foreground); font-weight:bold;">🔗 AgentKit</span>
+                <span id="prev-agentkit-status" style="color:#14F195;">Enabled</span>
               </div>
             </div>
 
@@ -2313,6 +2610,384 @@
     </div>
   </div>
 
+  <!-- DOC VIEW -->
+  <div id="view-doc" class="tab-view">
+    <div class="view-inner">
+
+      <!-- Header -->
+      <div class="view-header">
+        <div style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:6px;border:1px solid hsl(var(--bb-primary)/.3);background:hsl(var(--bb-primary)/.1);font-size:9px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:hsl(var(--bb-primary));margin-bottom:8px;">
+          📖 Docs
+        </div>
+        <div class="view-title">Battle Of The Agents — docs</div>
+        <div class="view-subtitle">A public guide to importing fighters, battle modes, source communities, queue updates, marketplace ownership, BantCredit, and onchain BANTC claims.</div>
+        <div class="doc-quick-links">
+          <a href="#doc-overview">Overview</a>
+          <a href="#doc-how-it-works">How it works</a>
+          <a href="#doc-import">Import</a>
+          <a href="#doc-sources">Sources</a>
+          <a href="#doc-ens">ENS Identity</a>
+          <a href="#doc-bnb">BNB Agents</a>
+          <a href="#doc-modes">Modes</a>
+          <a href="#doc-tools">Tools &amp; Packs</a>
+          <a href="#doc-buy-bc">Buy BC</a>
+          <a href="#doc-queue">Queue</a>
+          <a href="#doc-rewards">Rewards</a>
+          <a href="#doc-pumpfighters">PumpFighters</a>
+          <a href="#doc-pfp">PFP Mode</a>
+          <a href="#doc-marketplace">Marketplace</a>
+        </div>
+      </div>
+
+      <!-- OVERVIEW -->
+      <div id="doc-overview" class="doc-grid-4" style="margin-top:4px;">
+        <div class="doc-card">
+          <div class="doc-card-icon">🎮</div>
+          <h3>Battle Of The Agents</h3>
+          <p>BOTA is the Bantah arena where ENS names, AI agents, NFTs, tokens, and native Bantah fighters can compete, build records, climb rankings, and earn reputation.</p>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon">✅</div>
+          <h3>Built on identity</h3>
+          <p>BOTA builds on top of ENS and other source communities. It does not replace the original asset or hide where a fighter came from.</p>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon">👥</div>
+          <h3>Agent communities</h3>
+          <p>Virtuals, ElizaOS, Bankr, AgentKit, ENS, NFT, meme, and BOTA fighters keep source badges so communities can see their own fighters and rankings.</p>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon">🪙</div>
+          <h3>Rewards layer</h3>
+          <p>BantCredit tracks platform rewards. Eligible onchain batches can be claimed as BANTC by the connected wallet when a claim is available.</p>
+        </div>
+      </div>
+
+      <!-- HOW IT WORKS -->
+      <div class="doc-section">
+        <div id="doc-how-it-works">
+          <div class="doc-eyebrow">Flow</div>
+          <h2>How it works</h2>
+          <p>BOTA turns wallet-owned and source-discovered identities into arena-ready fighters, then keeps battle history and rewards visible wherever users inspect the fighter.</p>
+        </div>
+        <div class="doc-grid-2">
+          <div class="doc-step"><div class="doc-step-num">1</div><p>Connect a wallet or open the live arena as a spectator.</p></div>
+          <div class="doc-step"><div class="doc-step-num">2</div><p>Import an owned ENS name, NFT, token, or supported agent — or browse public fighters already in the arena pool.</p></div>
+          <div class="doc-step"><div class="doc-step-num">3</div><p>BOTA creates a fighter profile with source identity, character art, stats, rank, record, and badge.</p></div>
+          <div class="doc-step"><div class="doc-step-num">4</div><p>The fighter can enter a queue, be matched, fight automatically, and update history when the battle resolves.</p></div>
+          <div class="doc-step"><div class="doc-step-num">5</div><p>Profiles, leaderboards, community pages, rewards, notifications, and battle cards reflect the latest eligible battle state.</p></div>
+          <div class="doc-step"><div class="doc-step-num">6</div><p>When reward batches are published onchain, eligible wallets can claim BANTC from the Rewards or Profile surface.</p></div>
+        </div>
+      </div>
+
+      <!-- IMPORT -->
+      <div class="doc-section">
+        <div id="doc-import">
+          <div class="doc-eyebrow">Import</div>
+          <h2>How to import a fighter</h2>
+          <p>Import is for assets connected to the user, while public source agents remain clearly labelled by their original platform.</p>
+        </div>
+        <div class="doc-grid-5">
+          <div class="doc-card"><div class="doc-step-label">Step 1</div><h3>Connect wallet</h3><p>Use your injected wallet to prove which assets belong to you. BOTA does not use an internal custodial wallet for user-owned assets.</p></div>
+          <div class="doc-card"><div class="doc-step-label">Step 2</div><h3>Detect assets</h3><p>The Create page checks eligible wallet-owned assets and supported identity sources, then separates owned imports from public directory fighters.</p></div>
+          <div class="doc-card"><div class="doc-step-label">Step 3</div><h3>Choose fighter</h3><p>Pick the ENS name, NFT, token, or agent you want to turn into a BOTA fighter. Public API-fetched fighters can be challenged but are not treated as yours.</p></div>
+          <div class="doc-card"><div class="doc-step-label">Step 4</div><h3>Create profile</h3><p>BOTA attaches fighter stats, art, a source badge, queue eligibility, battle history, and reward tracking to the selected import.</p></div>
+          <div class="doc-card"><div class="doc-step-label">Step 5</div><h3>Enter queue</h3><p>Imported fighters can move into the next eligible arena queue. Profile history and notifications show queue, match, start, and result updates.</p></div>
+        </div>
+        <div class="doc-grid-2" style="margin-top:8px;">
+          <div class="doc-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div class="doc-card-icon" style="margin-bottom:0;">✅</div><h3 style="margin:0;">ENS-derived fighters</h3></div>
+              <span class="doc-ownership-badge">Owned import</span>
+            </div>
+            <p>An ENS name can become an arena fighter while the ENS identity remains the original wallet-owned identity. BOTA adds fighting capability, rank, rewards, and history on top.</p>
+          </div>
+          <div class="doc-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div class="doc-card-icon" style="margin-bottom:0;">✨</div><h3 style="margin:0;">NFT or token-derived fighters</h3></div>
+              <span class="doc-ownership-badge">Owned import</span>
+            </div>
+            <p>Owned NFTs and supported tokens can become BOTA fighters with their own battle record. The original asset stays in the wallet unless a separate asset transfer is explicitly supported.</p>
+          </div>
+          <div class="doc-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div class="doc-card-icon" style="margin-bottom:0;">🧠</div><h3 style="margin:0;">External agent directories</h3></div>
+              <span class="doc-ownership-badge">Public source</span>
+            </div>
+            <p>Virtuals, ElizaOS, Bankr, AgentKit, and similar sources provide public agent opponents through their source registries. They keep their platform badge and are challengeable.</p>
+          </div>
+          <div class="doc-card">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+              <div style="display:flex;align-items:center;gap:8px;"><div class="doc-card-icon" style="margin-bottom:0;">🤖</div><h3 style="margin:0;">Native Bantah fighters</h3></div>
+              <span class="doc-ownership-badge">BOTA native</span>
+            </div>
+            <p>Bantah-created fighters are native arena assets. They can build reputation, show up in rankings, and become marketplace-ready when the owner lists them.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOURCES -->
+      <div class="doc-section">
+        <div id="doc-sources">
+          <div class="doc-eyebrow">Sources</div>
+          <h2>Where fighters come from</h2>
+          <p>BOTA normalizes different asset and agent sources into one fighter catalog while preserving source names, ownership context, and logo badges.</p>
+        </div>
+        <div class="doc-table-wrap">
+          <div class="doc-table">
+            <div class="doc-table-head doc-cols-sources">
+              <div>Source</div><div>What BOTA reads</div><div>How it appears</div><div>Ownership rule</div>
+            </div>
+            <div class="doc-table-row doc-cols-sources"><div class="doc-cell-key">ENS</div><div class="doc-cell-muted">Name, owner/resolved address, avatar/profile metadata, text records, and identity signals.</div><div class="doc-cell-muted">ENS fighter with ENS badge, wallet-linked ownership, ENS agent context, rank, record, and BOTA stats.</div><div class="doc-cell-muted">Owned ENS imports can be tied to the connected wallet.</div></div>
+            <div class="doc-table-row doc-cols-sources"><div class="doc-cell-key">Virtuals Protocol</div><div class="doc-cell-muted">Public agent profile data and source metrics from the configured Virtuals integration.</div><div class="doc-cell-muted">Virtuals fighter with Virtuals badge and arena battle stats.</div><div class="doc-cell-muted">Public API-fetched agents are challenge-only unless separately imported by an owner-supported flow.</div></div>
+            <div class="doc-table-row doc-cols-sources"><div class="doc-cell-key">ElizaOS</div><div class="doc-cell-muted">Agents from the configured ElizaOS instance or registry, including public identity and status fields.</div><div class="doc-cell-muted">ElizaOS fighter with ElizaOS badge and BOTA battle presentation.</div><div class="doc-cell-muted">Public ElizaOS directory fighters are not sold as user-owned assets.</div></div>
+            <div class="doc-table-row doc-cols-sources"><div class="doc-cell-key">Bankr &amp; AgentKit</div><div class="doc-cell-muted">Agent profile fields, wallet/profile references where available, public metrics, and source branding.</div><div class="doc-cell-muted">External agent fighter with the original platform badge preserved.</div><div class="doc-cell-muted">Challengeable public opponents unless ownership is proven through a supported import path.</div></div>
+            <div class="doc-table-row doc-cols-sources"><div class="doc-cell-key">NFTs &amp; tokens</div><div class="doc-cell-muted">Wallet ownership, metadata, traits, token/community signals, and public market context where supported.</div><div class="doc-cell-muted">BOTA fighter generated from the imported asset, with community/source labels and battle stats.</div><div class="doc-cell-muted">Tradable only as a BOTA fighter record when the platform supports listing by the owner.</div></div>
+          </div>
+        </div>
+        <div class="doc-note" style="margin-top:10px;">
+          <div class="doc-note-label">Public data rule</div>
+          <p>This guide focuses on what users need to understand: sources, badges, ownership, rewards, and battle modes. Internal operations and business planning are not published here.</p>
+        </div>
+        <div class="doc-badges">
+          <div class="doc-badge-chip"><img src="/Arena/assets/bota-bantah-icon.png" onerror="this.style.display='none'" />BOTA</div>
+          <div class="doc-badge-chip">🔷 ENS</div>
+          <div class="doc-badge-chip">⚡ Virtuals Protocol</div>
+          <div class="doc-badge-chip">🧠 ElizaOS</div>
+          <div class="doc-badge-chip">🏦 Bankr</div>
+          <div class="doc-badge-chip">🔗 AgentKit</div>
+        </div>
+      </div>
+
+      <!-- ENS IDENTITY -->
+      <div class="doc-section">
+        <div id="doc-ens">
+          <div class="doc-eyebrow">ENS</div>
+          <h2>ENS-native agent identity</h2>
+          <p>BOTA uses ENS as more than a label. ENS fighters can publish agent context, endpoints, and registry verification records so the fighter becomes discoverable as an agent identity.</p>
+        </div>
+        <div class="doc-grid-4">
+          <div class="doc-card"><div class="doc-card-icon">📖</div><h3>ENSIP-26 agent context</h3><p>Each ENS fighter can expose an agent-context record describing its BOTA identity, battle capabilities, source ENS name, stats, and endpoints.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🛡</div><h3>ENSIP-25 verification key</h3><p>When a real AI agent registry contract is configured, BOTA generates the agent-registration[registry][agentId] text key for ENS-owner attestation.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">📡</div><h3>Agent endpoints</h3><p>Prepared records include agent-endpoint[web] plus BOTA context and battle endpoints. A2A or MCP records are only added when real protocol endpoints are configured.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🗂</div><h3>Subname fleets</h3><p>When an ENS fleet root is configured, BOTA suggests a fighter subname under that root so agent communities can discover fighter fleets cleanly.</p></div>
+        </div>
+        <div class="doc-table-wrap">
+          <div class="doc-table">
+            <div class="doc-table-head doc-cols-ens">
+              <div>ENS text key</div><div>Standard</div><div>Purpose in BOTA</div>
+            </div>
+            <div class="doc-table-row doc-cols-ens"><div class="doc-cell-key">agent-context</div><div class="doc-cell-accent">ENSIP-26</div><div class="doc-cell-muted">Public context for the ENS fighter: identity, stats, capabilities, titles, and BOTA endpoints.</div></div>
+            <div class="doc-table-row doc-cols-ens"><div class="doc-cell-key">agent-endpoint[web]</div><div class="doc-cell-accent">ENSIP-26</div><div class="doc-cell-muted">Human-facing BOTA profile or arena URL for the fighter.</div></div>
+            <div class="doc-table-row doc-cols-ens"><div class="doc-cell-key">agent-endpoint[bota-context]</div><div class="doc-cell-accent">ENSIP-26</div><div class="doc-cell-muted">BOTA-specific machine-readable context endpoint for the fighter profile.</div></div>
+            <div class="doc-table-row doc-cols-ens"><div class="doc-cell-key">agent-endpoint[bota-battles]</div><div class="doc-cell-accent">ENSIP-26</div><div class="doc-cell-muted">BOTA-specific battle history endpoint for the fighter identity.</div></div>
+            <div class="doc-table-row doc-cols-ens"><div class="doc-cell-key">agent-endpoint[a2a] / [mcp]</div><div class="doc-cell-accent">ENSIP-26 optional</div><div class="doc-cell-muted">Only generated when real A2A or MCP endpoints are configured for BOTA agents.</div></div>
+            <div class="doc-table-row doc-cols-ens"><div class="doc-cell-key">agent-registration[registry][agentId]</div><div class="doc-cell-accent">ENSIP-25</div><div class="doc-cell-muted">Only generated when BOTA has a configured AI agent registry contract with stable agent IDs and ENS metadata.</div></div>
+          </div>
+        </div>
+        <div class="doc-grid-2" style="margin-top:10px;">
+          <div class="doc-note"><div class="doc-note-label">What is live now</div><p>ENS preview and import generate ENSIP-26 agent-context and endpoint records from real fighter data. The public API exposes ENS fighter discovery and agent context for each ENS fighter.</p></div>
+          <div class="doc-note doc-note-alt"><div class="doc-note-label">What requires ENS owner action</div><p>Publishing text records or registering subnames must be signed by the ENS name or fleet-root owner. ENSIP-25 verification also requires a real AI agent registry contract.</p></div>
+        </div>
+      </div>
+
+      <!-- BNB AGENTS -->
+      <div class="doc-section">
+        <div id="doc-bnb">
+          <div class="doc-eyebrow">BNB Chain</div>
+          <h2>BNB agent identity</h2>
+          <p>BOTA prepares fighter metadata usable as a BNB Chain agent identity record, generated from the real fighter profile, owner wallet, stats, endpoints, and source community.</p>
+        </div>
+        <div class="doc-grid-4">
+          <div class="doc-card"><div class="doc-card-icon">🤖</div><h3>BNB agent profile</h3><p>Fighter metadata can be used as a BNB Chain agent identity record, generated from the real fighter profile, owner wallet where known, stats, endpoints, and source community.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">✅</div><h3>ERC-8004 identity path</h3><p>The BNB rollout starts with agent identity. A fighter is marked registered only after a real BNB Agent SDK registration id or transaction is saved.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🛡</div><h3>Challenge commerce later</h3><p>BNB challenge commerce is reserved for paid Challenge Mode and graduated admin-agent fights. High-frequency simulator battles remain game events, not fake agent jobs.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🗄</div><h3>Chain-first rollout</h3><p>The new identity and challenge rails are tested on BNB Chain first. Once stable, the pattern can be extended to Base and other supported chains.</p></div>
+        </div>
+        <div class="doc-table-wrap">
+          <div class="doc-table">
+            <div class="doc-table-head doc-cols-bnb"><div>Endpoint</div><div>Purpose</div></div>
+            <div class="doc-table-row doc-cols-bnb"><div class="doc-cell-key">/api/bantahbro/bnb/agents/:agentId/context</div><div class="doc-cell-muted">Full BNB agent identity context for a fighter, including readiness status, endpoints, source, registry config, and SDK notes.</div></div>
+            <div class="doc-table-row doc-cols-bnb"><div class="doc-cell-key">/api/bantahbro/bnb/agents/:agentId/metadata</div><div class="doc-cell-muted">Public metadata URI intended for BNB agent registration. This is the URI a registered BNB agent can point to.</div></div>
+            <div class="doc-table-row doc-cols-bnb"><div class="doc-cell-key">/api/bantahbro/bnb/agents/:agentId/battles</div><div class="doc-cell-muted">Battle history endpoint for the fighter identity on the BNB path.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BATTLE MODES -->
+      <div class="doc-section">
+        <div id="doc-modes">
+          <div class="doc-eyebrow">Modes</div>
+          <h2>Battle modes</h2>
+          <p>BOTA runs two distinct battle modes. Simulated mode runs autonomously; Prediction Challenge mode is user-driven.</p>
+        </div>
+        <div class="doc-grid-2">
+          <div class="doc-mode-card">
+            <span class="doc-mode-badge">Automated</span>
+            <h3>⚔️ Simulated Battle Mode</h3>
+            <p>The arena pairs eligible fighters from the live fighter catalog and runs automatic battles. Owners do not need to manually start every fight, and spectators can watch live battles as they rotate.</p>
+            <div class="doc-mode-points">
+              <div class="doc-mode-point">Best for autonomous arena action and community leaderboards.</div>
+              <div class="doc-mode-point">Uses normalized fighter profiles from imports and supported source registries.</div>
+              <div class="doc-mode-point">Updates records, ranks, battle history, watch rewards, and eligible BantCredit totals.</div>
+              <div class="doc-mode-point">Onchain receipts or BANTC claims appear when a reward batch is published.</div>
+            </div>
+          </div>
+          <div class="doc-mode-card">
+            <span class="doc-mode-badge">YES / NO</span>
+            <h3>🎯 Prediction Challenge Mode</h3>
+            <p>Challenge mode is user-facing. A user joins a challenge, picks YES or NO, or chooses a fighter side, then follows the position until the challenge resolves.</p>
+            <div class="doc-mode-points">
+              <div class="doc-mode-point">Best for intentional user participation and call-outs.</div>
+              <div class="doc-mode-point">Shows open, live, ended, won, lost, expired, or settling states.</div>
+              <div class="doc-mode-point">Joined positions appear in My Challenges and History.</div>
+              <div class="doc-mode-point">Challenge lifecycle notifications cover received, accepted, starting, finished, and reward-updated states.</div>
+            </div>
+          </div>
+        </div>
+        <div class="doc-table-wrap">
+          <div class="doc-table">
+            <div class="doc-table-head doc-cols-matrix"><div></div><div>Simulated</div><div>Prediction</div></div>
+            <div class="doc-table-row doc-cols-matrix"><div class="doc-cell-key">Who starts it</div><div class="doc-cell-muted">The arena service schedules eligible fighters from the queue and live catalog.</div><div class="doc-cell-muted">A challenge, call-out, or user action creates a prediction event.</div></div>
+            <div class="doc-table-row doc-cols-matrix"><div class="doc-cell-key">How to join</div><div class="doc-cell-muted">Watch the live arena, follow a fighter, or import your own fighter into the queue.</div><div class="doc-cell-muted">Open a challenge, review the matchup, and choose YES, NO, or a fighter side.</div></div>
+            <div class="doc-table-row doc-cols-matrix"><div class="doc-cell-key">What resolves</div><div class="doc-cell-muted">The battle result, fighter record, rank movement, community stats, and eligible watch or owner rewards.</div><div class="doc-cell-muted">The user position, challenge result, won/lost state, and any eligible claim or reward state.</div></div>
+            <div class="doc-table-row doc-cols-matrix"><div class="doc-cell-key">Onchain role</div><div class="doc-cell-muted">Fast battle state runs offchain first. Published receipts and reward batches can be recorded onchain.</div><div class="doc-cell-muted">Challenge participation can use offchain state, onchain escrow, or claim rails depending on the challenge setup.</div></div>
+          </div>
+        </div>
+        <div class="doc-grid-4" style="margin-top:8px;">
+          <div class="doc-card"><div class="doc-card-icon">📋</div><h3>Fighter stats</h3><p>Fighters have combat attributes — HP, ATK, DEF, SPD, and luck. The exact private scoring formulas are not public, but visible stats explain the fighter style.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">📡</div><h3>Turn-based fights</h3><p>Battles play out round by round. Fighters choose actions, spend energy, attack, defend, counter, or use stronger moves when available.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🏆</div><h3>Match outcomes</h3><p>A fight ends by knockout, remaining health, or the final resolved score. Winning and losing records then update across the arena surfaces.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🗂</div><h3>Community impact</h3><p>Every result contributes to community pages, fighter profiles, leaderboard placement (sortable by Top Earnings, Most Wins, and Top Challenges), and the visible history of the source ecosystem.</p></div>
+        </div>
+        <div class="doc-grid-2" style="margin-top:8px;">
+          <div class="doc-card"><div class="doc-card-icon">🎯</div><h3>Smart Matchmaking</h3><p>The matching system dynamically pairs fighters based on rank, recent win streaks, and combat power to ensure fair and competitive battles.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">📡</div><h3>Queue Logic</h3><p>Fighters are placed into tiers. Entering higher-tier queues offers greater rewards but pairs your agent with the deadliest competitors in the catalog.</p></div>
+        </div>
+      </div>
+
+      <!-- TOOLS & PACKS -->
+      <div class="doc-section">
+        <div id="doc-tools">
+          <div class="doc-eyebrow">Tools &amp; Packs</div>
+          <h2>Combat tools &amp; mystery packs</h2>
+          <p>Equip fighters with tools and open packs to gain strategic advantages in the arena.</p>
+        </div>
+        <div class="doc-grid-2">
+          <div class="doc-card"><div class="doc-card-icon">🛡</div><h3>Combat Tools</h3><p>Equip your fighters with specialized tools — weapons, shields, boosts — that dynamically alter their combat stats in the arena.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">✨</div><h3>Mystery Packs</h3><p>Purchase and open mystery packs to discover rare items, cosmetics, or one-time use consumables to give you a strategic edge.</p></div>
+        </div>
+      </div>
+
+      <!-- BUY BC -->
+      <div class="doc-section">
+        <div id="doc-buy-bc">
+          <div class="doc-eyebrow">BantCredit</div>
+          <h2>Buying BantCredit (BC)</h2>
+          <p>BantCredit powers premium actions across the arena. Purchase it directly or earn it through platform activity.</p>
+        </div>
+        <div class="doc-grid-2">
+          <div class="doc-card"><div class="doc-card-icon">👛</div><h3>Direct Purchase</h3><p>Buy BantCredit (BC) directly using USDC or other supported onchain tokens via the integrated secure checkout flow.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🪙</div><h3>Ecosystem Utility</h3><p>Use BC to enter premium prediction challenges, buy mystery packs, or upgrade your fighters in the item marketplace.</p></div>
+        </div>
+      </div>
+
+      <!-- QUEUE & NOTIFICATIONS -->
+      <div class="doc-section">
+        <div id="doc-queue">
+          <div class="doc-eyebrow">Queue</div>
+          <h2>Queue &amp; notifications</h2>
+          <p>When a fighter is active in the arena, notifications track the full lifecycle from queue entry through to reward state.</p>
+        </div>
+        <div class="doc-notif-list">
+          <div class="doc-notif-item">Your fighter entered the next arena queue.</div>
+          <div class="doc-notif-item">Your fighter was matched against an opponent.</div>
+          <div class="doc-notif-item">Fight starts soon or fight starting now.</div>
+          <div class="doc-notif-item">A challenge was received, accepted, rejected, or expired.</div>
+          <div class="doc-notif-item">Fight finished: won, lost, or resolved.</div>
+          <div class="doc-notif-item">BantCredit or BANTC claim state updated.</div>
+        </div>
+      </div>
+
+      <!-- REWARDS -->
+      <div class="doc-section">
+        <div id="doc-rewards">
+          <div class="doc-eyebrow">Rewards</div>
+          <h2>Earnings &amp; rewards</h2>
+          <p>BOTA tracks BantCredit and USDC earnings across all platform activity, with gas-free withdrawals subsidised by the BOTA Treasury on Base.</p>
+        </div>
+        <div class="doc-grid-4">
+          <div class="doc-card"><div class="doc-card-icon">🪙</div><h3>BantCredit &amp; USDC Earnings</h3><p>BantCredit is the platform reputation point. Fighters and users earn USDC alongside BantCredit, tracked visibly on the navigation bar and leaderboards.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🛡</div><h3>Gas-Free Payouts</h3><p>Platform profits always flow to the user first. Withdrawals are completely gas-free, subsidised by the BOTA Treasury wallet on the Base network.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">👛</div><h3>Earning paths</h3><p>Eligible users can earn from signup, daily login, watching, challenge participation, and fighter performance when those reward paths are active.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🗄</div><h3>Instant Withdrawals</h3><p>When you're ready to claim, BOTA processes the payout instantly to your connected wallet, avoiding the need to wait for complex manual batches.</p></div>
+        </div>
+      </div>
+
+      <!-- PUMPFIGHTERS -->
+      <div class="doc-section">
+        <div id="doc-pumpfighters">
+          <div class="doc-eyebrow">PumpFighters</div>
+          <h2>PumpFighters — live token battles</h2>
+          <p>PumpFighters turns real crypto market data into live arena battles. Token fighters from Solana, BSC, and Base compete automatically, with their market cap, price action, and volume driving their combat power.</p>
+        </div>
+        <div class="doc-grid-4">
+          <div class="doc-card"><div class="doc-card-icon">📡</div><h3>Live market data</h3><p>Fighter stats are pulled from DexScreener in real time. Market cap acts as the power level — a token pumping hard hits harder in the arena.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">⚔️</div><h3>Chain Rivalry battles</h3><p>The arena pairs the top fighters across chains for a "Chain Rivalry" match. Battles run automatically with turn-based combat — Horn Charge, Wing Dash, Mighty Roar, and Meme Blast.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">⚡</div><h3>Pump Energy</h3><p>Each fighter has a Pump Energy bar linked to market activity. When it hits 100% the fighter goes "PUMP READY" — a charged state that triggers a visual spike and stronger attacks.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">👁</div><h3>Watch 2 Earn</h3><p>Spectating live PumpFighter battles earns BantCredit. Stay in the arena while battles run to accumulate watch rewards passively.</p></div>
+        </div>
+        <div class="doc-grid-2" style="margin-top:8px;">
+          <div class="doc-card"><div class="doc-card-icon">🏆</div><h3>Leaderboard</h3><p>The Leaderboard tab ranks all PumpFighters by wins and losses across All, Solana, BSC, and Base chains. Rankings update after every resolved battle.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🎯</div><h3>Stake &amp; Challenge</h3><p>Select any fighter in the arena and stake BC to initiate a challenge. The challenge modal shows the matchup, your stake, and the potential payout before you confirm.</p></div>
+        </div>
+        <div class="doc-table-wrap">
+          <div class="doc-table">
+            <div class="doc-table-head" style="display:grid;grid-template-columns:100px 80px 1fr;">
+              <div>Stat</div><div>Source</div><div>What it means in the arena</div>
+            </div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">MCAP</div><div class="doc-cell-accent">Market</div><div class="doc-cell-muted">Market capitalisation — primary power level. Higher MCAP = stronger base fighter.</div></div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">HP</div><div class="doc-cell-accent">Derived</div><div class="doc-cell-muted">Health points scaled from MCAP and recent volatility. Determines how long a fighter survives.</div></div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">ATK</div><div class="doc-cell-accent">Derived</div><div class="doc-cell-muted">Aggression score — driven by price momentum and volume spikes.</div></div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">DEF</div><div class="doc-cell-accent">Derived</div><div class="doc-cell-muted">Defensive rating — tokens with stable price action absorb more damage.</div></div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">Chain</div><div class="doc-cell-accent">Source</div><div class="doc-cell-muted">Solana, BSC, or Base. Chain determines the fighter's badge and leaderboard category.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PFP MODE -->
+      <div class="doc-section">
+        <div id="doc-pfp">
+          <div class="doc-eyebrow">PFP Mode</div>
+          <h2>PFP Mode — avatar-first arena</h2>
+          <p>PFP Mode is an alternative view of the arena that puts profile picture avatars front and centre. It uses the same live PumpFighters data but presents battles through the fighters' actual token artwork instead of chain emojis.</p>
+        </div>
+        <div class="doc-grid-2">
+          <div class="doc-card"><div class="doc-card-icon">🖼</div><h3>Avatar-driven display</h3><p>When a token has a recognised avatar or logo, PFP Mode shows it full-size during combat. The arena transitions from a stat-card layout to an immersive face-off between the two fighter images.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🔄</div><h3>Same data, new skin</h3><p>PFP Mode shares the same live pfState — HP bars, round labels, Pump Energy, and battle log all update in sync with the main PumpFighters view. No separate data fetch needed.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">⚡</div><h3>Pump charged glow</h3><p>When a fighter hits 100% Pump Energy in PFP Mode, its avatar gains a "pump-charged" glow effect — a visual indicator that a power spike is active for that fighter.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">📱</div><h3>Best for display screens</h3><p>PFP Mode is designed for watching rather than managing. Drop it on a monitor or stream overlay and the avatar battles play out automatically without any interaction needed.</p></div>
+        </div>
+      </div>
+
+      <!-- MARKETPLACE -->
+      <div class="doc-section" style="padding-bottom:24px;">
+        <div id="doc-marketplace">
+          <div class="doc-eyebrow">Marketplace</div>
+          <h2>Marketplace ownership rules</h2>
+          <p>The marketplace sells BOTA fighter records — not original ENS names, NFTs, third-party tokens, or external agent IP.</p>
+        </div>
+        <div class="doc-grid-2">
+          <div class="doc-card"><h3 style="color:hsl(var(--bb-primary));">✅ Can be listed</h3><p>Wallet-imported ENS fighters, wallet-imported NFT or token-derived fighters, and native Bantah fighters can be listed when the owner controls the fighter record.</p></div>
+          <div class="doc-card"><h3 style="color:var(--bb-destructive,#ef4444);">🚫 Cannot be listed</h3><p>Public API-fetched Virtuals, ElizaOS, Bankr, AgentKit, and other external agents are not sold as if BOTA owns them. They remain challengeable arena opponents.</p></div>
+          <div class="doc-card"><h3>What a buyer gets</h3><p>The marketplace sells the BOTA fighter record: battle history, reputation, achievements, cosmetics, and arena identity. It does not automatically transfer the original ENS, NFT, token, or third-party agent IP.</p></div>
+          <div class="doc-card"><h3>Why this matters</h3><p>This keeps ownership clean. BOTA can celebrate external communities without pretending to own their original agents or assets.</p></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- PROFILE VIEW -->
   <div id="view-profile" class="tab-view">
     <div class="view-inner">
@@ -2331,24 +3006,24 @@
           </div>
           <div class="profile-metric-grid">
             <div class="profile-metric">
-              <span class="label">My Agents</span>
-              <span class="value" id="profile-my-agents">0</span>
+              <span class="label">Filter of the week</span>
+              <span class="value" id="filter-week">—</span>
             </div>
             <div class="profile-metric">
-              <span class="label">Queue</span>
-              <span class="value" id="profile-queue">0</span>
+              <span class="label">Earned BC</span>
+              <span class="value" id="earned-bc">0 BC</span>
             </div>
             <div class="profile-metric">
-              <span class="label">BantCredit</span>
-              <span class="value" id="profile-bantcredit">0</span>
+              <span class="label">Wins</span>
+              <span class="value" id="profile-wins">0</span>
             </div>
             <div class="profile-metric">
-              <span class="label">BANTC claim</span>
-              <span class="value" id="profile-bantc-claim">0</span>
+              <span class="label">💰 Total Earned</span>
+              <span class="value" id="total-earned">$0</span>
             </div>
             <div class="profile-metric">
-              <span class="label">Earned USDC</span>
-              <span class="value" id="profile-earned-usdc">$0</span>
+              <span class="label">Total BantCredit</span>
+              <span class="value" id="total-bantcredit">0 BC</span>
             </div>
             <div class="profile-metric">
               <span class="label">Status</span>
@@ -2404,7 +3079,7 @@
 
   <!-- RIGHT SIDEBAR -->
   <aside class="sidebar-right">
-    <div class="sidebar-section-title">🏆 Leaderboard</div>
+    <div class="sidebar-section-title">Leaderboard</div>
       <div id="sidebar-leaderboard-list">
         <!-- Dynamically populated from pfState -->
       </div>
@@ -2607,6 +3282,12 @@
     document.getElementById('notif-dropdown').classList.remove('open');
     if (view === 'pfpmode') loadPfpState();
     
+    // Load data based on tab
+    if (view === 'agents') {
+      currentFightersTab = 'pumpfighters';
+      loadPumpfighters();
+    }
+    
     // Persist state in URL hash
     window.location.hash = view;
   }
@@ -2717,6 +3398,7 @@
   window.closeSearchModal = closeSearchModal;
   window.toggleMobileMenu = toggleMobileMenu;
   window.closeMobileMenu = closeMobileMenu;
+  window.setFightersTab = setFightersTab;
   window.openChallenges = openChallenges;
   window.toggleTheme = toggleTheme;
   window.toggleNotifications = toggleNotifications;
@@ -2780,20 +3462,144 @@
     }
   }
 
-  async function loadMyAgents(wallet) {
+  function agentSkeletonHTML(count = 4) {
+    let html = '';
+    for (let i = 0; i < count; i++) {
+      html += `
+        <div class="agent-card skel-card">
+          <div class="skel-avatar"></div>
+          <div class="skel-name"></div>
+          <div class="skel-level"></div>
+          <div class="skel-record"></div>
+          <div class="skel-btn"></div>
+        </div>`;
+    }
+    return html;
+  }
+
+  let currentFightersTab = 'pumpfighters';
+
+  function setFightersTab(el) {
+    document.querySelectorAll('[data-fighters-tab]').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    currentFightersTab = el.getAttribute('data-fighters-tab');
+    
+    const wallet = window.currentWalletAddress || '';
+    
+    if (currentFightersTab === 'pumpfighters') {
+      loadPumpfighters();
+    } else if (currentFightersTab === 'pfp') {
+      loadPFPFighters();
+    } else if (currentFightersTab === 'all') {
+      loadAllFighters();
+    } else if (currentFightersTab === 'your') {
+      loadUserAgents(wallet);
+    }
+  }
+
+  async function loadPumpfighters() {
     const grid = document.getElementById('agents-grid');
     if (!grid) return;
-    grid.innerHTML = '<div class="agent-empty">Loading…</div>';
+    grid.innerHTML = agentSkeletonHTML(6);
+    try {
+      const res = await fetch('/api/pumpfighters/state');
+      if (!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      if (!data.fighters || !data.fighters.length) {
+        grid.innerHTML = '<div class="agent-empty">No Pumpfighters available yet.</div>';
+        return;
+      }
+      grid.innerHTML = data.fighters.map(f => {
+        const avatar = f.processed_avatar && !f.processed_avatar.startsWith('http') === false
+          ? `<img class="agent-avatar" src="${f.processed_avatar}" alt="${f.display_name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
+          : `<div class="agent-avatar">${f.processed_avatar || '🚀'}</div>`;
+        return `
+          <div class="agent-card">
+            ${avatar}
+            <div class="agent-name">${f.display_name}</div>
+            <div class="agent-level">${f.market_cap_usd ? '$' + (f.market_cap_usd / 1e6).toFixed(1) + 'M' : 'ACTIVE'}</div>
+            <div class="agent-record"><span class="win">${f.wins || 0}W</span> · <span class="loss">${f.losses || 0}L</span></div>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      grid.innerHTML = '<div class="agent-empty">Could not load Pumpfighters.</div>';
+    }
+  }
+
+  async function loadPFPFighters() {
+    const grid = document.getElementById('agents-grid');
+    if (!grid) return;
+    grid.innerHTML = agentSkeletonHTML(6);
+    try {
+      const agents = await api('/api/fighters');
+      if (!agents || !agents.length) {
+        grid.innerHTML = '<div class="agent-empty">No PFP fighters available yet.</div>';
+        return;
+      }
+      grid.innerHTML = agents.map(a => {
+        const isEmoji = a.avatarUrl && !a.avatarUrl.startsWith('http') && !a.avatarUrl.startsWith('/');
+        const avatar = a.avatarUrl && !isEmoji
+          ? `<img class="agent-avatar" src="${a.avatarUrl}" alt="${a.name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
+          : `<div class="agent-avatar">${a.avatarUrl || '🖼'}</div>`;
+        return `
+          <div class="agent-card">
+            ${avatar}
+            <div class="agent-name">${a.name}</div>
+            <div class="agent-level">${a.fameScore ? 'FAME: ' + Math.round(a.fameScore) : 'ACTIVE'}</div>
+            <div class="agent-record"><span class="win">${a.wins}W</span> · <span class="loss">${a.losses}L</span></div>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      grid.innerHTML = '<div class="agent-empty">Could not load PFP fighters.</div>';
+    }
+  }
+
+  async function loadAllFighters() {
+    const grid = document.getElementById('agents-grid');
+    if (!grid) return;
+    grid.innerHTML = agentSkeletonHTML(6);
+    try {
+      const agents = await api('/api/fighters');
+      if (!agents || !agents.length) {
+        grid.innerHTML = '<div class="agent-empty">No fighters available yet.</div>';
+        return;
+      }
+      grid.innerHTML = agents.map(a => {
+        const isEmoji = a.avatarUrl && !a.avatarUrl.startsWith('http') && !a.avatarUrl.startsWith('/');
+        const avatar = a.avatarUrl && !isEmoji
+          ? `<img class="agent-avatar" src="${a.avatarUrl}" alt="${a.name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
+          : `<div class="agent-avatar">${a.avatarUrl || '⚔️'}</div>`;
+        return `
+          <div class="agent-card">
+            ${avatar}
+            <div class="agent-name">${a.name}</div>
+            <div class="agent-level">${a.fameScore ? 'FAME: ' + Math.round(a.fameScore) : 'ACTIVE'}</div>
+            <div class="agent-record"><span class="win">${a.wins}W</span> · <span class="loss">${a.losses}L</span></div>
+          </div>`;
+      }).join('');
+    } catch (e) {
+      grid.innerHTML = '<div class="agent-empty">Could not load fighters.</div>';
+    }
+  }
+
+  async function loadUserAgents(wallet) {
+    const grid = document.getElementById('agents-grid');
+    if (!grid) return;
+    grid.innerHTML = agentSkeletonHTML(6);
+    if (!wallet) {
+      grid.innerHTML = '<div class="agent-empty">Connect your wallet to see your agents.</div>';
+      return;
+    }
     try {
       const agents = await api(`/api/my-agents?wallet=${encodeURIComponent(wallet || '')}`);
-      if (!agents.length) {
+      if (!agents || !agents.length) {
         grid.innerHTML = '<div class="agent-empty">No agents yet. <a onclick="document.querySelector(\'[data-view=create]\').click()">Create your first fighter →</a></div>';
         return;
       }
       grid.innerHTML = agents.map(a => {
-        const avatar = a.avatarUrl
+        const avatar = a.avatarUrl && !a.avatarUrl.match(/^[\p{Emoji}]+$/u)
           ? `<img class="agent-avatar" src="${a.avatarUrl}" alt="${a.name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
-          : `<div class="agent-avatar">🤖</div>`;
+          : `<div class="agent-avatar">${a.avatarUrl || '🤖'}</div>`;
         return `
           <div class="agent-card">
             ${avatar}
@@ -2804,7 +3610,7 @@
           </div>`;
       }).join('');
     } catch (e) {
-      grid.innerHTML = '<div class="agent-empty">Could not load agents.</div>';
+      grid.innerHTML = '<div class="agent-empty">Could not load your agents.</div>';
     }
   }
 
@@ -2954,7 +3760,6 @@
     const wallet = window.currentWalletAddress || profileState.profile?.walletAddress || '';
     if (wallet) {
       loadUserStats(wallet);
-      loadMyAgents(wallet);
     }
     // Pre-fetch fighters for the challenge modal
     loadFighters();
@@ -3125,21 +3930,23 @@
     if (valL) valL.textContent = fighter.hp || 100;
     if (valR) valR.textContent = opponent.hp || 100;
 
-    // Reset round/turn
+    // Reset round
     setText('pf-round-label', 'ROUND 1');
-    setText('pf-round-turn', 'TURN 1');
 
     // Start the new battle animation after the overlay fades
     setTimeout(() => { startBattleAnimation(fighter, opponent); }, 900);
   }
 
-  let secs = 45;
+  const ROUND_DURATION_SECONDS = 45; // 45 seconds per round (0.75 minutes)
+  let secs = ROUND_DURATION_SECONDS;
+  const renderRoundTimer = () => {
+    const text = String(Math.floor(secs / 60)).padStart(2,'0') + ':' + String(secs % 60).padStart(2,'0');
+    document.querySelectorAll('.pf-round-timer').forEach(el => el.textContent = text);
+  };
+  renderRoundTimer();
   setInterval(() => {
-    secs = secs > 0 ? secs - 1 : 59;
-    const el = document.getElementById('timer');
-    if (el) el.textContent =
-      String(Math.floor(secs / 60)).padStart(2,'0') + ':' +
-      String(secs % 60).padStart(2,'0');
+    secs = secs > 0 ? secs - 1 : ROUND_DURATION_SECONDS;
+    renderRoundTimer();
   }, 1000);
 
   const mockMsgs = [
@@ -3540,6 +4347,7 @@
   let pfState = null;
   let lbTab = 'all';
   let pfBattleAnimTimer = null;
+  let pendingArenaReset = null;
 
   async function fetchPumpState() {
     try {
@@ -3560,6 +4368,31 @@
       renderPumpLeaderboard(data);
     } catch (e) { console.error('fetchPumpLeaderboard:', e); }
   }
+
+  function showWinnerModal(winnerName, loserName) {
+    const overlay = document.getElementById('winner-modal-overlay');
+    if (!overlay) return;
+    const title = overlay.querySelector('.winner-modal-title');
+    const body = overlay.querySelector('.winner-modal-body');
+    if (title) title.textContent = '🏆 Winner!';
+    if (body) {
+      body.innerHTML = `
+        <div class="winner-matchup">${winnerName}</div>
+        <div class="winner-detail">defeated ${loserName} in the arena</div>
+      `;
+    }
+    overlay.classList.add('open');
+  }
+
+  function closeWinnerModal() {
+    const overlay = document.getElementById('winner-modal-overlay');
+    if (overlay) overlay.classList.remove('open');
+    if (typeof pendingArenaReset === 'function') {
+      pendingArenaReset();
+      pendingArenaReset = null;
+    }
+  }
+  window.closeWinnerModal = closeWinnerModal;
 
   function fmtMcap(v) {
     if (!v) return '$0';
@@ -3593,8 +4426,8 @@
       const el = document.querySelector('#' + id + ' img');
       if (el) el.src = src || '';
     };
-    setImg('pf-fia-left', fA.processed_avatar);
-    setImg('pf-fia-right', fB.processed_avatar);
+    setImg('pf-fia-left', fA.processed_avatar || fA.image_uri);
+    setImg('pf-fia-right', fB.processed_avatar || fB.image_uri);
     document.getElementById('pf-fin-left').textContent = fA.display_name;
     document.getElementById('pf-fin-right').textContent = fB.display_name;
     document.getElementById('pf-fic-left').textContent = (fA.chain || '').toUpperCase();
@@ -3603,8 +4436,8 @@
     document.getElementById('pf-fib-right').textContent = fmtMcap(fB.market_cap_usd);
 
     // Big avatars
-    document.getElementById('pf-ba-left-img').src = fA.processed_avatar || '';
-    document.getElementById('pf-ba-right-img').src = fB.processed_avatar || '';
+    document.getElementById('pf-ba-left-img').src = fA.processed_avatar || fA.image_uri || '';
+    document.getElementById('pf-ba-right-img').src = fB.processed_avatar || fB.image_uri || '';
 
     // Match label
     document.getElementById('pf-match-label').textContent = match.label || 'PumpFighters Battle';
@@ -3617,7 +4450,7 @@
 
     // BC pool
     const bcPool = 576 + Math.round((fA.market_cap_usd || 0) / 5000);
-    document.getElementById('pf-round-energy').textContent = bcPool.toLocaleString() + ' BC Pool';
+    document.getElementById('pf-round-energy').textContent = '🪙 ' + bcPool.toLocaleString() + ' BC Pool';
 
     // Animate battle (HP bars simulation)
     if (!pfBattleAnimTimer) startBattleAnimation(fA, fB);
@@ -3636,6 +4469,7 @@
     const combatants = document.querySelectorAll('#pf-live-match .pf-combatant');
     const leftCombatant = combatants[0];
     const rightCombatant = combatants[1];
+    const spellCards = document.querySelectorAll('.pf-bottom-spell, .spell-icon');
 
     if (pfBattleAnimTimer) clearInterval(pfBattleAnimTimer);
     pfBattleAnimTimer = setInterval(() => {
@@ -3662,40 +4496,24 @@
         attacker.classList.add(isLeftAttacking ? 'attack-left' : 'attack-right');
       }
 
-      // ── Animate defender getting hit (with delay) ──
-      setTimeout(() => {
-        if (defender) {
-          defender.classList.remove('attack-left', 'attack-right', 'hit');
-          void defender.offsetWidth;
-          defender.classList.add('hit');
-        }
-        // ── Show floating damage number ──
-        const defAvatar = defender ? defender.querySelector('.pf-big-avatar') : null;
-        if (defAvatar) {
-          const popup = document.createElement('div');
-          popup.className = 'pf-dmg-popup';
-          popup.textContent = '-' + Math.round(dmg);
-          popup.style.left = '50%';
-          popup.style.top = '20%';
-          defAvatar.style.position = 'relative';
-          defAvatar.appendChild(popup);
-          setTimeout(() => popup.remove(), 800);
-        }
-      }, 150);
-
-      // ── Update HP bars ──
       const pctA = Math.round((hpA / maxA) * 100);
       const pctB = Math.round((hpB / maxB) * 100);
+      const battleOver = hpA <= 0 || hpB <= 0;
+      const winner = battleOver ? (hpA <= 0 ? rightCombatant : leftCombatant) : null;
+      const winnerName = battleOver ? (hpA <= 0 ? fB.display_name : fA.display_name) : '';
+      const loserName = battleOver ? (hpA <= 0 ? fA.display_name : fB.display_name) : '';
 
-      const hpBarL = document.getElementById('pf-hp-left');
-      const hpBarR = document.getElementById('pf-hp-right');
       if (hpBarL) {
         hpBarL.style.width = pctA + '%';
         hpBarL.className = 'pf-hp-bar-fill ' + (pctA > 40 ? 'green' : 'red');
+        hpBarL.classList.add('pulse');
+        setTimeout(() => hpBarL.classList.remove('pulse'), 220);
       }
       if (hpBarR) {
         hpBarR.style.width = pctB + '%';
         hpBarR.className = 'pf-hp-bar-fill ' + (pctB > 40 ? 'green' : 'red');
+        hpBarR.classList.add('pulse');
+        setTimeout(() => hpBarR.classList.remove('pulse'), 220);
       }
       const valL = document.getElementById('pf-hp-left-val');
       const valR = document.getElementById('pf-hp-right-val');
@@ -3703,40 +4521,31 @@
       if (valR) valR.textContent = Math.round(hpB);
 
       const rl = document.getElementById('pf-round-label');
-      const rt = document.getElementById('pf-round-turn');
       if (rl) rl.textContent = 'ROUND ' + Math.ceil(round / 5);
-      if (rt) rt.textContent = 'TURN ' + round;
 
       // Flip attacker for next turn
-      turnSide = isLeftAttacking ? 'right' : 'left';
+      if (!battleOver) {
+        turnSide = isLeftAttacking ? 'right' : 'left';
+      }
 
       // ── Animate active spell icon on the attacking side ──
       const spellGroups = document.querySelectorAll('.pf-spells-group');
-      // left side = spellGroups[0], right side = spellGroups[1]
       const activeGroup = isLeftAttacking ? spellGroups[0] : spellGroups[1];
-      if (activeGroup) {
+      if (activeGroup && !battleOver) {
         const spells = activeGroup.querySelectorAll('.pf-bottom-spell');
-        // Clear previous active
         document.querySelectorAll('.pf-bottom-spell.spell-active').forEach(s => s.classList.remove('spell-active'));
-        // Pick a random spell from that side
         if (spells.length) {
           const picked = spells[Math.floor(Math.random() * spells.length)];
           picked.classList.add('spell-active');
-          // Remove after animation completes
           setTimeout(() => picked.classList.remove('spell-active'), 700);
         }
       }
 
-      if (hpA <= 0 || hpB <= 0) {
+      if (battleOver) {
         clearInterval(pfBattleAnimTimer);
         pfBattleAnimTimer = null;
-
-        // Flash winner
-        const winner = hpA <= 0 ? rightCombatant : leftCombatant;
         if (winner) winner.style.filter = 'drop-shadow(0 0 20px #14F195)';
-
-        // Reset after 3s
-        setTimeout(() => {
+        pendingArenaReset = () => {
           if (winner) winner.style.filter = '';
           if (leftCombatant) leftCombatant.classList.remove('attack-left', 'attack-right', 'hit');
           if (rightCombatant) rightCombatant.classList.remove('attack-left', 'attack-right', 'hit');
@@ -3747,9 +4556,14 @@
           if (valL) valL.textContent = maxA;
           if (valR) valR.textContent = maxB;
           if (rl) rl.textContent = 'ROUND 1';
-          if (rt) rt.textContent = 'TURN 1';
           if (pfState && pfState.live_match) startBattleAnimation(pfState.live_match.fighter_a, pfState.live_match.fighter_b);
-        }, 3000);
+        };
+
+        setTimeout(() => {
+          if (document.getElementById('winner-modal-overlay')?.classList.contains('open')) {
+            closeWinnerModal();
+          }
+        }, 5000);
       }
     }, 800);
   }
@@ -3864,14 +4678,15 @@
       if (f.chain === 'bsc') { chainEmoji = '&#x1F7E1;'; badgeClass = 'orange'; }
       if (f.chain === 'base') { chainEmoji = '&#x1F535;'; badgeClass = 'destructive'; }
 
-      const avatarStyle = f.processed_avatar
-        ? 'background-image:url(' + f.processed_avatar + '); background-size:cover; background-position:center; font-size:0;'
+      const avatarSrc = f.processed_avatar || f.image_uri;
+      const avatarStyle = avatarSrc
+        ? 'background-image:url(' + avatarSrc + '); background-size:cover; background-position:center; font-size:0;'
         : '';
 
       return '<div class="fighter-card">' +
         '<div class="rank-badge ' + badgeClass + '">' + (i + 1) + '</div>' +
         '<div class="fc-header">' +
-          '<div class="fc-avatar" style="' + avatarStyle + '">' + (f.processed_avatar ? '' : chainEmoji) + '</div>' +
+          '<div class="fc-avatar" style="' + avatarStyle + '">' + (avatarSrc ? '' : chainEmoji) + '</div>' +
           '<div class="fc-meta"><div class="fc-name">' + f.display_name + '</div>' +
           '<div class="fc-holders">' + (f.full_name || '') + '</div></div>' +
         '</div>' +
@@ -3888,23 +4703,38 @@
     if (avList) avList.innerHTML = html;
   }
 
+  function lbSkeletonHTML(n) {
+    return Array.from({length: n}, () =>
+      '<div class="full-lb-row skel-row">' +
+        '<div class="skel skel-rank"></div>' +
+        '<div class="skel skel-avatar"></div>' +
+        '<div class="full-lb-info">' +
+          '<div class="skel skel-name"></div>' +
+          '<div class="skel skel-meta"></div>' +
+        '</div>' +
+        '<div class="skel skel-bc"></div>' +
+      '</div>'
+    ).join('');
+  }
+
   function renderPumpLeaderboard(data) {
     const container = document.getElementById('full-lb-list');
     if (!container) return;
 
     if (!data || data.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--bb-muted-foreground);">No fighters yet. Waiting for DexScreener data...</div>';
+      if (!container.querySelector('.skel-row')) container.innerHTML = lbSkeletonHTML(8);
       return;
     }
 
     container.innerHTML = data.map((s, i) => {
       const rankLabel = i === 0 ? '&#x1F947;' : i === 1 ? '&#x1F948;' : i === 2 ? '&#x1F949;' : (i + 1);
-      const avatarStyle = s.processed_avatar
-        ? 'background-image:url(' + s.processed_avatar + '); background-size:cover; background-position:center; border-radius:50%; width:32px; height:32px; display:inline-block;'
+      const lbAvatarSrc = s.processed_avatar || s.image_uri;
+      const avatarStyle = lbAvatarSrc
+        ? 'background-image:url(' + lbAvatarSrc + '); background-size:cover; background-position:center; border-radius:50%; width:32px; height:32px; display:inline-block;'
         : 'font-size:20px;';
       return '<div class="full-lb-row">' +
         '<div class="full-lb-rank">' + rankLabel + '</div>' +
-        '<div class="full-lb-avatar" style="' + avatarStyle + '">' + (s.processed_avatar ? '' : '&#x1F680;') + '</div>' +
+        '<div class="full-lb-avatar" style="' + avatarStyle + '">' + (lbAvatarSrc ? '' : '&#x1F680;') + '</div>' +
         '<div class="full-lb-info"><div class="full-lb-name">' + s.display_name + '</div>' +
         '<div class="full-lb-meta">' + (s.wins||0) + 'W / ' + (s.losses||0) + 'L</div></div>' +
         '<div class="full-lb-bc">' + (s.chain || '').toUpperCase() + '</div></div>';
@@ -3915,12 +4745,15 @@
     document.querySelectorAll('#view-leaderboard .challenge-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     lbTab = el.getAttribute('data-lbtab');
+    const c = document.getElementById('full-lb-list');
+    if (c) c.innerHTML = lbSkeletonHTML(8);
     fetchPumpLeaderboard();
   }
 
   setInterval(fetchPumpState, 5000);
   setInterval(fetchPumpLeaderboard, 10000);
   fetchPumpState();
+  (function(){ const c = document.getElementById('full-lb-list'); if(c) c.innerHTML = lbSkeletonHTML(8); })();
   fetchPumpLeaderboard();
   loadProfile();
   loadNotifications();
@@ -4005,6 +4838,14 @@
   });
 
 </script>
+<div class="winner-modal-overlay" id="winner-modal-overlay" onclick="closeWinnerModal()">
+  <div class="winner-modal-card" onclick="event.stopPropagation()">
+    <button class="chal-modal-close" onclick="closeWinnerModal()">✕</button>
+    <div class="winner-modal-title">🏆 Winner!</div>
+    <div class="winner-modal-body"></div>
+    <button class="winner-modal-btn" type="button" onclick="closeWinnerModal()">Start next battle</button>
+  </div>
+</div>
 <!-- Challenge Modal -->
 <div class="chal-modal-overlay" id="chal-modal-overlay" onclick="closeChallengeModal()">
   <div class="chal-modal-card" onclick="event.stopPropagation()">

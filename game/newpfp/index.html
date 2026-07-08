@@ -120,6 +120,10 @@
       font-size: 9px; font-weight: 700; letter-spacing: .5px;
     }
     .nav-tabs { display: flex; gap: 2px; margin: 0 auto; }
+    @media (min-width: 901px) {
+      .nav-tabs { display: none; }
+      .mobile-menu-btn, .mobile-footer-nav, .mobile-nav-dropdown { display: none !important; }
+    }
     .nav-tab {
       padding: 5px 12px; border-radius: 7px;
       font-size: 12px; font-weight: 600;
@@ -155,6 +159,41 @@
     .mobile-nav-dropdown.open { display: flex; }
     .mobile-nav-dropdown .nav-tab {
       width: 100%; text-align: left; padding: 10px 12px;
+    }
+    .mobile-footer-nav {
+      display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 100;
+      background: rgba(17, 24, 39, 0.96);
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+      backdrop-filter: blur(12px);
+      padding: 6px 10px;
+      gap: 6px;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mobile-footer-nav .footer-nav-btn {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      border-radius: 12px;
+      background: var(--bb-card);
+      color: var(--bb-muted-foreground);
+      font-size: 12px;
+      padding: 8px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .mobile-footer-nav .footer-nav-btn.active {
+      color: var(--bb-foreground);
+      background: hsl(var(--bb-primary));
     }
     .nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .icon-btn {
@@ -379,11 +418,12 @@
       width: 140px; flex-shrink: 0;
     }
     .fighter-card-arena {
-      background: rgb(var(--bb-background-rgb) / 0.7);
-      border: 1px solid var(--bb-border);
+      background: rgb(var(--bb-background-rgb) / 0.85);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 10px; padding: 7px;
       display: flex; align-items: center; gap: 6px;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
     }
     .arena-avatar {
       width: 36px; height: 36px; border-radius: 10px;
@@ -1070,6 +1110,9 @@
       }
       .nav-stats, .nav-tabs { display: none; }
       .mobile-menu-btn { display: flex; }
+      .mobile-footer-nav { display: flex; }
+      body { padding-bottom: 72px; }
+      .main { margin-bottom: 0; }
     }
 
     
@@ -1262,8 +1305,8 @@
       border-radius: 8px; padding: 6px 12px;
     }
     .pf-round-label { color: #F3BA2F; font-weight: 900; font-size: 11px; letter-spacing: 0.5px; }
-    .pf-round-turn { color: rgba(255,255,255,0.5); font-size: 9px; margin-top: 0px; }
-    .pf-round-energy { color: #14F195; font-size: 10px; font-weight: 700; margin-top: 2px; }
+    .pf-round-energy-row { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+    .pf-round-energy { color: #14F195; font-size: 10px; font-weight: 900; }
 
     /* Arena center: fighters + VS */
     .pf-battle-zone {
@@ -1336,11 +1379,28 @@
     }
     .pf-combatant {
       display: flex; flex-direction: column; align-items: center; gap: 12px;
-      transition: transform 0.15s ease-out;
+      position: relative;
+      animation: floatIdle 4s ease-in-out infinite;
     }
-    .pf-combatant.attack-left { animation: attackLeft 0.4s ease-out; }
-    .pf-combatant.attack-right { animation: attackRight 0.4s ease-out; }
-    .pf-combatant.hit { animation: hitShake 0.3s ease-out; }
+    .pf-combatant::after {
+      content: '';
+      position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+      width: 110px; height: 12px; border-radius: 999px;
+      background: rgba(0,0,0,0.25);
+      filter: blur(4px);
+      opacity: 0.85;
+      z-index: -1;
+      pointer-events: none;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .pf-combatant.attack-left { animation: attackLeft 0.4s ease-out, floatIdle 4s ease-in-out infinite; }
+    .pf-combatant.attack-right { animation: attackRight 0.4s ease-out, floatIdle 4s ease-in-out infinite; }
+    .pf-combatant.hit { animation: hitShake 0.3s ease-out, floatIdle 4s ease-in-out infinite; }
+
+    @keyframes floatIdle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
 
     @keyframes attackLeft {
       0% { transform: translateX(0); }
@@ -1371,7 +1431,8 @@
     .pf-hp-bar-wrap { display: flex; align-items: center; gap: 8px; width: 140px; }
     .pf-hp-bar-wrap span { color: #fff; font-weight: 900; font-size: 14px; min-width: 30px; text-align: right; }
     .pf-hp-bar-bg { flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
-    .pf-hp-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease-out; }
+    .pf-hp-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease; transform-origin: left center; }
+    .pf-hp-bar-fill.pulse { box-shadow: 0 0 12px rgba(255,255,255,0.35); transform: scaleX(1.02); }
     .pf-hp-bar-fill.green { background: linear-gradient(90deg, #22C55E, #14F195); }
     .pf-hp-bar-fill.red { background: linear-gradient(90deg, #EF4444, #F97316); }
 
@@ -1423,9 +1484,9 @@
     }
     .pf-bottom-spell:hover { transform: translateY(-3px); }
     .pf-bottom-spell .spell-circle {
-      width: 48px; height: 48px; border-radius: 50%; background: rgba(0,0,0,0.6);
+      width: 44px; height: 44px; border-radius: 50%; background: rgba(0,0,0,0.85);
       display: flex; align-items: center; justify-content: center; font-size: 24px;
-      border: 2px solid; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+      border: 2px solid; box-shadow: inset 0 0 6px rgba(0,0,0,0.9);
       position: relative;
     }
     .border-gold { border-color: #F59E0B; box-shadow: 0 0 10px rgba(245,158,11,0.4); }
@@ -1478,8 +1539,8 @@
   </div>
   <div class="nav-tabs">
     <button class="nav-tab" data-view="arena" onclick="setTab(this)">Arena</button>
-    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)">🚀 PumpFighters</button>
-    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)">🖼 PFP Mode</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)">PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)">PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this)">Agents</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this)">⚔️ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this)">Marketplace</button>
@@ -1488,15 +1549,21 @@
   <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
   <div class="mobile-nav-dropdown" id="mobile-nav-dropdown">
     <button class="nav-tab" data-view="arena" onclick="setTab(this); closeMobileMenu();">Arena</button>
-    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">🚀 PumpFighters</button>
-    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();">🖼 PFP Mode</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();">PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">Agents</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">⚔️ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this); closeMobileMenu();">Marketplace</button>
     <button class="nav-tab" data-view="leaderboard" onclick="setTab(this); closeMobileMenu();">Leaderboard</button>
   </div>
+  <div class="mobile-footer-nav" id="mobile-footer-nav">
+    <button class="footer-nav-btn nav-tab" data-view="arena" onclick="setTab(this)">Fighters</button>
+    <button class="footer-nav-btn nav-tab active" data-view="pumpfighters" onclick="setTab(this)">PumpFighters</button>
+    <button class="footer-nav-btn nav-tab" data-view="pfpmode" onclick="setTab(this)">PFP Mode</button>
+    <button class="footer-nav-btn nav-tab" data-view="agents" onclick="setTab(this)">👥</button>
+    <button class="footer-nav-btn nav-tab create" data-view="create" onclick="setTab(this)">🛠</button>
+  </div>
   <div class="nav-right">
-    <div style="position:relative;">
       <button class="icon-btn" id="notif-btn" onclick="toggleNotifications(event)">🔔<span class="badge">3</span></button>
       <div class="notif-dropdown" id="notif-dropdown">
         <div class="notif-header">Notifications <span onclick="markAllRead()">Mark all read</span></div>
@@ -1541,31 +1608,16 @@
     </div>
 
     <div>
-      <div class="sidebar-section-title">⚡ Live Predictions</div>
-      <div class="predictions-box">
-        <div class="pred-header">
-          <span class="pred-title">Who wins?</span>
-          <span class="timer" id="timer">00:45</span>
-        </div>
-        <div class="fighters-pred">
-          <div class="fighter-pred">
-            <div class="avatar-pred">🤖</div>
-            <div class="pred-name">ROBOT V1</div>
-            <div class="pred-pct primary">52%</div>
-          </div>
-          <div style="font-size:11px;font-weight:800;color:var(--bb-muted-foreground)">VS</div>
-          <div class="fighter-pred">
-            <div class="avatar-pred alt">🦾</div>
-            <div class="pred-name">FLOATROBO</div>
-            <div class="pred-pct alt">48%</div>
+      <div class="sidebar-section-title">Fighter Of The Week</div>
+      <div class="predictions-box" style="padding:18px; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:34px; height:34px; border-radius:999px; background:rgba(255,215,0,0.14); display:flex; align-items:center; justify-content:center; font-size:18px;">🪙</div>
+          <div style="display:flex; flex-direction:column; gap:2px;">
+            <span style="font-size:14px; font-weight:700; color:var(--text-primary);">💰 Total Earned</span>
+            <span style="font-size:11px; color:var(--bb-muted-foreground);">Total BantCredit</span>
           </div>
         </div>
-        <div class="pred-bar-wrap"><div class="pred-bar" style="width:52%"></div></div>
-        <div class="pred-pool">POOL: <span>128,450 BC</span></div>
-        <div class="pred-btns">
-          <button class="pred-yes">✓ YES</button>
-          <button class="pred-no">✗ NO</button>
-        </div>
+        <div style="font-size:16px; font-weight:800; color:var(--neon-gold);">0 BC</div>
       </div>
     </div>
   </aside>
@@ -1676,8 +1728,10 @@
           </div>
           <div class="pf-round-badge">
             <div class="pf-round-label" id="pf-round-label">ROUND 1</div>
-            <div class="pf-round-turn" id="pf-round-turn">TURN 1</div>
-            <div class="pf-round-energy" id="pf-round-energy">576 BC Pool</div>
+            <div class="pf-round-energy-row">
+              <div class="pf-round-energy" id="pf-round-energy">🪙 576 BC Pool</div>
+              <div class="pf-round-timer timer">00:45</div>
+            </div>
           </div>
           <div class="pf-fighter-info right" id="pf-fi-right">
             <div class="pf-fi-avatar right" id="pf-fia-right"><img src="" alt=""/></div>
@@ -2225,7 +2279,7 @@
 
   <!-- RIGHT SIDEBAR -->
   <aside class="sidebar-right">
-    <div class="sidebar-section-title">🏆 Leaderboard</div>
+    <div class="sidebar-section-title">Leaderboard</div>
       <div id="sidebar-leaderboard-list">
         <!-- Dynamically populated from pfState -->
       </div>
@@ -2928,19 +2982,21 @@
 
     // Reset round/turn
     setText('pf-round-label', 'ROUND 1');
-    setText('pf-round-turn', 'TURN 1');
 
     // Start the new battle animation after the overlay fades
     setTimeout(() => { startBattleAnimation(fighter, opponent); }, 900);
   }
 
-  let secs = 45;
+  const ROUND_DURATION_SECONDS = 45; // 45 seconds per round (0.75 minutes)
+  let secs = ROUND_DURATION_SECONDS;
+  const renderRoundTimer = () => {
+    const text = String(Math.floor(secs / 60)).padStart(2,'0') + ':' + String(secs % 60).padStart(2,'0');
+    document.querySelectorAll('.pf-round-timer').forEach(el => el.textContent = text);
+  };
+  renderRoundTimer();
   setInterval(() => {
-    secs = secs > 0 ? secs - 1 : 59;
-    const el = document.getElementById('timer');
-    if (el) el.textContent =
-      String(Math.floor(secs / 60)).padStart(2,'0') + ':' +
-      String(secs % 60).padStart(2,'0');
+    secs = secs > 0 ? secs - 1 : ROUND_DURATION_SECONDS;
+    renderRoundTimer();
   }, 1000);
 
   const mockMsgs = [
@@ -3330,7 +3386,7 @@
 
     // BC pool
     const bcPool = 576 + Math.round((fA.market_cap_usd || 0) / 5000);
-    document.getElementById('pf-round-energy').textContent = bcPool.toLocaleString() + ' BC Pool';
+    document.getElementById('pf-round-energy').textContent = '🪙 ' + bcPool.toLocaleString() + ' BC Pool';
 
     // Animate battle (HP bars simulation)
     if (!pfBattleAnimTimer) startBattleAnimation(fA, fB);
@@ -3405,10 +3461,14 @@
       if (hpBarL) {
         hpBarL.style.width = pctA + '%';
         hpBarL.className = 'pf-hp-bar-fill ' + (pctA > 40 ? 'green' : 'red');
+        hpBarL.classList.add('pulse');
+        setTimeout(() => hpBarL.classList.remove('pulse'), 220);
       }
       if (hpBarR) {
         hpBarR.style.width = pctB + '%';
         hpBarR.className = 'pf-hp-bar-fill ' + (pctB > 40 ? 'green' : 'red');
+        hpBarR.classList.add('pulse');
+        setTimeout(() => hpBarR.classList.remove('pulse'), 220);
       }
       const valL = document.getElementById('pf-hp-left-val');
       const valR = document.getElementById('pf-hp-right-val');
@@ -3416,9 +3476,7 @@
       if (valR) valR.textContent = Math.round(hpB);
 
       const rl = document.getElementById('pf-round-label');
-      const rt = document.getElementById('pf-round-turn');
       if (rl) rl.textContent = 'ROUND ' + Math.ceil(round / 5);
-      if (rt) rt.textContent = 'TURN ' + round;
 
       // Flip attacker for next turn
       turnSide = isLeftAttacking ? 'right' : 'left';
@@ -3449,7 +3507,6 @@
           if (valL) valL.textContent = maxA;
           if (valR) valR.textContent = maxB;
           if (rl) rl.textContent = 'ROUND 1';
-          if (rt) rt.textContent = 'TURN 1';
           if (pfState && pfState.live_match) startBattleAnimation(pfState.live_match.fighter_a, pfState.live_match.fighter_b);
         }, 3000);
       }
