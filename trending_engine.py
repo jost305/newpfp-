@@ -49,7 +49,7 @@ except Exception as _mee_err:
 # ─────────────────────────────────────────────────────────────────────────────
 
 DEXSCREENER = "https://api.dexscreener.com"
-REFRESH_INTERVAL = 5 * 60          # seconds between full refresh cycles
+REFRESH_INTERVAL = 60              # seconds between full refresh cycles
 AVATAR_SIZE = 200                   # px for circular avatar
 MAX_RECENT_BATTLES = 30
 

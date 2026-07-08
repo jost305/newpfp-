@@ -4072,8 +4072,8 @@
       const el = document.querySelector('#' + id + ' img');
       if (el) el.src = src || '';
     };
-    setImg('pf-fia-left', fA.processed_avatar);
-    setImg('pf-fia-right', fB.processed_avatar);
+    setImg('pf-fia-left', fA.processed_avatar || fA.image_uri);
+    setImg('pf-fia-right', fB.processed_avatar || fB.image_uri);
     document.getElementById('pf-fin-left').textContent = fA.display_name;
     document.getElementById('pf-fin-right').textContent = fB.display_name;
     document.getElementById('pf-fic-left').textContent = (fA.chain || '').toUpperCase();
@@ -4082,8 +4082,8 @@
     document.getElementById('pf-fib-right').textContent = fmtMcap(fB.market_cap_usd);
 
     // Big avatars
-    document.getElementById('pf-ba-left-img').src = fA.processed_avatar || '';
-    document.getElementById('pf-ba-right-img').src = fB.processed_avatar || '';
+    document.getElementById('pf-ba-left-img').src = fA.processed_avatar || fA.image_uri || '';
+    document.getElementById('pf-ba-right-img').src = fB.processed_avatar || fB.image_uri || '';
 
     // Match label
     document.getElementById('pf-match-label').textContent = match.label || 'PumpFighters Battle';
@@ -4343,14 +4343,15 @@
       if (f.chain === 'bsc') { chainEmoji = '&#x1F7E1;'; badgeClass = 'orange'; }
       if (f.chain === 'base') { chainEmoji = '&#x1F535;'; badgeClass = 'destructive'; }
 
-      const avatarStyle = f.processed_avatar
-        ? 'background-image:url(' + f.processed_avatar + '); background-size:cover; background-position:center; font-size:0;'
+      const avatarSrc = f.processed_avatar || f.image_uri;
+      const avatarStyle = avatarSrc
+        ? 'background-image:url(' + avatarSrc + '); background-size:cover; background-position:center; font-size:0;'
         : '';
 
       return '<div class="fighter-card">' +
         '<div class="rank-badge ' + badgeClass + '">' + (i + 1) + '</div>' +
         '<div class="fc-header">' +
-          '<div class="fc-avatar" style="' + avatarStyle + '">' + (f.processed_avatar ? '' : chainEmoji) + '</div>' +
+          '<div class="fc-avatar" style="' + avatarStyle + '">' + (avatarSrc ? '' : chainEmoji) + '</div>' +
           '<div class="fc-meta"><div class="fc-name">' + f.display_name + '</div>' +
           '<div class="fc-holders">' + (f.full_name || '') + '</div></div>' +
         '</div>' +
@@ -4392,12 +4393,13 @@
 
     container.innerHTML = data.map((s, i) => {
       const rankLabel = i === 0 ? '&#x1F947;' : i === 1 ? '&#x1F948;' : i === 2 ? '&#x1F949;' : (i + 1);
-      const avatarStyle = s.processed_avatar
-        ? 'background-image:url(' + s.processed_avatar + '); background-size:cover; background-position:center; border-radius:50%; width:32px; height:32px; display:inline-block;'
+      const lbAvatarSrc = s.processed_avatar || s.image_uri;
+      const avatarStyle = lbAvatarSrc
+        ? 'background-image:url(' + lbAvatarSrc + '); background-size:cover; background-position:center; border-radius:50%; width:32px; height:32px; display:inline-block;'
         : 'font-size:20px;';
       return '<div class="full-lb-row">' +
         '<div class="full-lb-rank">' + rankLabel + '</div>' +
-        '<div class="full-lb-avatar" style="' + avatarStyle + '">' + (s.processed_avatar ? '' : '&#x1F680;') + '</div>' +
+        '<div class="full-lb-avatar" style="' + avatarStyle + '">' + (lbAvatarSrc ? '' : '&#x1F680;') + '</div>' +
         '<div class="full-lb-info"><div class="full-lb-name">' + s.display_name + '</div>' +
         '<div class="full-lb-meta">' + (s.wins||0) + 'W / ' + (s.losses||0) + 'L</div></div>' +
         '<div class="full-lb-bc">' + (s.chain || '').toUpperCase() + '</div></div>';
