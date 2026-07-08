@@ -3287,6 +3287,13 @@
       loadPumpfighters();
     }
     
+    // PFP Mode polling
+    if (view === 'pfpmode') {
+      startPFPPolling();
+    } else {
+      stopPFPPolling();
+    }
+
     // Persist state in URL hash
     window.location.hash = view;
   }
@@ -4134,10 +4141,15 @@
     btn.innerHTML = hasAgentKit ? '🔗 Provisioning CDP Wallet...' : '⚙️ Initializing Eliza OS...';
 
     try {
+      // Collect identity from Privy if available
+      const wallet       = window.currentWalletAddress || '';
+      const tgAccount    = window.privyUser?.linkedAccounts?.find(a => a.type === 'telegram');
+      const telegramUserId = tgAccount?.telegramUserId || tgAccount?.userId || '';
+
       const res = await fetch('/api/pfp/deploy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, imageUrl, collection, class: cls, traits, hp, atk, def, spd, agentKit: hasAgentKit }),
+        body: JSON.stringify({ name, imageUrl, collection, class: cls, traits, hp, atk, def, spd, agentKit: hasAgentKit, walletAddress: wallet, telegramUserId }),
       });
       const data = await res.json();
 
@@ -4198,6 +4210,137 @@
   window.cpSync = cpSync;
   window.cpLoadPreset = cpLoadPreset;
   window.cpDeploy = cpDeploy;
+
+  // ── PFP MODE — live state polling & rendering ──────────────────────────
+  let _pfpPollTimer   = null;
+  let _pfpAnimTimer   = null;
+  let _pfpLastMatchId = null;
+
+  function startPFPPolling() {
+    if (_pfpPollTimer) return;
+    fetchPFPState();
+    _pfpPollTimer = setInterval(fetchPFPState, 3000);
+  }
+
+  function stopPFPPolling() {
+    if (_pfpPollTimer) { clearInterval(_pfpPollTimer); _pfpPollTimer = null; }
+    if (_pfpAnimTimer) { clearInterval(_pfpAnimTimer); _pfpAnimTimer = null; }
+  }
+
+  async function fetchPFPState() {
+    try {
+      const res  = await fetch('/api/pfp/state');
+      const data = await res.json();
+      renderPFPState(data);
+    } catch (e) { /* silent — arena still shows waiting state */ }
+  }
+
+  function renderPFPState(data) {
+    const waiting  = document.getElementById('av-waiting');
+    const liveEl   = document.getElementById('av-live-match');
+    if (!liveEl) return;
+
+    const match = data && data.live_match;
+
+    // ── Waiting / no match ─────────────────────────────────────────────
+    if (!match || match.status === 'finished') {
+      if (waiting) waiting.style.display = 'flex';
+      liveEl.style.display = 'none';
+      if (_pfpAnimTimer) { clearInterval(_pfpAnimTimer); _pfpAnimTimer = null; }
+
+      // Show queued count as a hint
+      const qEl = document.getElementById('av-queue-info');
+      if (qEl && data) {
+        const q = data.queued_count || 0;
+        qEl.textContent = q === 0
+          ? 'Deploy a fighter to enter the queue.'
+          : q === 1
+          ? '1 fighter queued — need 1 more to start.'
+          : `${q} fighters queued — match incoming!`;
+      }
+
+      // If a recent battle just finished, show result in trollbox
+      if (data && data.recent_battles && data.recent_battles.length) {
+        const last = data.recent_battles[0];
+        if (last && last.match_id !== _pfpLastMatchId) {
+          _pfpLastMatchId = last.match_id;
+          _appendTrollboxEntry(`🏆 <b>${last.winner_name}</b> won vs ${last.fighter_a_name === last.winner_name ? last.fighter_b_name : last.fighter_a_name} in ${last.rounds} rounds`);
+        }
+      }
+      return;
+    }
+
+    // ── Live match ─────────────────────────────────────────────────────
+    if (waiting) waiting.style.display = 'none';
+    liveEl.style.display = 'flex';
+
+    const fa  = match.fighter_a;
+    const fb  = match.fighter_b;
+    const log = match.rounds_log || [];
+
+    // Avatars — info bar
+    const setImg = (id, src) => {
+      const el = document.querySelector('#' + id + ' img');
+      if (el) { el.src = src || ''; el.style.display = src ? 'block' : 'none'; }
+    };
+    setImg('av-fia-left',  fa.avatarUrl);
+    setImg('av-fia-right', fb.avatarUrl);
+    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    setText('av-fin-left',  fa.name);
+    setText('av-fin-right', fb.name);
+    setText('av-fic-left',  fa.collection || fa.class || 'PFP');
+    setText('av-fic-right', fb.collection || fb.class || 'PFP');
+
+    // Big battle avatars
+    const imgL = document.getElementById('av-ba-left-img');
+    const imgR = document.getElementById('av-ba-right-img');
+    if (imgL) imgL.src = fa.avatarUrl || '';
+    if (imgR) imgR.src = fb.avatarUrl || '';
+
+    // BC pool
+    setText('av-round-energy', `\uD83E\uDE99 ${(match.bc_pool || 576).toLocaleString()} BC Pool`);
+
+    // Detect new match
+    if (match.match_id !== _pfpLastMatchId) {
+      _pfpLastMatchId = match.match_id;
+      if (_pfpAnimTimer) { clearInterval(_pfpAnimTimer); _pfpAnimTimer = null; }
+      _appendTrollboxEntry(`\u2694\uFE0F PFP Battle: <b>${fa.name}</b> vs <b>${fb.name}</b>`);
+    }
+
+    // Derive current round from elapsed time
+    const elapsed       = data.elapsed_secs || 0;
+    const secsPerRound  = match.secs_per_round || 2;
+    const currentRound  = Math.min(Math.floor(elapsed / secsPerRound), log.length - 1);
+    const entry         = log[currentRound] || log[log.length - 1] || {};
+    const maxHpA        = match.max_hp_a || fa.hp || 120;
+    const maxHpB        = match.max_hp_b || fb.hp || 120;
+    const hpA           = entry.hp_a != null ? entry.hp_a : maxHpA;
+    const hpB           = entry.hp_b != null ? entry.hp_b : maxHpB;
+    const pctA          = Math.max(0, Math.round(hpA / maxHpA * 100));
+    const pctB          = Math.max(0, Math.round(hpB / maxHpB * 100));
+
+    // HP bars
+    const barL = document.getElementById('av-hp-left');
+    const barR = document.getElementById('av-hp-right');
+    const valL = document.getElementById('av-hp-left-val');
+    const valR = document.getElementById('av-hp-right-val');
+    if (barL) { barL.style.width = pctA + '%'; barL.className = 'pf-hp-bar-fill ' + (pctA > 50 ? 'green' : pctA > 25 ? 'yellow' : 'red'); }
+    if (barR) { barR.style.width = pctB + '%'; barR.className = 'pf-hp-bar-fill ' + (pctB > 50 ? 'green' : pctB > 25 ? 'yellow' : 'red'); }
+    if (valL) valL.textContent = hpA;
+    if (valR) valR.textContent = hpB;
+
+    // Round label
+    setText('av-round-label', `ROUND ${currentRound + 1}`);
+  }
+
+  function _appendTrollboxEntry(html) {
+    const box = document.getElementById('trollbox-entries');
+    if (!box) return;
+    const el  = document.createElement('div');
+    el.className = 'trollbox-msg system-msg';
+    el.innerHTML = html;
+    box.prepend(el);
+  }
 
   // -- PUMPFIGHTERS LIVE DATA --
   let pfState = null;
@@ -4326,6 +4469,8 @@
     const leftCombatant = combatants[0];
     const rightCombatant = combatants[1];
     const spellCards = document.querySelectorAll('.pf-bottom-spell, .spell-icon');
+    const hpBarL = document.getElementById('pf-hp-left');
+    const hpBarR = document.getElementById('pf-hp-right');
 
     if (pfBattleAnimTimer) clearInterval(pfBattleAnimTimer);
     pfBattleAnimTimer = setInterval(() => {
