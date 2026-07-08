@@ -467,6 +467,7 @@ if _HAS_TRENDING:
         time.sleep(2)
         try:
             _te.ensure_tables()
+            _te.bootstrap_state_from_db()   # pre-fill state from last known DB data
             _te.start_background_refresh()
         except Exception as e:
             print(f"[serve.py] Engine boot error: {e}", flush=True)

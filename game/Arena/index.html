@@ -4115,6 +4115,7 @@
     const combatants = document.querySelectorAll('#pf-live-match .pf-combatant');
     const leftCombatant = combatants[0];
     const rightCombatant = combatants[1];
+    const spellCards = document.querySelectorAll('.pf-bottom-spell, .spell-icon');
 
     if (pfBattleAnimTimer) clearInterval(pfBattleAnimTimer);
     pfBattleAnimTimer = setInterval(() => {
