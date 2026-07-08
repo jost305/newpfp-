@@ -3153,7 +3153,7 @@
     }
     if (privyLoginHandler) {
       privyLoginHandler({
-        loginMethods: ['wallet', 'email', 'google', 'twitter', 'discord', 'github', 'passkey'],
+        loginMethods: ['wallet', 'email', 'google', 'twitter', 'telegram', 'discord', 'github', 'passkey'],
       });
       return;
     }
@@ -3178,13 +3178,15 @@
         privyLoginHandler = login;
       }, [login]);
 
-      // Expose wallet address globally so other JS can use it for API calls
+      // Expose wallet address and full user object globally
       React.useEffect(() => {
         if (authenticated && user) {
           const wallet = user.wallet?.address || user.linkedAccounts?.find(a => a.type === 'wallet')?.address || '';
           window.currentWalletAddress = wallet.toLowerCase();
+          window.privyUser = user;          // expose so cpImportPFP & deploy can read linkedAccounts
         } else {
           window.currentWalletAddress = '';
+          window.privyUser = null;
         }
       }, [authenticated, user]);
 
@@ -3231,7 +3233,7 @@
         {
           appId: PRIVY_APP_ID,
           config: {
-            loginMethods: ['wallet', 'email', 'google', 'twitter', 'discord', 'github', 'passkey'],
+            loginMethods: ['wallet', 'email', 'google', 'twitter', 'telegram', 'discord', 'github', 'passkey'],
             appearance: {
               theme: 'dark',
               accentColor: '#f59e0b',
@@ -4020,25 +4022,74 @@
     }
   }
 
-  function cpImportPFP(source) {
-    let mockUrl = '';
-    let mockName = '';
-    
-    if (source === 'twitter') {
-      mockUrl = 'https://i.seadn.io/gae/BdxvLseXcfl57BiuQcQYdJ64v-aI8din7eo5TIgMiOSB1_W-Mh-M9gT4K-V-n_sB6B-B-aA?auto=format&w=256';
-      mockName = '@bantahchad';
-    } else if (source === 'telegram') {
-      mockUrl = 'https://i.seadn.io/gcs/files/6c2bb12b6f3ee8c8230b80e81c7ff083.png?auto=format&w=256';
-      mockName = 'TG_Degen_99';
-    } else if (source === 'wallet') {
-      mockUrl = 'https://i.seadn.io/gae/rS7Kx8Ett0G16rU2tJubv7qFwW41q4E6-D3wD_wL1N1yZ5zW8P6xV_N9rV0?auto=format&w=256';
-      mockName = 'Bored Ape #4512';
+  async function cpImportPFP(source) {
+    const user = window.privyUser;
+    if (!user) {
+      alert('Please log in first to import your PFP.');
+      return;
     }
-    
-    document.getElementById('cp-image-url').value = mockUrl;
-    document.getElementById('cp-name').value = mockName;
-    
-    _cpSetAvatar(mockUrl);
+
+    let imageUrl = '';
+    let name     = '';
+
+    if (source === 'twitter') {
+      // Privy stores twitter_oauth linked accounts with profilePictureUrl
+      const twAcc = user.linkedAccounts?.find(a =>
+        a.type === 'twitter_oauth' || a.type === 'twitter'
+      );
+      if (!twAcc) {
+        alert('No Twitter / X account linked. Link it via your Privy account first.');
+        return;
+      }
+      // Use the highest-res variant if available (_normal → _400x400)
+      imageUrl = (twAcc.profilePictureUrl || '').replace('_normal', '_400x400');
+      name     = twAcc.name || twAcc.username || '@twitter';
+
+    } else if (source === 'telegram') {
+      // Privy stores telegram linked accounts with photoUrl / firstName
+      const tgAcc = user.linkedAccounts?.find(a => a.type === 'telegram');
+      if (!tgAcc) {
+        alert('No Telegram account linked. Link it via your Privy account first.');
+        return;
+      }
+      imageUrl = tgAcc.photoUrl || tgAcc.photo_url || '';
+      name     = tgAcc.firstName || tgAcc.username || 'TG User';
+
+    } else if (source === 'wallet') {
+      const wallet = window.currentWalletAddress;
+      if (!wallet) {
+        alert('Connect a wallet first.');
+        return;
+      }
+      // Proxy through our server so Alchemy key stays server-side
+      const btn = event?.target;
+      if (btn) { btn.textContent = '⏳ Fetching…'; btn.disabled = true; }
+      try {
+        const res  = await fetch(`/api/nfts?wallet=${encodeURIComponent(wallet)}`);
+        const data = await res.json();
+        if (data.error || !data.nfts?.length) {
+          alert('No NFTs found for this wallet, or the lookup failed. Paste a URL manually.');
+          return;
+        }
+        const nft  = data.nfts[0];
+        imageUrl   = nft.imageUrl || '';
+        name       = nft.name    || 'My NFT';
+        // Populate collection field too
+        const collEl = document.getElementById('cp-collection');
+        if (collEl && nft.collection) collEl.value = nft.collection;
+      } finally {
+        if (btn) { btn.textContent = '👛 Wallet NFT'; btn.disabled = false; }
+      }
+    }
+
+    if (!imageUrl) {
+      alert('Could not retrieve an image. Try pasting a URL manually.');
+      return;
+    }
+
+    document.getElementById('cp-image-url').value = imageUrl;
+    document.getElementById('cp-name').value       = name;
+    _cpSetAvatar(imageUrl);
     cpSync();
   }
 

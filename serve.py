@@ -43,7 +43,8 @@ def query_db(sql, params=(), fetchone=False):
 PORT = int(os.environ.get("PORT", 5000))
 GAME_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "game")
 INDEX_PATH = os.path.join(GAME_DIR, "Arena", "index.html")
-PRIVY_APP_ID = os.environ.get("PRIVY_APP_ID", "")
+PRIVY_APP_ID    = os.environ.get("PRIVY_APP_ID", "")
+ALCHEMY_API_KEY = os.environ.get("ALCHEMY_API_KEY", "") or os.environ.get("VITE_ALCHEMY_API_KEY", "")
 STATE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_state.json")
 TELEGRAM_BOT_TOKEN = os.environ.get("BANTAHBRO_TELEGRAM_BOT_TOKEN", "")
 
@@ -648,6 +649,43 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     "queued_count":    sum(1 for f in STATE.get("pfp_fighters", [])
                                           if f.get("status") == "queued"),
                 })
+            return
+
+        if path == "/api/nfts":
+            qs     = parse_qs(urlparse(self.path).query)
+            wallet = (qs.get("wallet") or [""])[0].strip()
+            if not wallet:
+                self.send_json({"error": "wallet required"}, 400)
+                return
+            if not ALCHEMY_API_KEY:
+                self.send_json({"error": "NFT lookup unavailable"}, 503)
+                return
+            import urllib.request as _ur
+            nfts = []
+            # Try Base first (most common for this app's audience), then Ethereum
+            for chain_slug in ("base-mainnet", "eth-mainnet"):
+                try:
+                    url = (f"https://{chain_slug}.g.alchemy.com/nft/v3/{ALCHEMY_API_KEY}"
+                           f"/getNFTsForOwner?owner={wallet}&withMetadata=true&pageSize=20")
+                    req = _ur.Request(url, headers={"Accept": "application/json"})
+                    with _ur.urlopen(req, timeout=8) as resp:
+                        data = json.loads(resp.read())
+                    for item in data.get("ownedNfts", []):
+                        img = (item.get("image") or {}).get("cachedUrl") or \
+                              (item.get("image") or {}).get("originalUrl") or \
+                              item.get("metadata", {}).get("image", "")
+                        if img:
+                            nfts.append({
+                                "name":       item.get("name") or item.get("contract", {}).get("name", "NFT"),
+                                "collection": item.get("contract", {}).get("name", ""),
+                                "imageUrl":   img,
+                                "chain":      chain_slug.split("-")[0],
+                            })
+                    if nfts:
+                        break
+                except Exception as _e:
+                    print(f"[serve.py] /api/nfts {chain_slug} error: {_e}", flush=True)
+            self.send_json({"nfts": nfts[:20]})
             return
 
         if path in {"/", ""}:
