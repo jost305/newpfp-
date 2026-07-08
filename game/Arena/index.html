@@ -4114,33 +4114,80 @@
     cpSync();
   }
 
-  function cpDeploy() {
+  async function cpDeploy() {
     const btn = document.querySelector('.cp-deploy-btn');
     if (btn.disabled) return;
-    
-    const name = document.getElementById('cp-name').value || 'UNNAMED FIGHTER';
+
+    const name = (document.getElementById('cp-name').value || '').trim() || 'UNNAMED FIGHTER';
     const hasAgentKit = document.getElementById('cp-agentkit-toggle').checked;
-    
+    const imageUrl = (document.getElementById('cp-image-url').value || '').trim();
+    const collection = (document.getElementById('cp-collection').value || '').trim();
+    const cls = (document.getElementById('cp-class').value || '').trim();
+    const traits = (document.getElementById('cp-traits').value || '').trim();
+    const hp  = parseInt(document.getElementById('cp-hp').value)  || 100;
+    const atk = parseInt(document.getElementById('cp-atk').value) || 15;
+    const def = parseInt(document.getElementById('cp-def').value) || 15;
+    const spd = parseInt(document.getElementById('cp-spd').value) || 10;
+
     btn.disabled = true;
-    btn.innerHTML = '⚙️ Initializing Eliza OS...';
     btn.style.opacity = '0.7';
-    
-    setTimeout(() => {
-      if (hasAgentKit) {
-        btn.innerHTML = '🔗 Provisioning CDP Wallet...';
-        setTimeout(() => {
-          btn.innerHTML = '✅ Fighter Deployed!';
-          btn.style.background = '#14F195';
-          btn.style.color = '#000';
-          setTimeout(() => alert('Fighter ' + name + ' (Powered by Eliza OS & Base AgentKit) has been successfully deployed to the Arena!'), 500);
-        }, 1500);
-      } else {
-        btn.innerHTML = '✅ Fighter Deployed!';
-        btn.style.background = '#14F195';
-        btn.style.color = '#000';
-        setTimeout(() => alert('Fighter ' + name + ' (Powered by Eliza OS) has been successfully deployed to the Arena!'), 500);
+    btn.innerHTML = hasAgentKit ? '🔗 Provisioning CDP Wallet...' : '⚙️ Initializing Eliza OS...';
+
+    try {
+      const res = await fetch('/api/pfp/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, imageUrl, collection, class: cls, traits, hp, atk, def, spd, agentKit: hasAgentKit }),
+      });
+      const data = await res.json();
+
+      if (!data.ok) throw new Error(data.error || 'Deploy failed');
+
+      btn.innerHTML = '✅ Fighter Deployed!';
+      btn.style.background = '#14F195';
+      btn.style.color = '#000';
+      btn.style.opacity = '1';
+
+      // Update profile stat counters instantly
+      const myAgentsEl = document.getElementById('profile-my-agents');
+      if (myAgentsEl) myAgentsEl.textContent = (data.myAgents ?? 0).toLocaleString();
+      const queueEl = document.getElementById('profile-queue');
+      if (queueEl) queueEl.textContent = (data.queue ?? 0).toLocaleString();
+
+      // Inject notification into the live list
+      if (data.notification) {
+        profileState.notifications = [data.notification, ...(profileState.notifications || [])];
+        renderNotifications();
       }
-    }, 1500);
+
+      // Show a toast banner — no blocking alert
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#14F195;color:#000;padding:12px 28px;border-radius:12px;font-weight:700;font-size:14px;z-index:9999;box-shadow:0 4px 24px rgba(20,241,149,0.45);pointer-events:none;';
+      toast.textContent = '\u2694\uFE0F ' + name + ' entered the queue!';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+
+      // Reset button after a moment
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '\u2694\uFE0F DEPLOY FIGHTER';
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 4000);
+
+    } catch (e) {
+      console.error('cpDeploy:', e);
+      btn.innerHTML = '\u274C Deploy Failed';
+      btn.style.background = '#ef4444';
+      btn.style.color = '#fff';
+      btn.style.opacity = '1';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '\u2694\uFE0F DEPLOY FIGHTER';
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 3000);
+    }
   }
 
   window.cpLoadEliza = cpLoadEliza;

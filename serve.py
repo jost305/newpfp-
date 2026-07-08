@@ -100,16 +100,17 @@ DEFAULT_NOTIFICATIONS = [
 
 def load_state():
     if not os.path.exists(STATE_PATH):
-        return {"profile": dict(DEFAULT_PROFILE), "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS]}
+        return {"profile": dict(DEFAULT_PROFILE), "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS], "pfp_fighters": []}
     try:
         with open(STATE_PATH, "r", encoding="utf-8") as fh:
             data = json.load(fh)
         return {
             "profile": {**DEFAULT_PROFILE, **(data.get("profile") or {})},
             "notifications": data.get("notifications") or [dict(n) for n in DEFAULT_NOTIFICATIONS],
+            "pfp_fighters": data.get("pfp_fighters") or [],
         }
     except Exception:
-        return {"profile": dict(DEFAULT_PROFILE), "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS]}
+        return {"profile": dict(DEFAULT_PROFILE), "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS], "pfp_fighters": []}
 
 
 def save_state(state):
@@ -228,7 +229,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                                 "losses": f.get("losses", 0),
                                 "fameScore": float(f.get("fame_score", 0))} 
                                for f in state["fighters"][:30]]
-            
+
+            # Merge in locally-deployed PFP fighters (always included)
+            pfp_ids = {f["id"] for f in fighters}
+            for pf in STATE.get("pfp_fighters", []):
+                if pf["id"] not in pfp_ids:
+                    fighters.append({
+                        "id": pf["id"],
+                        "name": pf.get("name", ""),
+                        "avatarUrl": pf.get("avatarUrl", ""),
+                        "wins": pf.get("wins", 0),
+                        "losses": pf.get("losses", 0),
+                        "fameScore": float(pf.get("fameScore", 0)),
+                    })
+
             self.send_json(fighters)
             return
         # ── PumpFighters Engine endpoints ──────────────────────────────────
@@ -369,6 +383,64 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             super().do_GET()
         except (BrokenPipeError, ConnectionResetError):
             pass
+
+    def do_POST(self):
+        import uuid
+        path = urlparse(self.path).path
+        if path == "/api/pfp/deploy":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length).decode("utf-8") if length else "{}"
+            try:
+                payload = json.loads(body or "{}")
+            except Exception:
+                self.send_json({"error": "Invalid JSON"}, 400)
+                return
+
+            fighter_id = uuid.uuid4().hex[:8]
+            fighter = {
+                "id": fighter_id,
+                "name": (payload.get("name") or "UNNAMED FIGHTER").strip(),
+                "avatarUrl": payload.get("imageUrl", ""),
+                "collection": payload.get("collection", ""),
+                "class": payload.get("class", ""),
+                "traits": payload.get("traits", ""),
+                "hp": int(payload.get("hp") or 100),
+                "atk": int(payload.get("atk") or 15),
+                "def": int(payload.get("def") or 15),
+                "spd": int(payload.get("spd") or 10),
+                "agentKit": bool(payload.get("agentKit", False)),
+                "wins": 0,
+                "losses": 0,
+                "fameScore": 0.0,
+                "status": "queued",
+                "deployedAt": datetime.now(timezone.utc).isoformat(),
+            }
+
+            STATE.setdefault("pfp_fighters", []).append(fighter)
+            STATE["profile"]["myAgents"] = int(STATE["profile"].get("myAgents") or 0) + 1
+            STATE["profile"]["queue"] = int(STATE["profile"].get("queue") or 0) + 1
+
+            notif = {
+                "id": f"pfp-{fighter_id}",
+                "type": "queue",
+                "title": "Fighter entered the queue",
+                "message": f"{fighter['name']} has been deployed and is waiting for a match.",
+                "icon": "⚔️",
+                "read": False,
+                "createdAt": datetime.now(timezone.utc).isoformat(),
+            }
+            STATE["notifications"].insert(0, notif)
+            save_state(STATE)
+
+            self.send_json({
+                "ok": True,
+                "fighter": fighter,
+                "queue": STATE["profile"]["queue"],
+                "myAgents": STATE["profile"]["myAgents"],
+                "notification": notif,
+            })
+            return
+        self.send_json({"error": "Not found"}, 404)
 
     def do_PUT(self):
         path = urlparse(self.path).path
