@@ -136,6 +136,7 @@
       background: hsl(var(--bb-primary));
     }
     .nav-tab.create { color: var(--bb-accent); }
+    .nav-tab-icon { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 2px; display: inline-block; }
     .mobile-menu-btn {
       display: none;
       width: 28px; height: 28px; border-radius: 7px;
@@ -1764,8 +1765,8 @@
     <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong>50 <span class="live-badge">LIVE</span></strong></div>
   </div>
   <div class="nav-tabs">
-    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)">🚀 PumpFighters</button>
-    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)">🖼 PFP Mode</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)"><img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)"><img src="/Arena/loading%20screen/pfp-arena-loading.jpg" class="nav-tab-icon" alt=""> PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this)">⚔️ Fighters</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this)">✨ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this)">Marketplace</button>
@@ -1774,8 +1775,8 @@
   </div>
   <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
   <div class="mobile-nav-dropdown" id="mobile-nav-dropdown">
-    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">🚀 PumpFighters</button>
-    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();">🖼 PFP Mode</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();"><img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();"><img src="/Arena/loading%20screen/pfp-arena-loading.jpg" class="nav-tab-icon" alt=""> PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">⚔️ Fighters</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">✨ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this); closeMobileMenu();">Marketplace</button>
@@ -1925,7 +1926,7 @@
 
       <!-- Waiting state (shown when no live match) -->
       <div class="pf-waiting" id="pf-waiting">
-        <img src="/Arena/assets/bota-logo.jpg" class="pf-waiting-logo" alt="Loading...">
+        <img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="pf-waiting-logo" alt="Loading...">
         <div class="pf-loading-bar"><div class="pf-loading-bar-fill"></div></div>
       </div>
 
@@ -2067,7 +2068,7 @@
 
       <!-- Waiting state (shown when no live match) -->
       <div class="pf-waiting" id="av-waiting" style="display:none;">
-        <img src="/Arena/assets/bota-logo.jpg" class="pf-waiting-logo" alt="Loading...">
+        <img src="/Arena/loading%20screen/pfp-arena-loading.jpg" class="pf-waiting-logo" alt="Loading...">
         <div class="pf-loading-bar"><div class="pf-loading-bar-fill"></div></div>
       </div>
 
@@ -4071,8 +4072,8 @@
       const el = document.querySelector('#' + id + ' img');
       if (el) el.src = src || '';
     };
-    setImg('pf-fia-left', fA.processed_avatar);
-    setImg('pf-fia-right', fB.processed_avatar);
+    setImg('pf-fia-left', fA.processed_avatar || fA.image_uri);
+    setImg('pf-fia-right', fB.processed_avatar || fB.image_uri);
     document.getElementById('pf-fin-left').textContent = fA.display_name;
     document.getElementById('pf-fin-right').textContent = fB.display_name;
     document.getElementById('pf-fic-left').textContent = (fA.chain || '').toUpperCase();
@@ -4081,8 +4082,8 @@
     document.getElementById('pf-fib-right').textContent = fmtMcap(fB.market_cap_usd);
 
     // Big avatars
-    document.getElementById('pf-ba-left-img').src = fA.processed_avatar || '';
-    document.getElementById('pf-ba-right-img').src = fB.processed_avatar || '';
+    document.getElementById('pf-ba-left-img').src = fA.processed_avatar || fA.image_uri || '';
+    document.getElementById('pf-ba-right-img').src = fB.processed_avatar || fB.image_uri || '';
 
     // Match label
     document.getElementById('pf-match-label').textContent = match.label || 'PumpFighters Battle';
@@ -4114,6 +4115,7 @@
     const combatants = document.querySelectorAll('#pf-live-match .pf-combatant');
     const leftCombatant = combatants[0];
     const rightCombatant = combatants[1];
+    const spellCards = document.querySelectorAll('.pf-bottom-spell, .spell-icon');
 
     if (pfBattleAnimTimer) clearInterval(pfBattleAnimTimer);
     pfBattleAnimTimer = setInterval(() => {
@@ -4342,14 +4344,15 @@
       if (f.chain === 'bsc') { chainEmoji = '&#x1F7E1;'; badgeClass = 'orange'; }
       if (f.chain === 'base') { chainEmoji = '&#x1F535;'; badgeClass = 'destructive'; }
 
-      const avatarStyle = f.processed_avatar
-        ? 'background-image:url(' + f.processed_avatar + '); background-size:cover; background-position:center; font-size:0;'
+      const avatarSrc = f.processed_avatar || f.image_uri;
+      const avatarStyle = avatarSrc
+        ? 'background-image:url(' + avatarSrc + '); background-size:cover; background-position:center; font-size:0;'
         : '';
 
       return '<div class="fighter-card">' +
         '<div class="rank-badge ' + badgeClass + '">' + (i + 1) + '</div>' +
         '<div class="fc-header">' +
-          '<div class="fc-avatar" style="' + avatarStyle + '">' + (f.processed_avatar ? '' : chainEmoji) + '</div>' +
+          '<div class="fc-avatar" style="' + avatarStyle + '">' + (avatarSrc ? '' : chainEmoji) + '</div>' +
           '<div class="fc-meta"><div class="fc-name">' + f.display_name + '</div>' +
           '<div class="fc-holders">' + (f.full_name || '') + '</div></div>' +
         '</div>' +
@@ -4391,12 +4394,13 @@
 
     container.innerHTML = data.map((s, i) => {
       const rankLabel = i === 0 ? '&#x1F947;' : i === 1 ? '&#x1F948;' : i === 2 ? '&#x1F949;' : (i + 1);
-      const avatarStyle = s.processed_avatar
-        ? 'background-image:url(' + s.processed_avatar + '); background-size:cover; background-position:center; border-radius:50%; width:32px; height:32px; display:inline-block;'
+      const lbAvatarSrc = s.processed_avatar || s.image_uri;
+      const avatarStyle = lbAvatarSrc
+        ? 'background-image:url(' + lbAvatarSrc + '); background-size:cover; background-position:center; border-radius:50%; width:32px; height:32px; display:inline-block;'
         : 'font-size:20px;';
       return '<div class="full-lb-row">' +
         '<div class="full-lb-rank">' + rankLabel + '</div>' +
-        '<div class="full-lb-avatar" style="' + avatarStyle + '">' + (s.processed_avatar ? '' : '&#x1F680;') + '</div>' +
+        '<div class="full-lb-avatar" style="' + avatarStyle + '">' + (lbAvatarSrc ? '' : '&#x1F680;') + '</div>' +
         '<div class="full-lb-info"><div class="full-lb-name">' + s.display_name + '</div>' +
         '<div class="full-lb-meta">' + (s.wins||0) + 'W / ' + (s.losses||0) + 'L</div></div>' +
         '<div class="full-lb-bc">' + (s.chain || '').toUpperCase() + '</div></div>';

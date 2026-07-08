@@ -233,43 +233,82 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
         # ── PumpFighters Engine endpoints ──────────────────────────────────
         if path == "/api/pumpfighters/state":
-            if _HAS_TRENDING:
-                s = _te.get_state()
-                # Sanitise: make datetime objects JSON-safe
-                def _clean(obj):
-                    if isinstance(obj, dict):
-                        return {k: _clean(v) for k, v in obj.items()}
-                    if isinstance(obj, list):
-                        return [_clean(i) for i in obj]
-                    if hasattr(obj, "isoformat"):
-                        return obj.isoformat()
-                    return obj
-                self.send_json(_clean(s))
-            else:
-                self.send_json({"fighters": [], "live_match": None,
-                                "recent_battles": [], "last_refreshed": None,
-                                "error": "engine not available"})
+            try:
+                if _HAS_TRENDING:
+                    s = _te.get_state()
+                    def _clean(obj):
+                        if isinstance(obj, dict):
+                            return {k: _clean(v) for k, v in obj.items()}
+                        if isinstance(obj, list):
+                            return [_clean(i) for i in obj]
+                        if isinstance(obj, bytes):
+                            return obj.decode("utf-8", errors="replace")
+                        if hasattr(obj, "isoformat"):
+                            return obj.isoformat()
+                        try:
+                            from decimal import Decimal
+                            if isinstance(obj, Decimal):
+                                return float(obj)
+                        except ImportError:
+                            pass
+                        return obj
+                    def _strip_avatars(obj):
+                        """Remove heavy base64 processed_avatar fields; keep image_uri."""
+                        if isinstance(obj, dict):
+                            return {k: (_strip_avatars(v) if k != "processed_avatar" else None)
+                                    for k, v in obj.items()}
+                        if isinstance(obj, list):
+                            return [_strip_avatars(i) for i in obj]
+                        return obj
+                    payload = _strip_avatars(_clean(s))
+                    self.send_json(payload)
+                else:
+                    self.send_json({"fighters": [], "live_match": None,
+                                    "recent_battles": [], "last_refreshed": None,
+                                    "error": "engine not available"})
+            except Exception as _e:
+                import traceback
+                print(f"[serve.py] /api/pumpfighters/state error: {_e}\n{traceback.format_exc()}", flush=True)
+                try:
+                    self.send_json({"error": str(_e)}, 500)
+                except Exception:
+                    pass
             return
 
         if path == "/api/pumpfighters/leaderboard":
-            qs = parse_qs(urlparse(self.path).query)
-            chain = (qs.get("chain") or ["all"])[0]
-            limit = int((qs.get("limit") or ["30"])[0])
-            if _HAS_TRENDING:
-                rows = _te.get_leaderboard(chain=chain, limit=limit)
-                def _clean_row(r):
-                    out = {}
-                    for k, v in r.items():
-                        if hasattr(v, "isoformat"):
-                            out[k] = v.isoformat()
-                        elif isinstance(v, (list, set)):
-                            out[k] = list(v)
-                        else:
-                            out[k] = v
-                    return out
-                self.send_json([_clean_row(r) for r in rows])
-            else:
-                self.send_json([])
+            try:
+                qs = parse_qs(urlparse(self.path).query)
+                chain = (qs.get("chain") or ["all"])[0]
+                limit = int((qs.get("limit") or ["30"])[0])
+                if _HAS_TRENDING:
+                    rows = _te.get_leaderboard(chain=chain, limit=limit)
+                    from decimal import Decimal as _Decimal
+                    def _clean_row(r):
+                        out = {}
+                        for k, v in r.items():
+                            if k == "processed_avatar":
+                                out[k] = None  # strip heavy base64
+                            elif isinstance(v, _Decimal):
+                                out[k] = float(v)
+                            elif hasattr(v, "isoformat"):
+                                out[k] = v.isoformat()
+                            elif isinstance(v, (list, set)):
+                                out[k] = list(v)
+                            elif isinstance(v, bytes):
+                                out[k] = v.decode("utf-8", errors="replace")
+                            else:
+                                out[k] = v
+                        return out
+                    self.send_json([_clean_row(r) for r in rows])
+                else:
+                    self.send_json([])
+            except Exception as _e:
+                import traceback
+                print(f"[serve.py] /api/pumpfighters/leaderboard error: {_e}\n{traceback.format_exc()}", flush=True)
+                try:
+                    self.send_json({"error": str(_e)}, 500)
+                except Exception:
+                    pass
             return
 
         if path == "/api/pumpfighters/recent-battles":
@@ -428,6 +467,7 @@ if _HAS_TRENDING:
         time.sleep(2)
         try:
             _te.ensure_tables()
+            _te.bootstrap_state_from_db()   # pre-fill state from last known DB data
             _te.start_background_refresh()
         except Exception as e:
             print(f"[serve.py] Engine boot error: {e}", flush=True)

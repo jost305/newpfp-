@@ -49,7 +49,7 @@ except Exception as _mee_err:
 # ─────────────────────────────────────────────────────────────────────────────
 
 DEXSCREENER = "https://api.dexscreener.com"
-REFRESH_INTERVAL = 5 * 60          # seconds between full refresh cycles
+REFRESH_INTERVAL = 60              # seconds between full refresh cycles
 AVATAR_SIZE = 200                   # px for circular avatar
 MAX_RECENT_BATTLES = 30
 
@@ -1138,6 +1138,42 @@ def _background_loop():
         sleep_for = max(30, REFRESH_INTERVAL - elapsed)
         print(f"[TrendingEngine] Next refresh in {int(sleep_for)}s.", flush=True)
         time.sleep(sleep_for)
+
+
+def bootstrap_state_from_db():
+    """
+    Immediately populate in-memory state from the DB so the API returns data
+    right after boot — before the first full refresh cycle completes.
+    No-op when the DB is unavailable or empty.
+    """
+    if not (_HAS_DB and DATABASE_URL):
+        return
+    try:
+        fighters = load_active_fighters_from_db()
+        if not fighters:
+            return
+        # Convert DB rows (dicts or Row objects) to plain dicts
+        clean = []
+        for f in fighters:
+            d = dict(f) if not isinstance(f, dict) else f
+            for k in ["wins", "losses", "win_streak", "global_rank", "chain_rank"]:
+                if d.get(k) is None:
+                    d[k] = 0 if k not in ("global_rank", "chain_rank") else 999
+            clean.append(d)
+
+        # Pick a live match from the existing fighters
+        match_queue = build_match_queue(clean)
+        live_match = match_queue[0] if match_queue else None
+
+        with _lock:
+            _state["fighters"]       = clean
+            _state["live_match"]     = live_match
+            _state["last_refreshed"] = _state.get("last_refreshed")
+            _state["is_refreshing"]  = False
+
+        print(f"[TrendingEngine] Bootstrapped {len(clean)} fighters from DB.", flush=True)
+    except Exception as e:
+        print(f"[TrendingEngine] Bootstrap failed (non-fatal): {e}", flush=True)
 
 
 def start_background_refresh():
