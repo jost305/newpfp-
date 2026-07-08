@@ -136,6 +136,7 @@
       background: hsl(var(--bb-primary));
     }
     .nav-tab.create { color: var(--bb-accent); }
+    .nav-tab-icon { width: 18px; height: 18px; border-radius: 4px; object-fit: cover; vertical-align: middle; margin-right: 2px; display: inline-block; }
     .mobile-menu-btn {
       display: none;
       width: 28px; height: 28px; border-radius: 7px;
@@ -1764,8 +1765,8 @@
     <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong>50 <span class="live-badge">LIVE</span></strong></div>
   </div>
   <div class="nav-tabs">
-    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)">🚀 PumpFighters</button>
-    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)">🖼 PFP Mode</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)"><img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)"><img src="/Arena/loading%20screen/pfp-arena-loading.jpg" class="nav-tab-icon" alt=""> PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this)">⚔️ Fighters</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this)">✨ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this)">Marketplace</button>
@@ -1774,8 +1775,8 @@
   </div>
   <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
   <div class="mobile-nav-dropdown" id="mobile-nav-dropdown">
-    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">🚀 PumpFighters</button>
-    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();">🖼 PFP Mode</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();"><img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();"><img src="/Arena/loading%20screen/pfp-arena-loading.jpg" class="nav-tab-icon" alt=""> PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">⚔️ Fighters</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">✨ Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this); closeMobileMenu();">Marketplace</button>
