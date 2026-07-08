@@ -42,43 +42,86 @@ const dbClient = new Pool({
 dbClient.on('error', err => {
   console.error('Unexpected error on idle db client', err);
 });
+
+async function ensureBotaTables() {
+  await dbClient.query(`
+    CREATE TABLE IF NOT EXISTS bota_chat_messages (
+      id SERIAL PRIMARY KEY,
+      user_name VARCHAR(100),
+      wallet_address VARCHAR(100),
+      message TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+  await dbClient.query(`
+    CREATE TABLE IF NOT EXISTS bota_notifications (
+      id SERIAL PRIMARY KEY,
+      user_id VARCHAR(100),
+      title VARCHAR(100),
+      message TEXT,
+      type VARCHAR(50),
+      icon VARCHAR(10),
+      read BOOLEAN DEFAULT false,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`);
+  await dbClient.query(`ALTER TABLE bota_notifications ADD COLUMN IF NOT EXISTS read BOOLEAN DEFAULT false`);
+  await dbClient.query(`
+    CREATE TABLE IF NOT EXISTS bota_arena_battles (
+      id SERIAL PRIMARY KEY,
+      p1_wallet VARCHAR(100),
+      p1_agent VARCHAR(180),
+      p2_wallet VARCHAR(100),
+      p2_agent VARCHAR(180),
+      status VARCHAR(20) DEFAULT 'queued',
+      winner VARCHAR(100),
+      is_pfp BOOLEAN DEFAULT false,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  await dbClient.query(`ALTER TABLE bota_arena_battles ADD COLUMN IF NOT EXISTS is_pfp BOOLEAN DEFAULT false`);
+  await dbClient.query(`
+    CREATE TABLE IF NOT EXISTS bota_fighter_profiles (
+      agent_id VARCHAR(180) PRIMARY KEY NOT NULL,
+      display_name VARCHAR(120) NOT NULL,
+      origin VARCHAR(32) NOT NULL DEFAULT 'bota',
+      origin_id VARCHAR(180),
+      agent_class VARCHAR(40) NOT NULL DEFAULT 'striker',
+      archetype VARCHAR(40) NOT NULL DEFAULT 'signal_striker',
+      league VARCHAR(80) NOT NULL DEFAULT 'Open League',
+      rank INTEGER,
+      avatar_url TEXT,
+      badge_label VARCHAR(80),
+      ens_name VARCHAR(160),
+      wallet_address VARCHAR(128),
+      external_url TEXT,
+      token_symbol VARCHAR(64),
+      token_name VARCHAR(160),
+      chain_id VARCHAR(64),
+      wins INTEGER NOT NULL DEFAULT 0,
+      losses INTEGER NOT NULL DEFAULT 0,
+      current_streak INTEGER NOT NULL DEFAULT 0,
+      fame_score NUMERIC(12, 2) NOT NULL DEFAULT 0,
+      watchers INTEGER NOT NULL DEFAULT 0,
+      challenge_volume INTEGER NOT NULL DEFAULT 0,
+      titles JSONB NOT NULL DEFAULT '[]'::jsonb,
+      tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+      last_battle_id VARCHAR(255),
+      metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+      imported_at TIMESTAMP DEFAULT NOW(),
+      last_seen_at TIMESTAMP DEFAULT NOW(),
+      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+      is_pfp BOOLEAN DEFAULT false
+    )
+  `);
+  await dbClient.query(`ALTER TABLE bota_fighter_profiles ADD COLUMN IF NOT EXISTS is_pfp BOOLEAN DEFAULT false`);
+}
+
 dbClient.connect().then(async () => {
   // Ensure chat table exists
   try {
-    await dbClient.query(`
-      CREATE TABLE IF NOT EXISTS bota_chat_messages (
-        id SERIAL PRIMARY KEY,
-        user_name VARCHAR(100),
-        wallet_address VARCHAR(100),
-        message TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`);
-      await dbClient.query(`
-        CREATE TABLE IF NOT EXISTS bota_notifications (
-          id SERIAL PRIMARY KEY,
-          user_id VARCHAR(100),
-          title VARCHAR(100),
-          message TEXT,
-          type VARCHAR(50),
-          icon VARCHAR(10),
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
-      await dbClient.query(`
-        CREATE TABLE IF NOT EXISTS bota_arena_battles (
-        id SERIAL PRIMARY KEY,
-        p1_wallet VARCHAR(100),
-        p1_agent VARCHAR(100),
-        p2_wallet VARCHAR(100),
-        p2_agent VARCHAR(100),
-        status VARCHAR(20) DEFAULT 'queued',
-        winner VARCHAR(100),
-        is_pfp BOOLEAN DEFAULT false,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-      await dbClient.query(`ALTER TABLE bota_arena_battles ADD COLUMN IF NOT EXISTS is_pfp BOOLEAN DEFAULT false`);
-    console.log('Battles table verified.');
+    await ensureBotaTables();
+    console.log('BOTA tables verified.');
   } catch (err) {
     console.error('Failed to create tables:', err);
   }
@@ -86,7 +129,380 @@ dbClient.connect().then(async () => {
 
 const LEGACY_AGENTS = [];
 
+const PFP_OPPONENTS = [
+  { id: 'arena:robopepe', name: 'Robo Pepe', avatarUrl: '' },
+  { id: 'arena:floatrobo', name: 'Floatrobo', avatarUrl: '' },
+  { id: 'arena:crimsonbot', name: 'Crimsonbot', avatarUrl: '' },
+  { id: 'arena:voidbot', name: 'Voidbot', avatarUrl: '' }
+];
+
+function slugify(value) {
+  const cleaned = String(value || 'pfp')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return (cleaned || 'pfp').slice(0, 48);
+}
+
+function clampInt(value, min, max, fallback) {
+  const parsed = parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(max, parsed));
+}
+
+function normalizePfpPayload(body = {}) {
+  const name = String(body.name || '').trim();
+  if (!name) return { error: 'Fighter name is required' };
+
+  const wallet = String(body.wallet || body.walletAddress || '').trim();
+  const collection = String(body.collection || '').trim();
+  const className = String(body.className || body.class || 'striker').trim() || 'striker';
+  const image = String(body.image || body.avatarUrl || '').trim();
+  const traits = Array.isArray(body.traits)
+    ? body.traits.map((trait) => String(trait).trim()).filter(Boolean)
+    : String(body.traits || '').split(',').map((trait) => trait.trim()).filter(Boolean);
+  const stats = body.stats && typeof body.stats === 'object' ? body.stats : {};
+  const normalizedStats = {
+    hp: clampInt(stats.hp, 60, 220, 120),
+    attack: clampInt(stats.attack ?? stats.atk, 5, 45, 25),
+    defense: clampInt(stats.defense ?? stats.def, 0, 35, 15),
+    speed: clampInt(stats.speed ?? stats.spd, 5, 24, 12),
+  };
+  const timestamp = Date.now();
+  const agentId = `pfp:${slugify(wallet || collection || name)}:${timestamp}`;
+
+  return {
+    fighter: {
+      id: agentId,
+      agentId,
+      name: name.toUpperCase(),
+      displayName: name.toUpperCase(),
+      collection,
+      className,
+      traits,
+      avatarUrl: image,
+      image,
+      wallet,
+      wins: 0,
+      losses: 0,
+      points: 0,
+      status: 'queued',
+      isPfp: true,
+      stats: normalizedStats,
+    }
+  };
+}
+
+function mapNotification(row) {
+  return {
+    id: String(row.id),
+    type: row.type,
+    title: row.title,
+    message: row.message,
+    icon: row.icon || 'PFP',
+    read: Boolean(row.read),
+    createdAt: row.created_at,
+  };
+}
+
+function mapProfile(row) {
+  return {
+    id: row.agent_id,
+    agentId: row.agent_id,
+    name: row.display_name,
+    displayName: row.display_name,
+    avatarUrl: row.avatar_url,
+    wallet: row.wallet_address,
+    wins: row.wins || 0,
+    losses: row.losses || 0,
+    points: Number(row.fame_score || 0),
+    status: row.is_pfp ? 'pfp' : 'active',
+    isPfp: Boolean(row.is_pfp),
+  };
+}
+
 app.use(express.json());
+
+app.get('/api/profile', async (req, res) => {
+  try {
+    const wallet = String(req.query.wallet || '').trim();
+    res.json({
+      id: 'local-user',
+      username: 'bantahbro',
+      firstName: 'Bantah',
+      lastName: 'Bro',
+      walletAddress: wallet,
+      primaryWalletAddress: wallet,
+      status: 'Ready',
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to load profile' });
+  }
+});
+
+app.get('/api/stats', async (req, res) => {
+  try {
+    await ensureBotaTables();
+    const wallet = String(req.query.wallet || '').trim().toLowerCase();
+    const stats = { myAgents: 0, queue: 0, bantCredit: 0, bantcClaim: 0, earnedUsdc: 0, status: 'Ready' };
+
+    if (wallet) {
+      const agentsRes = await dbClient.query(
+        "SELECT COUNT(*) AS count FROM bota_fighter_profiles WHERE LOWER(wallet_address) = $1 AND COALESCE(is_pfp, false) = true",
+        [wallet]
+      );
+      stats.myAgents = parseInt(agentsRes.rows[0]?.count || 0, 10);
+
+      const queueRes = await dbClient.query(
+        "SELECT COUNT(*) AS count FROM bota_arena_battles WHERE LOWER(p1_wallet) = $1 AND status = 'queued' AND COALESCE(is_pfp, false) = true",
+        [wallet]
+      );
+      stats.queue = parseInt(queueRes.rows[0]?.count || 0, 10);
+
+      try {
+        const balanceRes = await dbClient.query(
+          'SELECT balance FROM bantcredit_balances WHERE LOWER(wallet_address) = $1',
+          [wallet]
+        );
+        stats.bantCredit = Number(balanceRes.rows[0]?.balance || 0);
+      } catch (error) {}
+    }
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Stats API Error:', error);
+    res.status(500).json({ error: 'Failed to load stats' });
+  }
+});
+
+app.get('/api/my-agents', async (req, res) => {
+  try {
+    await ensureBotaTables();
+    const wallet = String(req.query.wallet || '').trim().toLowerCase();
+    if (!wallet) return res.json([]);
+
+    const { rows } = await dbClient.query(
+      `SELECT agent_id, display_name, avatar_url, wins, losses, fame_score, wallet_address, is_pfp
+       FROM bota_fighter_profiles
+       WHERE LOWER(wallet_address) = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [wallet]
+    );
+    res.json(rows.map(mapProfile));
+  } catch (error) {
+    console.error('My Agents API Error:', error);
+    res.status(500).json({ error: 'Failed to load agents' });
+  }
+});
+
+app.get('/api/fighters', async (req, res) => {
+  try {
+    await ensureBotaTables();
+    const { rows } = await dbClient.query(
+      `SELECT agent_id, display_name, avatar_url, wins, losses, fame_score, wallet_address, is_pfp
+       FROM bota_fighter_profiles
+       ORDER BY COALESCE(is_pfp, false) DESC, fame_score DESC, wins DESC, created_at DESC
+       LIMIT 50`
+    );
+    res.json(rows.map(mapProfile));
+  } catch (error) {
+    console.error('Fighters API Error:', error);
+    res.status(500).json({ error: 'Failed to load fighters' });
+  }
+});
+
+app.get('/api/notifications', async (req, res) => {
+  try {
+    await ensureBotaTables();
+    const { rows } = await dbClient.query(
+      'SELECT * FROM bota_notifications ORDER BY created_at DESC LIMIT 20'
+    );
+    res.json(rows.map(mapNotification));
+  } catch (error) {
+    console.error('Notifications API Error:', error);
+    res.status(500).json({ error: 'Failed to load notifications' });
+  }
+});
+
+app.patch('/api/notifications/read-all', async (req, res) => {
+  try {
+    await ensureBotaTables();
+    await dbClient.query('UPDATE bota_notifications SET read = true');
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to mark notifications read' });
+  }
+});
+
+app.patch('/api/notifications/:id/read', async (req, res) => {
+  try {
+    await ensureBotaTables();
+    await dbClient.query('UPDATE bota_notifications SET read = true WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to mark notification read' });
+  }
+});
+
+app.get('/api/pfp/state', async (req, res) => {
+  try {
+    await ensureBotaTables();
+    const wallet = String(req.query.wallet || '').trim().toLowerCase();
+    const params = [];
+    let where = 'WHERE COALESCE(is_pfp, false) = true';
+    if (wallet) {
+      params.push(wallet);
+      where += ` AND LOWER(p1_wallet) = $${params.length}`;
+    }
+
+    const battlesRes = await dbClient.query(
+      `SELECT * FROM bota_arena_battles ${where} ORDER BY created_at DESC LIMIT 10`,
+      params
+    );
+    const battle = battlesRes.rows[0] || null;
+    let fighter = null;
+    if (battle?.p1_agent) {
+      const profileRes = await dbClient.query(
+        'SELECT agent_id, display_name, avatar_url, wins, losses, fame_score, wallet_address, is_pfp FROM bota_fighter_profiles WHERE agent_id = $1 LIMIT 1',
+        [battle.p1_agent]
+      );
+      fighter = profileRes.rows[0] ? mapProfile(profileRes.rows[0]) : null;
+    }
+
+    const queueRes = await dbClient.query(
+      `SELECT COUNT(*) AS count FROM bota_arena_battles ${where} AND status = 'queued'`,
+      params
+    );
+
+    const opponent = battle ? PFP_OPPONENTS.find((item) => item.id === battle.p2_agent) : null;
+    res.json({
+      fighter,
+      battle: battle ? {
+        id: battle.id,
+        p1Agent: battle.p1_agent,
+        p1Name: fighter?.name || battle.p1_agent,
+        p1Wallet: battle.p1_wallet,
+        p1AvatarUrl: fighter?.avatarUrl || '',
+        p2Agent: battle.p2_agent,
+        p2Name: opponent?.name || battle.p2_agent,
+        p2Wallet: battle.p2_wallet,
+        p2AvatarUrl: opponent?.avatarUrl || '',
+        status: battle.status,
+        isPfp: Boolean(battle.is_pfp),
+        createdAt: battle.created_at,
+        updatedAt: battle.updated_at,
+      } : null,
+      queue: parseInt(queueRes.rows[0]?.count || 0, 10),
+      battles: battlesRes.rows,
+    });
+  } catch (error) {
+    console.error('PFP State API Error:', error);
+    res.status(500).json({ error: 'Failed to load PFP state' });
+  }
+});
+
+app.post('/api/pfp/deploy', async (req, res) => {
+  try {
+    await ensureBotaTables();
+    const normalized = normalizePfpPayload(req.body || {});
+    if (normalized.error) return res.status(400).json({ error: normalized.error });
+
+    const fighter = normalized.fighter;
+    const liveRes = await dbClient.query(
+      "SELECT COUNT(*) AS count FROM bota_arena_battles WHERE status = 'live'"
+    );
+    const liveCount = parseInt(liveRes.rows[0]?.count || 0, 10);
+    const status = liveCount < 3 ? 'live' : 'queued';
+    fighter.status = status;
+
+    const opponent = PFP_OPPONENTS[(Date.now() + fighter.name.length) % PFP_OPPONENTS.length];
+    const metadata = {
+      collection: fighter.collection,
+      traits: fighter.traits,
+      stats: fighter.stats,
+      source: 'pfp-create',
+    };
+
+    await dbClient.query(
+      `INSERT INTO bota_fighter_profiles (
+        agent_id, display_name, origin, origin_id, agent_class, archetype, league,
+        avatar_url, badge_label, wallet_address, fame_score, tags, metadata,
+        is_pfp, last_seen_at, updated_at
+      ) VALUES (
+        $1, $2, 'pfp', $3, $4, 'pfp_challenger', 'PFP League',
+        $5, 'PFP', $6, 50, $7::jsonb, $8::jsonb,
+        true, NOW(), NOW()
+      )
+      ON CONFLICT (agent_id) DO UPDATE SET
+        display_name = EXCLUDED.display_name,
+        agent_class = EXCLUDED.agent_class,
+        avatar_url = EXCLUDED.avatar_url,
+        wallet_address = EXCLUDED.wallet_address,
+        tags = EXCLUDED.tags,
+        metadata = EXCLUDED.metadata,
+        is_pfp = true,
+        updated_at = NOW()`,
+      [
+        fighter.id,
+        fighter.displayName,
+        fighter.collection || fighter.id,
+        fighter.className,
+        fighter.avatarUrl || null,
+        fighter.wallet || null,
+        JSON.stringify(fighter.traits || []),
+        JSON.stringify(metadata),
+      ]
+    );
+
+    const battleRes = await dbClient.query(
+      `INSERT INTO bota_arena_battles (p1_wallet, p1_agent, p2_wallet, p2_agent, status, is_pfp)
+       VALUES ($1, $2, $3, $4, $5, true)
+       RETURNING *`,
+      [fighter.wallet || 'pfp.guest', fighter.id, 'arena.sim', opponent.id, status]
+    );
+    const battleRow = battleRes.rows[0];
+    const title = status === 'live' ? 'PFP battle live' : 'PFP fighter queued';
+    const message = status === 'live'
+      ? `${fighter.displayName} vs ${opponent.name}`
+      : `${fighter.displayName} is waiting for the arena.`;
+    await dbClient.query(
+      `INSERT INTO bota_notifications (title, message, type, icon, read)
+       VALUES ($1, $2, $3, $4, false)`,
+      [title, message, status === 'live' ? 'pfp_battle' : 'pfp_queue', 'PFP']
+    );
+
+    const queueRes = await dbClient.query(
+      `SELECT COUNT(*) AS count FROM bota_arena_battles
+       WHERE LOWER(p1_wallet) = LOWER($1) AND status = 'queued' AND COALESCE(is_pfp, false) = true`,
+      [fighter.wallet || 'pfp.guest']
+    );
+
+    res.json({
+      success: true,
+      fighter,
+      battle: {
+        id: battleRow.id,
+        p1Agent: battleRow.p1_agent,
+        p1Name: fighter.displayName,
+        p1Wallet: battleRow.p1_wallet,
+        p1AvatarUrl: fighter.avatarUrl,
+        p2Agent: battleRow.p2_agent,
+        p2Name: opponent.name,
+        p2Wallet: battleRow.p2_wallet,
+        p2AvatarUrl: opponent.avatarUrl,
+        status: battleRow.status,
+        isPfp: Boolean(battleRow.is_pfp),
+        createdAt: battleRow.created_at,
+        updatedAt: battleRow.updated_at,
+      },
+      queue: parseInt(queueRes.rows[0]?.count || 0, 10),
+    });
+  } catch (error) {
+    console.error('PFP Deploy API Error:', error);
+    res.status(500).json({ error: 'Failed to deploy PFP fighter' });
+  }
+});
 
 app.get('/api/bantahbro/profile', async (req, res) => {
   try {

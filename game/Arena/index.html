@@ -2605,6 +2605,7 @@
     if (target) target.classList.add('active');
 
     document.getElementById('notif-dropdown').classList.remove('open');
+    if (view === 'pfpmode') loadPfpState();
     
     // Persist state in URL hash
     window.location.hash = view;
@@ -2729,7 +2730,12 @@
       ...options,
     });
     if (!response.ok) {
-      throw new Error('Request failed');
+      let message = 'Request failed';
+      try {
+        const data = await response.clone().json();
+        message = data.error || data.message || message;
+      } catch (error) {}
+      throw new Error(message);
     }
     return response.headers.get('content-type')?.includes('application/json') ? response.json() : response.text();
   }
@@ -3233,9 +3239,18 @@
     val = Math.max(minV, Math.min(maxV, val));
     const pct = ((val - minV) / (maxV - minV)) * 100;
 
+    document.getElementById('cp-' + stat).value = val;
     document.getElementById('cp-' + stat + '-bar').style.width = pct + '%';
     document.getElementById('prev-' + stat + '-bar').style.width = pct + '%';
     document.getElementById('prev-' + stat + '-val').textContent = val;
+  }
+
+  function cpReadStat(stat, minV, maxV) {
+    let val = parseInt(document.getElementById('cp-' + stat).value, 10);
+    if (isNaN(val)) val = minV;
+    val = Math.max(minV, Math.min(maxV, val));
+    document.getElementById('cp-' + stat).value = val;
+    return val;
   }
 
   function cpSync() {
@@ -3336,6 +3351,181 @@
     }, 1500);
   }
 
+  function cpCurrentImage() {
+    const img = document.getElementById('cp-avatar-img');
+    const imageAttr = img && img.style.display !== 'none' ? (img.getAttribute('src') || '') : '';
+    return imageAttr || document.getElementById('cp-image-url').value.trim();
+  }
+
+  function setImage(id, src) {
+    const el = document.getElementById(id);
+    if (el) el.src = src || '';
+  }
+
+  function setNestedImage(containerId, src) {
+    const img = document.querySelector('#' + containerId + ' img');
+    if (img) img.src = src || '';
+  }
+
+  function setPfpAvatarOnElement(el, image, fallback) {
+    el.textContent = '';
+    if (image) {
+      const img = document.createElement('img');
+      img.src = image;
+      img.alt = '';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      img.style.borderRadius = 'inherit';
+      el.appendChild(img);
+    } else {
+      el.textContent = fallback;
+    }
+  }
+
+  function renderPfpMode(data) {
+    if (!data || (!data.fighter && !data.battle)) return;
+    const fighter = data.fighter || {};
+    const battle = data.battle || {};
+    const name = fighter.displayName || fighter.name || battle.p1Name || 'PFP FIGHTER';
+    const image = fighter.avatarUrl || fighter.image || battle.p1AvatarUrl || '';
+    const status = (battle.status || fighter.status || 'queued').toLowerCase();
+    const opponentName = battle.p2Name || 'Arena Opponent';
+    const queueLabel = status === 'queued'
+      ? 'QUEUE #' + (battle.queuePosition || data.queue || 1)
+      : 'LIVE IN ARENA';
+
+    const setText = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+
+    setText('av-fin-left', name);
+    setText('av-fic-left', fighter.className ? fighter.className.toUpperCase() : 'PFP');
+    setText('av-fib-left', queueLabel);
+    setText('av-fin-right', opponentName);
+    setText('av-fic-right', 'ARENA');
+    setText('av-fib-right', status === 'live' ? 'SIM OPPONENT' : 'MATCHMAKING');
+    setText('av-match-label', status === 'live' ? 'PFP Battle Live' : 'PFP Fighter Queued');
+    setText('av-round-energy', queueLabel);
+    setText('av-hp-left-val', fighter.stats?.hp || 100);
+    setText('av-hp-right-val', 100);
+    setNestedImage('av-fia-left', image);
+    setNestedImage('av-fia-right', battle.p2AvatarUrl || '');
+    setImage('av-ba-left-img', image);
+    setImage('av-ba-right-img', battle.p2AvatarUrl || '');
+
+    const list = document.getElementById('av-fighters-list');
+    if (list) {
+      list.innerHTML = '';
+      const card = document.createElement('div');
+      card.className = 'fighter-card';
+      const header = document.createElement('div');
+      header.className = 'fc-header';
+      const avatar = document.createElement('div');
+      avatar.className = 'fc-avatar';
+      setPfpAvatarOnElement(avatar, image, 'PFP');
+      const meta = document.createElement('div');
+      meta.className = 'fc-meta';
+      const cardName = document.createElement('div');
+      cardName.className = 'fc-name';
+      cardName.textContent = name;
+      const sub = document.createElement('div');
+      sub.className = 'fc-holders';
+      sub.textContent = fighter.collection || 'Imported PFP';
+      meta.appendChild(cardName);
+      meta.appendChild(sub);
+      header.appendChild(avatar);
+      header.appendChild(meta);
+      const rewards = document.createElement('div');
+      rewards.className = 'fc-rewards';
+      rewards.textContent = queueLabel;
+      card.appendChild(header);
+      card.appendChild(rewards);
+      list.appendChild(card);
+    }
+  }
+
+  async function loadPfpState() {
+    const wallet = window.currentWalletAddress || profileState.profile?.walletAddress || '';
+    try {
+      const qs = wallet ? '?wallet=' + encodeURIComponent(wallet) : '';
+      const data = await api('/api/pfp/state' + qs);
+      renderPfpMode(data);
+      return data;
+    } catch (error) {
+      console.warn('PFP state unavailable', error);
+      return null;
+    }
+  }
+
+  async function cpDeploy() {
+    const btn = document.querySelector('.cp-deploy-btn');
+    if (btn && btn.disabled) return;
+
+    const name = document.getElementById('cp-name').value.trim();
+    if (!name) {
+      alert('Give your fighter a name first.');
+      return;
+    }
+
+    const wallet = window.currentWalletAddress || profileState.profile?.walletAddress || '';
+    if (!wallet) {
+      alert('Connect your wallet first - click LOGIN in the top bar.');
+      return;
+    }
+
+    cpSync();
+    const payload = {
+      name: name,
+      collection: document.getElementById('cp-collection').value.trim(),
+      className: document.getElementById('cp-class').value,
+      traits: document.getElementById('cp-traits').value.split(',').map(t => t.trim()).filter(Boolean),
+      image: cpCurrentImage(),
+      stats: {
+        hp: cpReadStat('hp', 60, 220),
+        attack: cpReadStat('atk', 5, 45),
+        defense: cpReadStat('def', 0, 35),
+        speed: cpReadStat('spd', 5, 24),
+      },
+      wallet: wallet,
+      elizaPersona: document.getElementById('cp-eliza-persona').value.trim(),
+      agentkitEnabled: document.getElementById('cp-agentkit-toggle').checked,
+    };
+
+    const oldText = btn ? btn.innerHTML : '';
+    const oldOpacity = btn ? btn.style.opacity : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'QUEUEING...';
+      btn.style.opacity = '0.7';
+    }
+
+    try {
+      const result = await api('/api/pfp/deploy', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      renderPfpMode(result);
+      await Promise.all([loadNotifications(), loadUserStats(wallet), loadMyAgents(wallet)]);
+      const pfpTab = document.querySelector('.nav-tab[data-view="pfpmode"]');
+      if (pfpTab) setTab(pfpTab);
+      const status = (result.battle?.status || 'queued').toLowerCase();
+      alert(status === 'live'
+        ? 'Fighter deployed. Your PFP battle is live.'
+        : 'Fighter deployed. You are in the PFP queue.');
+    } catch (error) {
+      console.error('PFP deploy failed', error);
+      alert(error.message || 'Could not deploy fighter.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = oldText || 'DEPLOY FIGHTER';
+        btn.style.opacity = oldOpacity;
+      }
+    }
+  }
+
   window.cpLoadEliza = cpLoadEliza;
   window.cpImportPFP = cpImportPFP;
   window.cpHandleFile = cpHandleFile;
@@ -3344,6 +3534,7 @@
   window.cpSync = cpSync;
   window.cpLoadPreset = cpLoadPreset;
   window.cpDeploy = cpDeploy;
+  window.loadPfpState = loadPfpState;
 
   // -- PUMPFIGHTERS LIVE DATA --
   let pfState = null;

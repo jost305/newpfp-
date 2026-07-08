@@ -22,6 +22,7 @@ except ImportError:
     _HAS_DB = False
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+_BOTA_TABLES_READY = False
 
 
 def query_db(sql, params=(), fetchone=False):
@@ -37,6 +38,123 @@ def query_db(sql, params=(), fetchone=False):
     except Exception as e:
         print(f"DB error: {e}", flush=True)
         return None
+
+
+def exec_db(sql, params=(), fetchone=False):
+    if not _HAS_DB or not DATABASE_URL:
+        return None
+    try:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(sql, params)
+        result = cur.fetchone() if fetchone and cur.description else None
+        conn.commit()
+        conn.close()
+        return result
+    except Exception as e:
+        print(f"DB exec error: {e}", flush=True)
+        return None
+
+
+def ensure_bota_tables():
+    global _BOTA_TABLES_READY
+    if _BOTA_TABLES_READY:
+        return True
+    if not _HAS_DB or not DATABASE_URL:
+        return False
+
+    exec_db("""
+        CREATE TABLE IF NOT EXISTS bota_fighter_profiles (
+            agent_id VARCHAR(180) PRIMARY KEY NOT NULL,
+            display_name VARCHAR(120) NOT NULL,
+            origin VARCHAR(32) NOT NULL DEFAULT 'bota',
+            origin_id VARCHAR(180),
+            agent_class VARCHAR(40) NOT NULL DEFAULT 'striker',
+            archetype VARCHAR(40) NOT NULL DEFAULT 'signal_striker',
+            league VARCHAR(80) NOT NULL DEFAULT 'Open League',
+            rank INTEGER,
+            avatar_url TEXT,
+            badge_label VARCHAR(80),
+            ens_name VARCHAR(160),
+            wallet_address VARCHAR(128),
+            external_url TEXT,
+            token_symbol VARCHAR(64),
+            token_name VARCHAR(160),
+            chain_id VARCHAR(64),
+            wins INTEGER NOT NULL DEFAULT 0,
+            losses INTEGER NOT NULL DEFAULT 0,
+            current_streak INTEGER NOT NULL DEFAULT 0,
+            fame_score NUMERIC(12, 2) NOT NULL DEFAULT 0,
+            watchers INTEGER NOT NULL DEFAULT 0,
+            challenge_volume INTEGER NOT NULL DEFAULT 0,
+            titles JSONB NOT NULL DEFAULT '[]'::jsonb,
+            tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+            last_battle_id VARCHAR(255),
+            metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+            imported_at TIMESTAMP DEFAULT NOW(),
+            last_seen_at TIMESTAMP DEFAULT NOW(),
+            created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+            updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+            is_pfp BOOLEAN DEFAULT false
+        )
+    """)
+    exec_db("ALTER TABLE bota_fighter_profiles ADD COLUMN IF NOT EXISTS is_pfp BOOLEAN DEFAULT false")
+    exec_db("""
+        CREATE TABLE IF NOT EXISTS bota_arena_battles (
+            id SERIAL PRIMARY KEY,
+            p1_wallet VARCHAR(100),
+            p1_agent VARCHAR(180),
+            p2_wallet VARCHAR(100),
+            p2_agent VARCHAR(180),
+            status VARCHAR(20) DEFAULT 'queued',
+            winner VARCHAR(100),
+            is_pfp BOOLEAN DEFAULT false,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    exec_db("ALTER TABLE bota_arena_battles ADD COLUMN IF NOT EXISTS is_pfp BOOLEAN DEFAULT false")
+    exec_db("""
+        CREATE TABLE IF NOT EXISTS bota_notifications (
+            id SERIAL PRIMARY KEY,
+            user_id VARCHAR(100),
+            title VARCHAR(100),
+            message TEXT,
+            type VARCHAR(50),
+            icon VARCHAR(10),
+            read BOOLEAN DEFAULT false,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    exec_db("ALTER TABLE bota_notifications ADD COLUMN IF NOT EXISTS read BOOLEAN DEFAULT false")
+    _BOTA_TABLES_READY = True
+    return True
+
+
+def now_iso():
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def slugify(value):
+    cleaned = "".join(ch.lower() if ch.isalnum() else "-" for ch in str(value or "pfp"))
+    cleaned = "-".join(part for part in cleaned.split("-") if part)
+    return cleaned[:48] or "pfp"
+
+
+def clamp_int(value, min_value, max_value, fallback):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        parsed = fallback
+    return max(min_value, min(max_value, parsed))
+
+
+PFP_OPPONENTS = [
+    {"id": "arena:robopepe", "name": "Robo Pepe", "avatarUrl": ""},
+    {"id": "arena:floatrobo", "name": "Floatrobo", "avatarUrl": ""},
+    {"id": "arena:crimsonbot", "name": "Crimsonbot", "avatarUrl": ""},
+    {"id": "arena:voidbot", "name": "Voidbot", "avatarUrl": ""},
+]
 
 PORT = 8080
 GAME_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "game")
@@ -100,16 +218,28 @@ DEFAULT_NOTIFICATIONS = [
 
 def load_state():
     if not os.path.exists(STATE_PATH):
-        return {"profile": dict(DEFAULT_PROFILE), "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS]}
+        return {
+            "profile": dict(DEFAULT_PROFILE),
+            "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS],
+            "pfpFighters": [],
+            "pfpBattles": [],
+        }
     try:
         with open(STATE_PATH, "r", encoding="utf-8") as fh:
             data = json.load(fh)
         return {
             "profile": {**DEFAULT_PROFILE, **(data.get("profile") or {})},
             "notifications": data.get("notifications") or [dict(n) for n in DEFAULT_NOTIFICATIONS],
+            "pfpFighters": data.get("pfpFighters") or [],
+            "pfpBattles": data.get("pfpBattles") or [],
         }
     except Exception:
-        return {"profile": dict(DEFAULT_PROFILE), "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS]}
+        return {
+            "profile": dict(DEFAULT_PROFILE),
+            "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS],
+            "pfpFighters": [],
+            "pfpBattles": [],
+        }
 
 
 def save_state(state):
@@ -118,6 +248,227 @@ def save_state(state):
 
 
 STATE = load_state()
+
+
+def pfp_rows_for_wallet(wallet):
+    wallet = (wallet or "").strip().lower()
+    if not wallet:
+        return list(STATE.get("pfpFighters", []))
+    return [
+        fighter for fighter in STATE.get("pfpFighters", [])
+        if str(fighter.get("wallet") or "").lower() == wallet
+    ]
+
+
+def pfp_battles_for_wallet(wallet):
+    wallet = (wallet or "").strip().lower()
+    if not wallet:
+        return list(STATE.get("pfpBattles", []))
+    return [
+        battle for battle in STATE.get("pfpBattles", [])
+        if str(battle.get("p1Wallet") or "").lower() == wallet
+    ]
+
+
+def local_pfp_state(wallet):
+    battles = sorted(
+        pfp_battles_for_wallet(wallet),
+        key=lambda battle: battle.get("createdAt") or "",
+        reverse=True,
+    )
+    fighters = pfp_rows_for_wallet(wallet)
+    latest_battle = battles[0] if battles else None
+    latest_fighter = None
+    if latest_battle:
+        latest_fighter = next(
+            (fighter for fighter in fighters if fighter.get("id") == latest_battle.get("p1Agent")),
+            None,
+        )
+    if not latest_fighter and fighters:
+        latest_fighter = sorted(fighters, key=lambda fighter: fighter.get("createdAt") or "", reverse=True)[0]
+    return {
+        "fighter": latest_fighter,
+        "battle": latest_battle,
+        "queue": sum(1 for battle in battles if battle.get("status") == "queued"),
+        "fighters": fighters,
+        "battles": battles[:10],
+    }
+
+
+def build_pfp_deploy(payload):
+    name = str(payload.get("name") or "").strip()
+    if not name:
+        return None, "Fighter name is required"
+
+    wallet = str(
+        payload.get("wallet")
+        or payload.get("walletAddress")
+        or STATE.get("profile", {}).get("walletAddress")
+        or ""
+    ).strip()
+    collection = str(payload.get("collection") or "").strip()
+    class_name = str(payload.get("className") or payload.get("class") or "striker").strip() or "striker"
+    image = str(payload.get("image") or payload.get("avatarUrl") or "").strip()
+    raw_traits = payload.get("traits") or []
+    if isinstance(raw_traits, str):
+        traits = [item.strip() for item in raw_traits.split(",") if item.strip()]
+    elif isinstance(raw_traits, list):
+        traits = [str(item).strip() for item in raw_traits if str(item).strip()]
+    else:
+        traits = []
+
+    stats = payload.get("stats") if isinstance(payload.get("stats"), dict) else {}
+    normalized_stats = {
+        "hp": clamp_int(stats.get("hp"), 60, 220, 120),
+        "attack": clamp_int(stats.get("attack") or stats.get("atk"), 5, 45, 25),
+        "defense": clamp_int(stats.get("defense") or stats.get("def"), 0, 35, 15),
+        "speed": clamp_int(stats.get("speed") or stats.get("spd"), 5, 24, 12),
+    }
+
+    created_at = now_iso()
+    fighter_id = "pfp:%s:%s" % (slugify(wallet or collection or name), int(time.time() * 1000))
+    display_name = name.upper()
+    opponent = PFP_OPPONENTS[len(STATE.get("pfpBattles", [])) % len(PFP_OPPONENTS)]
+    live_count = sum(1 for battle in STATE.get("pfpBattles", []) if battle.get("status") == "live")
+    status = "live" if live_count < 3 else "queued"
+    queue_position = (
+        sum(1 for battle in STATE.get("pfpBattles", []) if battle.get("status") == "queued") + 1
+        if status == "queued"
+        else 0
+    )
+
+    fighter = {
+        "id": fighter_id,
+        "agentId": fighter_id,
+        "name": display_name,
+        "displayName": display_name,
+        "collection": collection,
+        "className": class_name,
+        "traits": traits,
+        "avatarUrl": image,
+        "image": image,
+        "wallet": wallet,
+        "wins": 0,
+        "losses": 0,
+        "points": 0,
+        "status": status,
+        "isPfp": True,
+        "stats": normalized_stats,
+        "createdAt": created_at,
+    }
+    battle = {
+        "id": "pfp-battle-%s" % int(time.time() * 1000),
+        "p1Agent": fighter_id,
+        "p1Name": display_name,
+        "p1Wallet": wallet,
+        "p1AvatarUrl": image,
+        "p2Agent": opponent["id"],
+        "p2Name": opponent["name"],
+        "p2Wallet": "arena.sim",
+        "p2AvatarUrl": opponent["avatarUrl"],
+        "status": status,
+        "isPfp": True,
+        "queuePosition": queue_position,
+        "createdAt": created_at,
+        "updatedAt": created_at,
+    }
+    notification = {
+        "id": "pfp-notif-%s" % int(time.time() * 1000),
+        "type": "pfp_battle" if status == "live" else "pfp_queue",
+        "title": "PFP battle live" if status == "live" else "PFP fighter queued",
+        "message": "%s vs %s" % (display_name, opponent["name"]) if status == "live" else "%s is waiting for the arena." % display_name,
+        "icon": "PFP",
+        "read": False,
+        "createdAt": created_at,
+    }
+    return {"fighter": fighter, "battle": battle, "notification": notification}, None
+
+
+def persist_pfp_deploy(record):
+    fighter = record["fighter"]
+    battle = record["battle"]
+    notification = record["notification"]
+    if ensure_bota_tables():
+        metadata = {
+            "collection": fighter.get("collection"),
+            "traits": fighter.get("traits") or [],
+            "stats": fighter.get("stats") or {},
+            "source": "pfp-create",
+            "localBattleId": battle.get("id"),
+        }
+        exec_db("""
+            INSERT INTO bota_fighter_profiles (
+                agent_id, display_name, origin, origin_id, agent_class, archetype,
+                league, avatar_url, badge_label, wallet_address, fame_score, tags,
+                metadata, is_pfp, last_seen_at, updated_at
+            ) VALUES (
+                %s, %s, 'pfp', %s, %s, 'pfp_challenger',
+                'PFP League', %s, 'PFP', %s, 50, %s::jsonb,
+                %s::jsonb, true, NOW(), NOW()
+            )
+            ON CONFLICT (agent_id) DO UPDATE SET
+                display_name = EXCLUDED.display_name,
+                agent_class = EXCLUDED.agent_class,
+                avatar_url = EXCLUDED.avatar_url,
+                wallet_address = EXCLUDED.wallet_address,
+                tags = EXCLUDED.tags,
+                metadata = EXCLUDED.metadata,
+                is_pfp = true,
+                updated_at = NOW()
+        """, (
+            fighter["id"],
+            fighter["displayName"],
+            fighter["collection"] or fighter["id"],
+            fighter["className"],
+            fighter["avatarUrl"] or None,
+            fighter["wallet"] or None,
+            json.dumps(fighter.get("traits") or []),
+            json.dumps(metadata),
+        ))
+        db_battle = exec_db("""
+            INSERT INTO bota_arena_battles (
+                p1_wallet, p1_agent, p2_wallet, p2_agent, status, is_pfp
+            ) VALUES (%s, %s, %s, %s, %s, true)
+            RETURNING id
+        """, (
+            battle.get("p1Wallet") or "pfp.guest",
+            battle["p1Agent"],
+            battle.get("p2Wallet") or "arena.sim",
+            battle["p2Agent"],
+            battle["status"],
+        ), fetchone=True)
+        if db_battle:
+            battle["dbId"] = db_battle[0]
+        exec_db("""
+            INSERT INTO bota_notifications (title, message, type, icon, read)
+            VALUES (%s, %s, %s, %s, false)
+        """, (
+            notification["title"],
+            notification["message"],
+            notification["type"],
+            notification["icon"],
+        ))
+
+    STATE.setdefault("pfpFighters", []).append(fighter)
+    STATE.setdefault("pfpBattles", []).append(battle)
+    STATE.setdefault("notifications", []).insert(0, notification)
+    save_state(STATE)
+
+    queue_count = sum(
+        1 for queued_battle in STATE.get("pfpBattles", [])
+        if queued_battle.get("status") == "queued"
+        and (
+            not fighter.get("wallet")
+            or str(queued_battle.get("p1Wallet") or "").lower() == str(fighter.get("wallet") or "").lower()
+        )
+    )
+    return {
+        "success": True,
+        "fighter": fighter,
+        "battle": battle,
+        "notification": notification,
+        "queue": queue_count,
+    }
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -154,6 +505,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if path == "/api/health":
             self.send_json({"ok": True})
             return
+        if path == "/api/pfp/state":
+            qs = parse_qs(urlparse(self.path).query)
+            wallet = (qs.get("wallet") or [""])[0].strip().lower()
+            self.send_json(local_pfp_state(wallet))
+            return
 
         if path == "/api/stats":
             qs = parse_qs(urlparse(self.path).query)
@@ -185,6 +541,25 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
                 r = query_db("SELECT status FROM users WHERE LOWER(primary_wallet_address)=%s", (wallet,), fetchone=True)
                 if r and r[0]: stats["status"] = r[0]
+
+                r = query_db(
+                    "SELECT COUNT(*) FROM bota_fighter_profiles WHERE LOWER(wallet_address)=%s AND COALESCE(is_pfp, false)=true",
+                    (wallet,),
+                    fetchone=True,
+                )
+                if r: stats["myAgents"] = max(stats["myAgents"], int(r[0]))
+
+                r = query_db(
+                    "SELECT COUNT(*) FROM bota_arena_battles WHERE LOWER(p1_wallet)=%s AND status='queued' AND COALESCE(is_pfp, false)=true",
+                    (wallet,),
+                    fetchone=True,
+                )
+                if r: stats["queue"] = max(stats["queue"], int(r[0]))
+
+                local_agents = pfp_rows_for_wallet(wallet)
+                local_queue = sum(1 for battle in pfp_battles_for_wallet(wallet) if battle.get("status") == "queued")
+                stats["myAgents"] = max(stats["myAgents"], len(local_agents))
+                stats["queue"] = max(stats["queue"], local_queue)
             self.send_json(stats)
             return
 
@@ -201,6 +576,27 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     agents = [{"id": r[0], "name": r[1], "avatarUrl": r[2],
                                "wins": r[3] or 0, "losses": r[4] or 0,
                                "points": r[5] or 0, "status": r[6]} for r in rows]
+                rows = query_db(
+                    "SELECT agent_id, display_name, avatar_url, wins, losses, fame_score "
+                    "FROM bota_fighter_profiles "
+                    "WHERE LOWER(wallet_address)=%s AND COALESCE(is_pfp, false)=true "
+                    "ORDER BY created_at DESC",
+                    (wallet,))
+                if rows:
+                    seen = {agent["id"] for agent in agents}
+                    for r in rows:
+                        if r[0] in seen:
+                            continue
+                        agents.append({"id": r[0], "name": r[1], "avatarUrl": r[2],
+                                       "wins": r[3] or 0, "losses": r[4] or 0,
+                                       "points": float(r[5] or 0), "status": "pfp"})
+                seen = {agent["id"] for agent in agents}
+                for fighter in pfp_rows_for_wallet(wallet):
+                    if fighter["id"] not in seen:
+                        agents.append({"id": fighter["id"], "name": fighter["name"],
+                                       "avatarUrl": fighter.get("avatarUrl"),
+                                       "wins": fighter.get("wins", 0), "losses": fighter.get("losses", 0),
+                                       "points": fighter.get("points", 0), "status": fighter.get("status", "pfp")})
             self.send_json(agents)
             return
 
@@ -216,6 +612,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 fighters = [{"id": r[0], "name": r[1], "avatarUrl": r[2],
                              "wins": r[3] or 0, "losses": r[4] or 0,
                              "fameScore": float(r[5] or 0)} for r in rows]
+            seen = {fighter["id"] for fighter in fighters}
+            for fighter in STATE.get("pfpFighters", []):
+                if fighter["id"] not in seen:
+                    fighters.append({"id": fighter["id"], "name": fighter["name"],
+                                     "avatarUrl": fighter.get("avatarUrl"),
+                                     "wins": fighter.get("wins", 0),
+                                     "losses": fighter.get("losses", 0),
+                                     "fameScore": fighter.get("points", 0)})
             self.send_json(fighters)
             return
         # ── PumpFighters Engine endpoints ──────────────────────────────────
@@ -317,6 +721,27 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             super().do_GET()
         except (BrokenPipeError, ConnectionResetError):
             pass
+
+    def do_POST(self):
+        path = urlparse(self.path).path
+        if path == "/api/pfp/deploy":
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                body = self.rfile.read(length).decode("utf-8") if length else "{}"
+                payload = json.loads(body or "{}")
+            except Exception:
+                self.send_json({"error": "Invalid JSON payload"}, 400)
+                return
+
+            record, error = build_pfp_deploy(payload)
+            if error:
+                self.send_json({"error": error}, 400)
+                return
+
+            self.send_json(persist_pfp_deploy(record))
+            return
+
+        self.send_json({"error": "Not found"}, 404)
 
     def do_PUT(self):
         path = urlparse(self.path).path

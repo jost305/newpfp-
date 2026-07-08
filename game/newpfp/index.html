@@ -2426,6 +2426,7 @@
     if (target) target.classList.add('active');
 
     document.getElementById('notif-dropdown').classList.remove('open');
+    if (view === 'pfpmode') loadPfpState();
     
     // Persist state in URL hash
     window.location.hash = view;
@@ -2550,7 +2551,12 @@
       ...options,
     });
     if (!response.ok) {
-      throw new Error('Request failed');
+      let message = 'Request failed';
+      try {
+        const data = await response.clone().json();
+        message = data.error || data.message || message;
+      } catch (error) {}
+      throw new Error(message);
     }
     return response.headers.get('content-type')?.includes('application/json') ? response.json() : response.text();
   }
@@ -3012,9 +3018,18 @@
     val = Math.max(minV, Math.min(maxV, val));
     const pct = ((val - minV) / (maxV - minV)) * 100;
 
+    document.getElementById('cp-' + stat).value = val;
     document.getElementById('cp-' + stat + '-bar').style.width = pct + '%';
     document.getElementById('prev-' + stat + '-bar').style.width = pct + '%';
     document.getElementById('prev-' + stat + '-val').textContent = val;
+  }
+
+  function cpReadStat(stat, minV, maxV) {
+    let val = parseInt(document.getElementById('cp-' + stat).value, 10);
+    if (isNaN(val)) val = minV;
+    val = Math.max(minV, Math.min(maxV, val));
+    document.getElementById('cp-' + stat).value = val;
+    return val;
   }
 
   function cpSync() {
@@ -3061,8 +3076,160 @@
     cpSync();
   }
 
-  function cpDeploy() {
-    alert('Fighter ' + document.getElementById('cp-name').value + ' deployed to Arena!');
+  function cpCurrentImage() {
+    const img = document.getElementById('cp-avatar-img');
+    const imageAttr = img && img.style.display !== 'none' ? (img.getAttribute('src') || '') : '';
+    return imageAttr || document.getElementById('cp-image-url').value.trim();
+  }
+
+  function setPfpAvatar(id, image, fallback) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = '';
+    if (image) {
+      const img = document.createElement('img');
+      img.src = image;
+      img.alt = '';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      img.style.borderRadius = 'inherit';
+      el.appendChild(img);
+    } else {
+      el.textContent = fallback;
+    }
+  }
+
+  function renderPfpMode(data) {
+    if (!data || (!data.fighter && !data.battle)) return;
+    const fighter = data.fighter || {};
+    const battle = data.battle || {};
+    const name = fighter.displayName || fighter.name || battle.p1Name || 'PFP FIGHTER';
+    const image = fighter.avatarUrl || fighter.image || battle.p1AvatarUrl || '';
+    const status = (battle.status || fighter.status || 'queued').toLowerCase();
+    const opponentName = battle.p2Name || 'Arena Opponent';
+    const queueLabel = status === 'queued'
+      ? 'QUEUE #' + (battle.queuePosition || data.queue || 1)
+      : 'LIVE IN ARENA';
+
+    const leftName = document.getElementById('pfp-left-name');
+    const leftBc = document.getElementById('pfp-left-bc');
+    const rightName = document.getElementById('pfp-right-name');
+    const rightBc = document.getElementById('pfp-right-bc');
+    const centerText = document.querySelector('#view-pfpmode .vs-text');
+    const centerImg = document.querySelector('#view-pfpmode .nft-card img');
+
+    if (leftName) leftName.textContent = name;
+    if (leftBc) leftBc.textContent = queueLabel;
+    if (rightName) rightName.textContent = opponentName;
+    if (rightBc) rightBc.textContent = status === 'live' ? 'ARENA SIM' : 'MATCHMAKING';
+    if (centerText) centerText.textContent = status === 'live' ? 'PFP BATTLE LIVE' : 'PFP FIGHTER QUEUED';
+    if (centerImg) centerImg.src = image || '/newpfp/assets/bota-logo.jpg';
+    setPfpAvatar('pfp-left-avatar', image, 'PFP');
+    setPfpAvatar('pfp-right-avatar', battle.p2AvatarUrl || '', status === 'live' ? 'AI' : '...');
+
+    const firstCard = document.querySelector('#view-pfpmode .fighter-card[data-fc="pfp1"]');
+    if (firstCard) {
+      const avatar = firstCard.querySelector('.fc-avatar');
+      const cardName = firstCard.querySelector('.fc-name');
+      const holders = firstCard.querySelector('.fc-holders');
+      const rewards = firstCard.querySelector('.fc-rewards');
+      const button = firstCard.querySelector('.watch-btn');
+      if (avatar) setPfpAvatarOnElement(avatar, image, 'PFP');
+      if (cardName) cardName.textContent = name;
+      if (holders) holders.textContent = fighter.collection || 'Imported PFP';
+      if (rewards) rewards.textContent = queueLabel;
+      if (button) button.textContent = status === 'live' ? 'WATCH 2 EARN' : 'IN QUEUE';
+    }
+  }
+
+  function setPfpAvatarOnElement(el, image, fallback) {
+    el.textContent = '';
+    if (image) {
+      const img = document.createElement('img');
+      img.src = image;
+      img.alt = '';
+      img.style.width = '100%';
+      img.style.height = '100%';
+      img.style.objectFit = 'cover';
+      img.style.borderRadius = 'inherit';
+      el.appendChild(img);
+    } else {
+      el.textContent = fallback;
+    }
+  }
+
+  async function loadPfpState() {
+    const wallet = window.currentWalletAddress || profileState.profile?.walletAddress || '';
+    try {
+      const qs = wallet ? '?wallet=' + encodeURIComponent(wallet) : '';
+      const data = await api('/api/pfp/state' + qs);
+      renderPfpMode(data);
+      return data;
+    } catch (error) {
+      console.warn('PFP state unavailable', error);
+      return null;
+    }
+  }
+
+  async function cpDeploy() {
+    const name = document.getElementById('cp-name').value.trim();
+    if (!name) {
+      alert('Give your fighter a name first.');
+      return;
+    }
+
+    const wallet = window.currentWalletAddress || profileState.profile?.walletAddress || '';
+    if (!wallet) {
+      alert('Connect your wallet first - click LOGIN in the top bar.');
+      return;
+    }
+
+    cpSync();
+    const payload = {
+      name: name,
+      collection: document.getElementById('cp-collection').value.trim(),
+      className: document.getElementById('cp-class').value,
+      traits: document.getElementById('cp-traits').value.split(',').map(t => t.trim()).filter(Boolean),
+      image: cpCurrentImage(),
+      stats: {
+        hp: cpReadStat('hp', 60, 220),
+        attack: cpReadStat('atk', 5, 45),
+        defense: cpReadStat('def', 0, 35),
+        speed: cpReadStat('spd', 5, 24),
+      },
+      wallet: wallet,
+    };
+
+    const btn = document.querySelector('.cp-deploy-btn');
+    const oldText = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'QUEUEING...';
+    }
+
+    try {
+      const result = await api('/api/pfp/deploy', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      renderPfpMode(result);
+      await Promise.all([loadNotifications(), loadUserStats(wallet), loadMyAgents(wallet)]);
+      const pfpTab = document.querySelector('.nav-tab[data-view="pfpmode"]');
+      if (pfpTab) setTab(pfpTab);
+      const status = (result.battle?.status || 'queued').toLowerCase();
+      alert(status === 'live'
+        ? 'Fighter deployed. Your PFP battle is live.'
+        : 'Fighter deployed. You are in the PFP queue.');
+    } catch (error) {
+      console.error('PFP deploy failed', error);
+      alert(error.message || 'Could not deploy fighter.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = oldText || 'DEPLOY FIGHTER';
+      }
+    }
   }
 
   window.cpHandleFile = cpHandleFile;
@@ -3071,6 +3238,7 @@
   window.cpSync = cpSync;
   window.cpLoadPreset = cpLoadPreset;
   window.cpDeploy = cpDeploy;
+  window.loadPfpState = loadPfpState;
 
   // -- PUMPFIGHTERS LIVE DATA --
   let pfState = null;
