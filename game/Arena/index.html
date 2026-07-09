@@ -1882,7 +1882,7 @@
   <button class="search-btn" type="button" onclick="toggleSearchModal(event)" aria-label="Open search">🔍</button>
   <div class="nav-stats">
     <div class="nav-stat">BC EARNED&nbsp;&nbsp;<strong>0 BC 🎒</strong></div>
-    <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong>50 <span class="live-badge">LIVE</span></strong></div>
+    <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong><span id="nav-fighter-count-value">0</span> <span class="live-badge">LIVE</span></strong></div>
   </div>
   <div class="nav-tabs">
     <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)"><img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
@@ -1957,15 +1957,15 @@
 
     <div>
       <div class="sidebar-section-title">Fighter Of The Week</div>
-      <div class="predictions-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 10px; text-align: center; background: rgba(20,241,149,0.05); border-color: rgba(20,241,149,0.2);">
+      <div class="predictions-box" id="fighter-of-week-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 10px; text-align: center; background: rgba(20,241,149,0.05); border-color: rgba(20,241,149,0.2); min-height:120px;">
         <div style="display:flex; align-items:center; gap:10px; justify-content:center; width:100%;">
-          <div style="width:34px; height:34px; border-radius:999px; background:rgba(255,215,0,0.14); display:flex; align-items:center; justify-content:center; font-size:18px;">🪙</div>
-          <div style="display:flex; flex-direction:column; gap:2px; text-align:left;">
-            <span style="font-size:13px; font-weight:700; color: var(--text-primary);">💰 Total Earned</span>
-            <span style="font-size:11px; color: var(--bb-muted-foreground);">Total BantCredit</span>
+          <div id="fighter-of-week-avatar" style="width:42px; height:42px; border-radius:999px; background:rgba(255,215,0,0.14); display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden; flex-shrink:0;">🪙</div>
+          <div style="display:flex; flex-direction:column; gap:2px; text-align:left; min-width:0;">
+            <span id="fighter-of-week-name" style="font-size:13px; font-weight:700; color: var(--text-primary);">Loading…</span>
+            <span style="font-size:11px; color: var(--bb-muted-foreground);">Top leaderboard fighter</span>
           </div>
         </div>
-        <div style="font-size:16px; font-weight:900; color:#14F195; text-shadow: 0 0 20px rgba(20,241,149,0.5); line-height: 1;">0 BC</div>
+        <div id="fighter-of-week-bc" style="font-size:16px; font-weight:900; color:#14F195; text-shadow: 0 0 20px rgba(20,241,149,0.5); line-height: 1;">0 BC</div>
       </div>
     </div>
   </aside>
@@ -3143,7 +3143,7 @@
     }
   }
 
-  const PRIVY_APP_ID = '__PRIVY_APP_ID__';
+  const PRIVY_APP_ID = 'cm4winhli04jg1tvq07cb8942';
   let privyLoginHandler = null;
 
   function openPrivyAuthModal() {
@@ -3153,7 +3153,7 @@
     }
     if (privyLoginHandler) {
       privyLoginHandler({
-        loginMethods: ['wallet', 'email', 'google', 'twitter', 'telegram', 'discord', 'github', 'passkey'],
+        loginMethods: ['wallet', 'email', 'passkey', 'google', 'twitter', 'telegram', 'discord', 'github'],
       });
       return;
     }
@@ -3161,6 +3161,7 @@
   }
 
   window.openPrivyAuthModal = openPrivyAuthModal;
+  window.closePrivyAuthModal = () => {};
 
   if (privyBootOk) {
     function AuthButton() {
@@ -3233,7 +3234,7 @@
         {
           appId: PRIVY_APP_ID,
           config: {
-            loginMethods: ['wallet', 'email', 'google', 'twitter', 'telegram', 'discord', 'github', 'passkey'],
+            loginMethods: ['wallet', 'email', 'passkey', 'google', 'twitter', 'telegram', 'discord', 'github'],
             appearance: {
               theme: 'dark',
               accentColor: '#f59e0b',
@@ -3750,6 +3751,20 @@
         </div>
       </div>
     `).join('');
+  }
+
+  function updateFighterCount(total) {
+    const el = document.getElementById('nav-fighter-count-value');
+    if (el) el.textContent = Number(total || 0).toLocaleString();
+  }
+
+  async function refreshFighterCount() {
+    try {
+      const data = await api('/api/fighters/counts');
+      updateFighterCount(data?.total ?? 0);
+    } catch (error) {
+      console.warn('Fighter count unavailable', error);
+    }
   }
 
   async function loadProfile() {
@@ -4809,7 +4824,9 @@
   fetchPumpLeaderboard();
   loadProfile();
   loadNotifications();
+  refreshFighterCount();
   setInterval(loadNotifications, 15000);
+  setInterval(refreshFighterCount, 20000);
 
   // ── Market Energy Polling ──────────────────────────────────────────────────
   let _pumpBannerTimeout = null;

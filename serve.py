@@ -140,6 +140,34 @@ def save_state(state):
 STATE = load_state()
 
 
+def get_platform_fighter_counts():
+    """Return the real number of Pumpfighters and PFP-mode fighters from live sources."""
+    pumpfighter_count = 0
+    if _HAS_TRENDING:
+        try:
+            engine_state = _te.get_state() or {}
+            fighters = engine_state.get("fighters") or []
+            if isinstance(fighters, list):
+                pumpfighter_count = len(fighters)
+        except Exception as exc:
+            print(f"[serve.py] fighter count error: {exc}", flush=True)
+
+    pfp_count = 0
+    try:
+        row = query_db("SELECT COUNT(*) FROM bota_fighter_profiles", fetchone=True)
+        if row:
+            pfp_count = int(row[0] or 0)
+    except Exception as exc:
+        print(f"[serve.py] PFP count query error: {exc}", flush=True)
+
+    pfp_count += len(STATE.get("pfp_fighters", []))
+    return {
+        "pumpfighters": pumpfighter_count,
+        "pfpMode": pfp_count,
+        "total": pumpfighter_count + pfp_count,
+    }
+
+
 # ── PFP Battle Engine ──────────────────────────────────────────────────────
 
 def _norm(val, lo, hi):
@@ -469,6 +497,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                                "wins": r[3] or 0, "losses": r[4] or 0,
                                "points": r[5] or 0, "status": r[6]} for r in rows]
             self.send_json(agents)
+            return
+
+        if path == "/api/fighters/counts":
+            self.send_json(get_platform_fighter_counts())
             return
 
         if path == "/api/fighters":
