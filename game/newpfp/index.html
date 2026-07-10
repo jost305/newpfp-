@@ -2857,6 +2857,14 @@
     if (wallet) {
       loadUserStats(wallet);
       loadMyAgents(wallet);
+
+      // Auto-claim signup bonus & daily checkin
+      api('/api/signup-bonus', { method: 'POST', body: JSON.stringify({ wallet }) })
+        .then(res => { if (res.success) loadUserStats(wallet); })
+        .catch(() => {});
+      api('/api/daily-checkin', { method: 'POST', body: JSON.stringify({ wallet }) })
+        .then(res => { if (res.success) loadUserStats(wallet); })
+        .catch(() => {});
     }
     // Pre-fetch fighters for the challenge modal
     loadFighters();

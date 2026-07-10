@@ -24,9 +24,12 @@ except ImportError:
     _HAS_DB = False
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
-_BOTA_TABLES_READY = False
 
-
+BANTCREDIT_AGENT_WIN_REWARD = 50
+BANTCREDIT_SIGNUP_REWARD = 5
+BANTCREDIT_DAILY_CHECKIN_REWARD = 5
+BANTCREDIT_REFERRED_REWARD = 30
+BANTCREDIT_REFERRER_REWARD = 100
 def query_db(sql, params=(), fetchone=False):
     if not _HAS_DB or not DATABASE_URL:
         return None
@@ -39,134 +42,136 @@ def query_db(sql, params=(), fetchone=False):
         return result
     except Exception as e:
         print(f"DB error: {e}", flush=True)
-        return None
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-def exec_db(sql, params=(), fetchone=False):
+def execute_db(sql, params=()):
     if not _HAS_DB or not DATABASE_URL:
         return None
     try:
         conn = psycopg2.connect(DATABASE_URL)
         cur = conn.cursor()
         cur.execute(sql, params)
-        result = cur.fetchone() if fetchone and cur.description else None
         conn.commit()
         conn.close()
-        return result
-    except Exception as e:
-        print(f"DB exec error: {e}", flush=True)
-        return None
-
-
-def ensure_bota_tables():
-    global _BOTA_TABLES_READY
-    if _BOTA_TABLES_READY:
         return True
-    if not _HAS_DB or not DATABASE_URL:
+    except Exception as e:
+        print(f"DB execute error: {e}", flush=True)
         return False
 
-    exec_db("""
-        CREATE TABLE IF NOT EXISTS bota_fighter_profiles (
-            agent_id VARCHAR(180) PRIMARY KEY NOT NULL,
-            display_name VARCHAR(120) NOT NULL,
-            origin VARCHAR(32) NOT NULL DEFAULT 'bota',
-            origin_id VARCHAR(180),
-            agent_class VARCHAR(40) NOT NULL DEFAULT 'striker',
-            archetype VARCHAR(40) NOT NULL DEFAULT 'signal_striker',
-            league VARCHAR(80) NOT NULL DEFAULT 'Open League',
-            rank INTEGER,
-            avatar_url TEXT,
-            badge_label VARCHAR(80),
-            ens_name VARCHAR(160),
-            wallet_address VARCHAR(128),
-            external_url TEXT,
-            token_symbol VARCHAR(64),
-            token_name VARCHAR(160),
-            chain_id VARCHAR(64),
-            wins INTEGER NOT NULL DEFAULT 0,
-            losses INTEGER NOT NULL DEFAULT 0,
-            current_streak INTEGER NOT NULL DEFAULT 0,
-            fame_score NUMERIC(12, 2) NOT NULL DEFAULT 0,
-            watchers INTEGER NOT NULL DEFAULT 0,
-            challenge_volume INTEGER NOT NULL DEFAULT 0,
-            titles JSONB NOT NULL DEFAULT '[]'::jsonb,
-            tags JSONB NOT NULL DEFAULT '[]'::jsonb,
-            last_battle_id VARCHAR(255),
-            metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-            imported_at TIMESTAMP DEFAULT NOW(),
-            last_seen_at TIMESTAMP DEFAULT NOW(),
-            created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-            updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-            is_pfp BOOLEAN DEFAULT false
-        )
-    """)
-    exec_db("ALTER TABLE bota_fighter_profiles ADD COLUMN IF NOT EXISTS is_pfp BOOLEAN DEFAULT false")
-    exec_db("""
-        CREATE TABLE IF NOT EXISTS bota_arena_battles (
-            id SERIAL PRIMARY KEY,
-            p1_wallet VARCHAR(100),
-            p1_agent VARCHAR(180),
-            p2_wallet VARCHAR(100),
-            p2_agent VARCHAR(180),
-            status VARCHAR(20) DEFAULT 'queued',
-            winner VARCHAR(100),
-            is_pfp BOOLEAN DEFAULT false,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    exec_db("ALTER TABLE bota_arena_battles ADD COLUMN IF NOT EXISTS is_pfp BOOLEAN DEFAULT false")
-    exec_db("""
-        CREATE TABLE IF NOT EXISTS bota_notifications (
-            id SERIAL PRIMARY KEY,
-            user_id VARCHAR(100),
-            title VARCHAR(100),
-            message TEXT,
-            type VARCHAR(50),
-            icon VARCHAR(10),
-            read BOOLEAN DEFAULT false,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    exec_db("ALTER TABLE bota_notifications ADD COLUMN IF NOT EXISTS read BOOLEAN DEFAULT false")
-    _BOTA_TABLES_READY = True
+def award_bantcredit(wallet, amount, tx_type, reference_id=""):
+    """Award BantCredit and update the ledger and balance."""
+    if not wallet or not _HAS_DB or not DATABASE_URL:
+        return False
+    
+    # 1. Get user_id from wallet
+    user = query_db("SELECT id FROM users WHERE LOWER(primary_wallet_address)=%s", (wallet.lower(),), fetchone=True)
+    if not user:
+        return False
+    user_id = user[0]
+    
+    # 2. Insert into ledger
+    execute_db(
+        "INSERT INTO bantcredit_ledger (user_id, amount, transaction_type, reference_id) VALUES (%s, %s, %s, %s)",
+        (user_id, amount, tx_type, reference_id)
+    )
+    
+    # 3. Upsert balance
+    # In postgres, ON CONFLICT requires a unique constraint. We assume user_id + wallet_address is unique.
+    # Actually, we can just check if balance exists, or use ON CONFLICT
+    execute_db(
+        """
+        INSERT INTO bantcredit_balances (user_id, wallet_address, balance, total_earned)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (wallet_address) DO UPDATE 
+        SET balance = bantcredit_balances.balance + EXCLUDED.balance,
+            total_earned = bantcredit_balances.total_earned + EXCLUDED.total_earned,
+            updated_at = NOW()
+        """,
+        (user_id, wallet.lower(), amount, amount)
+    )
     return True
 
+def insert_pfp_battle_record(live):
+    if not _HAS_DB or not DATABASE_URL:
+        return
+    battle_id = live.get("match_id") or live.get("id")
+    started_at = live.get("started_at")
+    ended_at = datetime.now(timezone.utc).isoformat()
+    
+    title = f"{live.get('fighter_a', {}).get('name', 'A')} vs {live.get('fighter_b', {}).get('name', 'B')}"
+    arena_id = "pfp-arena"
+    status = "resolved"
+    winner_id = live.get("winner_id")
+    loser_id = live.get("loser_id")
+    
+    # We construct a fake BantahBroAgentBattle side so the TS scripts can read it
+    seed = f"{battle_id}:{started_at}"[:255]
+    import re
+    raw_key = f"{battle_id}:seed:{seed}:rounds:5:arena:{arena_id}"
+    record_key = re.sub(r'[^a-zA-Z0-9:_-]', '-', raw_key)
+    record_key = re.sub(r'-+', '-', record_key)[:360]
+    
+    fighters = json.dumps([live.get("fighter_a", {}), live.get("fighter_b", {})])
+    round_log = json.dumps(live.get("log", []))
+    simulation = json.dumps({
+        "finalState": {
+            "winnerId": winner_id,
+            "status": "resolved"
+        }
+    })
+    
+    # Add a mock battle snapshot that looks like BantahBroAgentBattle so onchainSimBattleClaimService can parse it
+    f_a = live.get("fighter_a", {})
+    f_b = live.get("fighter_b", {})
+    battle_snapshot = json.dumps({
+        "id": battle_id,
+        "title": title,
+        "battleType": "agent-battle",
+        "status": "expired",
+        "sides": [
+            {
+                "id": f_a.get("id"),
+                "agentName": f_a.get("name"),
+                "tokenAddress": f_a.get("walletAddress"),
+                "source": "pfp-arena"
+            },
+            {
+                "id": f_b.get("id"),
+                "agentName": f_b.get("name"),
+                "tokenAddress": f_b.get("walletAddress"),
+                "source": "pfp-arena"
+            }
+        ]
+    })
+    
+    metadata = json.dumps({
+        "winnerName": live.get("winner_name"),
+        "loserName": live.get("loser_name")
+    })
+    
+    execute_db("""
+        INSERT INTO bota_arena_battle_records (
+            record_key, battle_id, source_battle_id, title, arena_id, status,
+            winner_agent_id, winner_side_id, loser_agent_id, loser_side_id,
+            provider, adapter_version, engine_version, seed, rounds, spectators,
+            fighters, round_log, simulation, battle_snapshot, metadata,
+            started_at, ended_at, resolved_at, updated_at
+        ) VALUES (
+            %s, %s, %s, %s, %s, %s,
+            %s, %s, %s, %s,
+            %s, %s, %s, %s, %s, %s,
+            %s, %s, %s, %s, %s,
+            %s, %s, %s, %s
+        ) ON CONFLICT (record_key) DO NOTHING
+    """, (
+        record_key, battle_id, battle_id, title, arena_id, status,
+        winner_id, winner_id, loser_id, loser_id,
+        "pfp_local", "1.0", "1.0", seed, live.get("rounds_fought", 0), 0,
+        fighters, round_log, simulation, battle_snapshot, metadata,
+        started_at, ended_at, ended_at, ended_at
+    ))
 
-def now_iso():
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-
-def slugify(value):
-    cleaned = "".join(ch.lower() if ch.isalnum() else "-" for ch in str(value or "pfp"))
-    cleaned = "-".join(part for part in cleaned.split("-") if part)
-    return cleaned[:48] or "pfp"
-
-
-def clamp_int(value, min_value, max_value, fallback):
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError):
-        parsed = fallback
-    return max(min_value, min(max_value, parsed))
-
-
-PFP_OPPONENTS = [
-    {"id": "arena:robopepe", "name": "Robo Pepe", "avatarUrl": ""},
-    {"id": "arena:floatrobo", "name": "Floatrobo", "avatarUrl": ""},
-    {"id": "arena:crimsonbot", "name": "Crimsonbot", "avatarUrl": ""},
-    {"id": "arena:voidbot", "name": "Voidbot", "avatarUrl": ""},
-]
-
-PORT = 8080
-=======
-PORT = int(os.environ.get("PORT", 3000))
->>>>>>> ecb13e850dee9185b563f001d16fcfd40b27d39d
-=======
 PORT = int(os.environ.get("PORT", 5000))
->>>>>>> 783f67a7f50abb402050b4a08c0e84e4cd4d9a1c
 GAME_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "game")
 INDEX_PATH = os.path.join(GAME_DIR, "Arena", "index.html")
 PRIVY_APP_ID    = os.environ.get("PRIVY_APP_ID", "")
@@ -242,34 +247,13 @@ def load_state():
         "notifications_by_wallet": {},
     }
     if not os.path.exists(STATE_PATH):
-<<<<<<< HEAD
-        return {
-            "profile": dict(DEFAULT_PROFILE),
-            "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS],
-            "pfpFighters": [],
-            "pfpBattles": [],
-        }
-=======
         return blank
->>>>>>> 783f67a7f50abb402050b4a08c0e84e4cd4d9a1c
     try:
         with open(STATE_PATH, "r", encoding="utf-8") as fh:
             data = json.load(fh)
         return {
             "profile": {**DEFAULT_PROFILE, **(data.get("profile") or {})},
             "notifications": data.get("notifications") or [dict(n) for n in DEFAULT_NOTIFICATIONS],
-<<<<<<< HEAD
-            "pfpFighters": data.get("pfpFighters") or [],
-            "pfpBattles": data.get("pfpBattles") or [],
-        }
-    except Exception:
-        return {
-            "profile": dict(DEFAULT_PROFILE),
-            "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS],
-            "pfpFighters": [],
-            "pfpBattles": [],
-        }
-=======
             "pfp_fighters": data.get("pfp_fighters") or [],
             "pfp_live_match": data.get("pfp_live_match"),
             "pfp_recent_battles": data.get("pfp_recent_battles") or [],
@@ -277,7 +261,6 @@ def load_state():
         }
     except Exception:
         return blank
->>>>>>> 783f67a7f50abb402050b4a08c0e84e4cd4d9a1c
 
 
 def save_state(state):
@@ -288,227 +271,6 @@ def save_state(state):
 STATE = load_state()
 
 
-<<<<<<< HEAD
-def pfp_rows_for_wallet(wallet):
-    wallet = (wallet or "").strip().lower()
-    if not wallet:
-        return list(STATE.get("pfpFighters", []))
-    return [
-        fighter for fighter in STATE.get("pfpFighters", [])
-        if str(fighter.get("wallet") or "").lower() == wallet
-    ]
-
-
-def pfp_battles_for_wallet(wallet):
-    wallet = (wallet or "").strip().lower()
-    if not wallet:
-        return list(STATE.get("pfpBattles", []))
-    return [
-        battle for battle in STATE.get("pfpBattles", [])
-        if str(battle.get("p1Wallet") or "").lower() == wallet
-    ]
-
-
-def local_pfp_state(wallet):
-    battles = sorted(
-        pfp_battles_for_wallet(wallet),
-        key=lambda battle: battle.get("createdAt") or "",
-        reverse=True,
-    )
-    fighters = pfp_rows_for_wallet(wallet)
-    latest_battle = battles[0] if battles else None
-    latest_fighter = None
-    if latest_battle:
-        latest_fighter = next(
-            (fighter for fighter in fighters if fighter.get("id") == latest_battle.get("p1Agent")),
-            None,
-        )
-    if not latest_fighter and fighters:
-        latest_fighter = sorted(fighters, key=lambda fighter: fighter.get("createdAt") or "", reverse=True)[0]
-    return {
-        "fighter": latest_fighter,
-        "battle": latest_battle,
-        "queue": sum(1 for battle in battles if battle.get("status") == "queued"),
-        "fighters": fighters,
-        "battles": battles[:10],
-    }
-
-
-def build_pfp_deploy(payload):
-    name = str(payload.get("name") or "").strip()
-    if not name:
-        return None, "Fighter name is required"
-
-    wallet = str(
-        payload.get("wallet")
-        or payload.get("walletAddress")
-        or STATE.get("profile", {}).get("walletAddress")
-        or ""
-    ).strip()
-    collection = str(payload.get("collection") or "").strip()
-    class_name = str(payload.get("className") or payload.get("class") or "striker").strip() or "striker"
-    image = str(payload.get("image") or payload.get("avatarUrl") or "").strip()
-    raw_traits = payload.get("traits") or []
-    if isinstance(raw_traits, str):
-        traits = [item.strip() for item in raw_traits.split(",") if item.strip()]
-    elif isinstance(raw_traits, list):
-        traits = [str(item).strip() for item in raw_traits if str(item).strip()]
-    else:
-        traits = []
-
-    stats = payload.get("stats") if isinstance(payload.get("stats"), dict) else {}
-    normalized_stats = {
-        "hp": clamp_int(stats.get("hp"), 60, 220, 120),
-        "attack": clamp_int(stats.get("attack") or stats.get("atk"), 5, 45, 25),
-        "defense": clamp_int(stats.get("defense") or stats.get("def"), 0, 35, 15),
-        "speed": clamp_int(stats.get("speed") or stats.get("spd"), 5, 24, 12),
-    }
-
-    created_at = now_iso()
-    fighter_id = "pfp:%s:%s" % (slugify(wallet or collection or name), int(time.time() * 1000))
-    display_name = name.upper()
-    opponent = PFP_OPPONENTS[len(STATE.get("pfpBattles", [])) % len(PFP_OPPONENTS)]
-    live_count = sum(1 for battle in STATE.get("pfpBattles", []) if battle.get("status") == "live")
-    status = "live" if live_count < 3 else "queued"
-    queue_position = (
-        sum(1 for battle in STATE.get("pfpBattles", []) if battle.get("status") == "queued") + 1
-        if status == "queued"
-        else 0
-    )
-
-    fighter = {
-        "id": fighter_id,
-        "agentId": fighter_id,
-        "name": display_name,
-        "displayName": display_name,
-        "collection": collection,
-        "className": class_name,
-        "traits": traits,
-        "avatarUrl": image,
-        "image": image,
-        "wallet": wallet,
-        "wins": 0,
-        "losses": 0,
-        "points": 0,
-        "status": status,
-        "isPfp": True,
-        "stats": normalized_stats,
-        "createdAt": created_at,
-    }
-    battle = {
-        "id": "pfp-battle-%s" % int(time.time() * 1000),
-        "p1Agent": fighter_id,
-        "p1Name": display_name,
-        "p1Wallet": wallet,
-        "p1AvatarUrl": image,
-        "p2Agent": opponent["id"],
-        "p2Name": opponent["name"],
-        "p2Wallet": "arena.sim",
-        "p2AvatarUrl": opponent["avatarUrl"],
-        "status": status,
-        "isPfp": True,
-        "queuePosition": queue_position,
-        "createdAt": created_at,
-        "updatedAt": created_at,
-    }
-    notification = {
-        "id": "pfp-notif-%s" % int(time.time() * 1000),
-        "type": "pfp_battle" if status == "live" else "pfp_queue",
-        "title": "PFP battle live" if status == "live" else "PFP fighter queued",
-        "message": "%s vs %s" % (display_name, opponent["name"]) if status == "live" else "%s is waiting for the arena." % display_name,
-        "icon": "PFP",
-        "read": False,
-        "createdAt": created_at,
-    }
-    return {"fighter": fighter, "battle": battle, "notification": notification}, None
-
-
-def persist_pfp_deploy(record):
-    fighter = record["fighter"]
-    battle = record["battle"]
-    notification = record["notification"]
-    if ensure_bota_tables():
-        metadata = {
-            "collection": fighter.get("collection"),
-            "traits": fighter.get("traits") or [],
-            "stats": fighter.get("stats") or {},
-            "source": "pfp-create",
-            "localBattleId": battle.get("id"),
-        }
-        exec_db("""
-            INSERT INTO bota_fighter_profiles (
-                agent_id, display_name, origin, origin_id, agent_class, archetype,
-                league, avatar_url, badge_label, wallet_address, fame_score, tags,
-                metadata, is_pfp, last_seen_at, updated_at
-            ) VALUES (
-                %s, %s, 'pfp', %s, %s, 'pfp_challenger',
-                'PFP League', %s, 'PFP', %s, 50, %s::jsonb,
-                %s::jsonb, true, NOW(), NOW()
-            )
-            ON CONFLICT (agent_id) DO UPDATE SET
-                display_name = EXCLUDED.display_name,
-                agent_class = EXCLUDED.agent_class,
-                avatar_url = EXCLUDED.avatar_url,
-                wallet_address = EXCLUDED.wallet_address,
-                tags = EXCLUDED.tags,
-                metadata = EXCLUDED.metadata,
-                is_pfp = true,
-                updated_at = NOW()
-        """, (
-            fighter["id"],
-            fighter["displayName"],
-            fighter["collection"] or fighter["id"],
-            fighter["className"],
-            fighter["avatarUrl"] or None,
-            fighter["wallet"] or None,
-            json.dumps(fighter.get("traits") or []),
-            json.dumps(metadata),
-        ))
-        db_battle = exec_db("""
-            INSERT INTO bota_arena_battles (
-                p1_wallet, p1_agent, p2_wallet, p2_agent, status, is_pfp
-            ) VALUES (%s, %s, %s, %s, %s, true)
-            RETURNING id
-        """, (
-            battle.get("p1Wallet") or "pfp.guest",
-            battle["p1Agent"],
-            battle.get("p2Wallet") or "arena.sim",
-            battle["p2Agent"],
-            battle["status"],
-        ), fetchone=True)
-        if db_battle:
-            battle["dbId"] = db_battle[0]
-        exec_db("""
-            INSERT INTO bota_notifications (title, message, type, icon, read)
-            VALUES (%s, %s, %s, %s, false)
-        """, (
-            notification["title"],
-            notification["message"],
-            notification["type"],
-            notification["icon"],
-        ))
-
-    STATE.setdefault("pfpFighters", []).append(fighter)
-    STATE.setdefault("pfpBattles", []).append(battle)
-    STATE.setdefault("notifications", []).insert(0, notification)
-    save_state(STATE)
-
-    queue_count = sum(
-        1 for queued_battle in STATE.get("pfpBattles", [])
-        if queued_battle.get("status") == "queued"
-        and (
-            not fighter.get("wallet")
-            or str(queued_battle.get("p1Wallet") or "").lower() == str(fighter.get("wallet") or "").lower()
-        )
-    )
-    return {
-        "success": True,
-        "fighter": fighter,
-        "battle": battle,
-        "notification": notification,
-        "queue": queue_count,
-    }
-=======
 def get_platform_fighter_counts():
     """Return the real number of Pumpfighters and PFP-mode fighters from live sources."""
     pumpfighter_count = 0
@@ -670,7 +432,11 @@ def _pfp_finish_battle(live):
         if f["id"] == winner_id:
             f["wins"]   = f.get("wins", 0) + 1
             f["status"] = "idle"
-            _pfp_add_notif(f.get("walletAddress", ""), {
+            wallet = f.get("walletAddress", "")
+            if wallet:
+                award_bantcredit(wallet, BANTCREDIT_AGENT_WIN_REWARD, "agent_win", live.get("id", ""))
+            
+            _pfp_add_notif(wallet, {
                 "type":    "battle_result",
                 "title":   "Victory! 🏆",
                 "message": f"{f['name']} defeated {live.get('loser_name', '???')} in {live.get('rounds_fought', '?')} rounds!",
@@ -699,7 +465,9 @@ def _pfp_finish_battle(live):
     if len(STATE["pfp_recent_battles"]) > 20:
         STATE["pfp_recent_battles"] = STATE["pfp_recent_battles"][:20]
     save_state(STATE)
-
+    
+    # Record to DB for on-chain claiming
+    insert_pfp_battle_record(live)
 
 def _pfp_matchmaker_loop():
     """Background thread: pair queued PFP fighters and run AI vs AI battles every 30 s."""
@@ -774,7 +542,6 @@ def _pfp_matchmaker_loop():
                       flush=True)
         except Exception as _me:
             print(f"[PFP Matchmaker] Error: {_me}", flush=True)
->>>>>>> 783f67a7f50abb402050b4a08c0e84e4cd4d9a1c
 
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -819,11 +586,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if path == "/api/health":
             self.send_json({"ok": True})
             return
-        if path == "/api/pfp/state":
-            qs = parse_qs(urlparse(self.path).query)
-            wallet = (qs.get("wallet") or [""])[0].strip().lower()
-            self.send_json(local_pfp_state(wallet))
-            return
 
         if path == "/api/stats":
             qs = parse_qs(urlparse(self.path).query)
@@ -855,25 +617,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
                 r = query_db("SELECT status FROM users WHERE LOWER(primary_wallet_address)=%s", (wallet,), fetchone=True)
                 if r and r[0]: stats["status"] = r[0]
-
-                r = query_db(
-                    "SELECT COUNT(*) FROM bota_fighter_profiles WHERE LOWER(wallet_address)=%s AND COALESCE(is_pfp, false)=true",
-                    (wallet,),
-                    fetchone=True,
-                )
-                if r: stats["myAgents"] = max(stats["myAgents"], int(r[0]))
-
-                r = query_db(
-                    "SELECT COUNT(*) FROM bota_arena_battles WHERE LOWER(p1_wallet)=%s AND status='queued' AND COALESCE(is_pfp, false)=true",
-                    (wallet,),
-                    fetchone=True,
-                )
-                if r: stats["queue"] = max(stats["queue"], int(r[0]))
-
-                local_agents = pfp_rows_for_wallet(wallet)
-                local_queue = sum(1 for battle in pfp_battles_for_wallet(wallet) if battle.get("status") == "queued")
-                stats["myAgents"] = max(stats["myAgents"], len(local_agents))
-                stats["queue"] = max(stats["queue"], local_queue)
             self.send_json(stats)
             return
 
@@ -890,27 +633,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     agents = [{"id": r[0], "name": r[1], "avatarUrl": r[2],
                                "wins": r[3] or 0, "losses": r[4] or 0,
                                "points": r[5] or 0, "status": r[6]} for r in rows]
-                rows = query_db(
-                    "SELECT agent_id, display_name, avatar_url, wins, losses, fame_score "
-                    "FROM bota_fighter_profiles "
-                    "WHERE LOWER(wallet_address)=%s AND COALESCE(is_pfp, false)=true "
-                    "ORDER BY created_at DESC",
-                    (wallet,))
-                if rows:
-                    seen = {agent["id"] for agent in agents}
-                    for r in rows:
-                        if r[0] in seen:
-                            continue
-                        agents.append({"id": r[0], "name": r[1], "avatarUrl": r[2],
-                                       "wins": r[3] or 0, "losses": r[4] or 0,
-                                       "points": float(r[5] or 0), "status": "pfp"})
-                seen = {agent["id"] for agent in agents}
-                for fighter in pfp_rows_for_wallet(wallet):
-                    if fighter["id"] not in seen:
-                        agents.append({"id": fighter["id"], "name": fighter["name"],
-                                       "avatarUrl": fighter.get("avatarUrl"),
-                                       "wins": fighter.get("wins", 0), "losses": fighter.get("losses", 0),
-                                       "points": fighter.get("points", 0), "status": fighter.get("status", "pfp")})
             self.send_json(agents)
             return
 
@@ -930,16 +652,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 fighters = [{"id": r[0], "name": r[1], "avatarUrl": r[2],
                              "wins": r[3] or 0, "losses": r[4] or 0,
                              "fameScore": float(r[5] or 0)} for r in rows]
-<<<<<<< HEAD
-            seen = {fighter["id"] for fighter in fighters}
-            for fighter in STATE.get("pfpFighters", []):
-                if fighter["id"] not in seen:
-                    fighters.append({"id": fighter["id"], "name": fighter["name"],
-                                     "avatarUrl": fighter.get("avatarUrl"),
-                                     "wins": fighter.get("wins", 0),
-                                     "losses": fighter.get("losses", 0),
-                                     "fameScore": fighter.get("points", 0)})
-=======
             
             # If no DB results, fallback to trending engine fighters
             if not fighters and _HAS_TRENDING:
@@ -952,10 +664,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                                 "losses": f.get("losses", 0),
                                 "fameScore": float(f.get("fame_score", 0))} 
                                for f in state["fighters"][:30]]
-<<<<<<< HEAD
-            
->>>>>>> ecb13e850dee9185b563f001d16fcfd40b27d39d
-=======
 
             # Merge in locally-deployed PFP fighters (always included)
             pfp_ids = {f["id"] for f in fighters}
@@ -970,7 +678,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                         "fameScore": float(pf.get("fameScore", 0)),
                     })
 
->>>>>>> 783f67a7f50abb402050b4a08c0e84e4cd4d9a1c
             self.send_json(fighters)
             return
         # ── PumpFighters Engine endpoints ──────────────────────────────────
@@ -1171,25 +878,52 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
-        if path == "/api/pfp/deploy":
-<<<<<<< HEAD
-            try:
-                length = int(self.headers.get("Content-Length", "0"))
-                body = self.rfile.read(length).decode("utf-8") if length else "{}"
-                payload = json.loads(body or "{}")
-            except Exception:
-                self.send_json({"error": "Invalid JSON payload"}, 400)
+        if path == "/api/daily-checkin":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length).decode("utf-8") if length else "{}"
+            payload = json.loads(body or "{}")
+            wallet = payload.get("wallet")
+            if not wallet:
+                self.send_json({"error": "wallet required"}, 400)
                 return
-
-            record, error = build_pfp_deploy(payload)
-            if error:
-                self.send_json({"error": error}, 400)
+            
+            # Very simple daily check-in: award if they haven't claimed today (we skip actual daily timing check for brevity as we just migrate the structure, or we can check ledger)
+            # Check if claimed today:
+            r = query_db("SELECT COUNT(*) FROM bantcredit_ledger WHERE transaction_type='daily_signin' AND user_id=(SELECT id FROM users WHERE LOWER(primary_wallet_address)=%s) AND created_at > NOW() - INTERVAL '1 day'", (wallet.lower(),), fetchone=True)
+            if r and r[0] > 0:
+                self.send_json({"error": "Already claimed today", "claimed": False}, 400)
                 return
-
-            self.send_json(persist_pfp_deploy(record))
+            
+            success = award_bantcredit(wallet, BANTCREDIT_DAILY_CHECKIN_REWARD, "daily_signin")
+            if success:
+                self.send_json({"success": True, "reward": BANTCREDIT_DAILY_CHECKIN_REWARD})
+            else:
+                self.send_json({"error": "User not found or db error"}, 500)
             return
 
-=======
+        if path == "/api/signup-bonus":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length).decode("utf-8") if length else "{}"
+            payload = json.loads(body or "{}")
+            wallet = payload.get("wallet")
+            if not wallet:
+                self.send_json({"error": "wallet required"}, 400)
+                return
+            
+            # Check if claimed:
+            r = query_db("SELECT COUNT(*) FROM bantcredit_ledger WHERE transaction_type='signup_bonus' AND user_id=(SELECT id FROM users WHERE LOWER(primary_wallet_address)=%s)", (wallet.lower(),), fetchone=True)
+            if r and r[0] > 0:
+                self.send_json({"error": "Already claimed signup bonus", "claimed": False}, 400)
+                return
+            
+            success = award_bantcredit(wallet, BANTCREDIT_SIGNUP_REWARD, "signup_bonus")
+            if success:
+                self.send_json({"success": True, "reward": BANTCREDIT_SIGNUP_REWARD})
+            else:
+                self.send_json({"error": "User not found or db error"}, 500)
+            return
+
+        if path == "/api/pfp/deploy":
             length = int(self.headers.get("Content-Length", "0"))
             body = self.rfile.read(length).decode("utf-8") if length else "{}"
             try:
@@ -1251,7 +985,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "notification": notif,
             })
             return
->>>>>>> 783f67a7f50abb402050b4a08c0e84e4cd4d9a1c
         self.send_json({"error": "Not found"}, 404)
 
     def do_PUT(self):
@@ -1347,6 +1080,24 @@ class Server(socketserver.ThreadingTCPServer):
 
 # ── Boot PFP matchmaker ───────────────────────────────────────────────────
 threading.Thread(target=_pfp_matchmaker_loop, daemon=True, name="PFPMatchmaker").start()
+
+def _onchain_submitter_loop():
+    """Periodically run the TS script to submit PFP battles on-chain."""
+    import subprocess, time, os
+    while True:
+        time.sleep(300) # Every 5 minutes
+        try:
+            print("[serve.py] Running onchain submitter for PFP battles...", flush=True)
+            script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts", "record-pfp-battles-onchain.ts")
+            server_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server")
+            result = subprocess.run(["npx", "tsx", script_path], cwd=server_dir, capture_output=True, text=True)
+            if result.stdout: print(f"[serve.py] onchain submitter: {result.stdout}", flush=True)
+            if result.stderr: print(f"[serve.py] onchain submitter err: {result.stderr}", flush=True)
+        except Exception as e:
+            print(f"[serve.py] Error running onchain submitter: {e}", flush=True)
+
+threading.Thread(target=_onchain_submitter_loop, daemon=True, name="OnchainSubmitter").start()
+
 
 # ── Boot trending engine ───────────────────────────────────────────────────
 if _HAS_TRENDING:
