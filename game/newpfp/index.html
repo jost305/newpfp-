@@ -1609,15 +1609,15 @@
 
     <div>
       <div class="sidebar-section-title">Fighter Of The Week</div>
-      <div class="predictions-box" style="padding:18px; gap:12px;">
+      <div class="predictions-box" id="fighter-of-week-card" style="padding:18px; gap:12px; min-height:120px;">
         <div style="display:flex; align-items:center; gap:10px;">
-          <div style="width:34px; height:34px; border-radius:999px; background:rgba(255,215,0,0.14); display:flex; align-items:center; justify-content:center; font-size:18px;">🪙</div>
-          <div style="display:flex; flex-direction:column; gap:2px;">
-            <span style="font-size:14px; font-weight:700; color:var(--text-primary);">💰 Total Earned</span>
-            <span style="font-size:11px; color:var(--bb-muted-foreground);">Total BantCredit</span>
+          <div id="fighter-of-week-avatar" style="width:42px; height:42px; border-radius:999px; background:rgba(255,215,0,0.14); display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden; flex-shrink:0;">🪙</div>
+          <div style="display:flex; flex-direction:column; gap:2px; min-width:0;">
+            <span id="fighter-of-week-name" style="font-size:14px; font-weight:700; color:var(--text-primary);">Loading…</span>
+            <span style="font-size:11px; color:var(--bb-muted-foreground);">Top leaderboard fighter</span>
           </div>
         </div>
-        <div style="font-size:16px; font-weight:800; color:var(--neon-gold);">0 BC</div>
+        <div id="fighter-of-week-bc" style="font-size:16px; font-weight:800; color:var(--neon-gold);">0 BC</div>
       </div>
     </div>
   </aside>
@@ -2343,24 +2343,71 @@
     }
   }
 
-  const PRIVY_APP_ID = '__PRIVY_APP_ID__';
+  const PRIVY_APP_ID = 'cm4winhli04jg1tvq07cb8942';
   let privyLoginHandler = null;
+  let customAuthModal = null;
 
-  function openPrivyAuthModal() {
+  function ensureCustomAuthModal() {
+    if (customAuthModal) return customAuthModal;
+
+    const modal = document.createElement('div');
+    modal.id = 'privy-custom-auth-modal';
+    modal.style.cssText = 'position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.8); z-index:99999; padding:20px;';
+    modal.innerHTML = `
+      <div style="width:min(420px,100%); background:#111827; border:1px solid #374151; border-radius:16px; padding:24px; box-shadow:0 20px 50px rgba(0,0,0,0.45); color:#f9fafb;">
+        <div style="font-size:20px; font-weight:700; margin-bottom:16px;">Log in or sign up</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button type="button" data-login-method="google" style="padding:12px 14px; border-radius:10px; border:1px solid #4b5563; background:#1f2937; color:#fff; cursor:pointer; text-align:left;">Google</button>
+          <button type="button" data-login-method="twitter" style="padding:12px 14px; border-radius:10px; border:1px solid #4b5563; background:#1f2937; color:#fff; cursor:pointer; text-align:left;">Twitter</button>
+          <button type="button" data-login-method="telegram" style="padding:12px 14px; border-radius:10px; border:1px solid #4b5563; background:#1f2937; color:#fff; cursor:pointer; text-align:left;">Telegram</button>
+          <button type="button" data-login-method="wallet" style="padding:12px 14px; border-radius:10px; border:1px solid #f59e0b; background:#f59e0b; color:#111827; cursor:pointer; text-align:left; font-weight:700;">Continue with a wallet</button>
+          <button type="button" data-close-modal style="padding:12px 14px; border-radius:10px; border:1px solid #374151; background:transparent; color:#cbd5e1; cursor:pointer; text-align:left;">Cancel</button>
+        </div>
+      </div>
+    `;
+
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal || event.target.closest('[data-close-modal]')) {
+        modal.style.display = 'none';
+      }
+    });
+
+    modal.querySelectorAll('[data-login-method]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const method = button.getAttribute('data-login-method');
+        modal.style.display = 'none';
+        openPrivyMethod(method);
+      });
+    });
+
+    document.body.appendChild(modal);
+    customAuthModal = modal;
+    return modal;
+  }
+
+  function openPrivyMethod(method) {
     if (!privyBootOk) {
       alert('Wallet login is temporarily unavailable. Please refresh the page.');
       return;
     }
     if (privyLoginHandler) {
       privyLoginHandler({
-        loginMethods: ['wallet', 'email', 'google', 'twitter', 'discord', 'github', 'passkey'],
+        loginMethods: [method],
       });
       return;
     }
     console.warn('Privy login handler is not ready yet.');
   }
 
+  function openPrivyAuthModal() {
+    const modal = ensureCustomAuthModal();
+    modal.style.display = 'flex';
+  }
+
   window.openPrivyAuthModal = openPrivyAuthModal;
+  window.closePrivyAuthModal = () => {
+    if (customAuthModal) customAuthModal.style.display = 'none';
+  };
 
   if (privyBootOk) {
     function AuthButton() {
@@ -2431,7 +2478,7 @@
         {
           appId: PRIVY_APP_ID,
           config: {
-            loginMethods: ['wallet', 'email', 'google', 'twitter', 'discord', 'github', 'passkey'],
+            loginMethods: ['wallet', 'email', 'passkey', 'google', 'twitter', 'discord', 'github'],
             appearance: {
               theme: 'dark',
               accentColor: '#f59e0b',
@@ -3139,9 +3186,10 @@
       pfState = await res.json();
       renderPumpLiveArena();
       renderPumpFighters();
-    renderLiveBattles();
-    renderSidebarLiveBattles();
-    renderSidebarLeaderboard();
+      renderLiveBattles();
+      renderSidebarLiveBattles();
+      renderSidebarLeaderboard();
+      renderFighterOfTheWeek();
     } catch (e) { console.error('fetchPumpState:', e); }
   }
 
@@ -3426,6 +3474,38 @@
       '</div>';
     });
     container.innerHTML = html;
+  }
+
+  function renderFighterOfTheWeek() {
+    const avatarEl = document.getElementById('fighter-of-week-avatar');
+    const nameEl = document.getElementById('fighter-of-week-name');
+    const bcEl = document.getElementById('fighter-of-week-bc');
+    if (!avatarEl || !nameEl || !bcEl) return;
+
+    const fighters = Array.isArray(pfState?.fighters) ? pfState.fighters : [];
+    const fighter = [...fighters].sort((a, b) => {
+      return (b.wins || 0) - (a.wins || 0) || (b.fame_score || 0) - (a.fame_score || 0);
+    })[0];
+
+    if (!fighter) {
+      avatarEl.innerHTML = '🪙';
+      nameEl.textContent = 'No fighter yet';
+      bcEl.textContent = '0 BC';
+      return;
+    }
+
+    const name = fighter.display_name || fighter.name || 'Unknown Fighter';
+    const earnedBc = (fighter.bc_earned || (fighter.wins || 0) * 5000 || 0);
+    const avatarUrl = fighter.processed_avatar || fighter.avatar_url || fighter.image_url || '';
+
+    if (avatarUrl) {
+      avatarEl.innerHTML = '<img src="' + avatarUrl + '" alt="' + name + '" style="width:100%; height:100%; object-fit:cover;">';
+    } else {
+      avatarEl.innerHTML = fighter.emoji || '🪙';
+    }
+
+    nameEl.textContent = name;
+    bcEl.textContent = Number(earnedBc).toLocaleString() + ' BC';
   }
 
   function renderPumpFighters() {

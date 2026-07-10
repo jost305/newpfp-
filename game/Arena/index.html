@@ -1882,7 +1882,7 @@
   <button class="search-btn" type="button" onclick="toggleSearchModal(event)" aria-label="Open search">🔍</button>
   <div class="nav-stats">
     <div class="nav-stat">BC EARNED&nbsp;&nbsp;<strong>0 BC 🎒</strong></div>
-    <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong>50 <span class="live-badge">LIVE</span></strong></div>
+    <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong><span id="nav-fighter-count-value">0</span> <span class="live-badge">LIVE</span></strong></div>
   </div>
   <div class="nav-tabs">
     <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)"><img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
@@ -1957,15 +1957,15 @@
 
     <div>
       <div class="sidebar-section-title">Fighter Of The Week</div>
-      <div class="predictions-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 10px; text-align: center; background: rgba(20,241,149,0.05); border-color: rgba(20,241,149,0.2);">
+      <div class="predictions-box" id="fighter-of-week-card" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px 10px; text-align: center; background: rgba(20,241,149,0.05); border-color: rgba(20,241,149,0.2); min-height:120px;">
         <div style="display:flex; align-items:center; gap:10px; justify-content:center; width:100%;">
-          <div style="width:34px; height:34px; border-radius:999px; background:rgba(255,215,0,0.14); display:flex; align-items:center; justify-content:center; font-size:18px;">🪙</div>
-          <div style="display:flex; flex-direction:column; gap:2px; text-align:left;">
-            <span style="font-size:13px; font-weight:700; color: var(--text-primary);">💰 Total Earned</span>
-            <span style="font-size:11px; color: var(--bb-muted-foreground);">Total BantCredit</span>
+          <div id="fighter-of-week-avatar" style="width:42px; height:42px; border-radius:999px; background:rgba(255,215,0,0.14); display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden; flex-shrink:0;">🪙</div>
+          <div style="display:flex; flex-direction:column; gap:2px; text-align:left; min-width:0;">
+            <span id="fighter-of-week-name" style="font-size:13px; font-weight:700; color: var(--text-primary);">Loading…</span>
+            <span style="font-size:11px; color: var(--bb-muted-foreground);">Top leaderboard fighter</span>
           </div>
         </div>
-        <div style="font-size:16px; font-weight:900; color:#14F195; text-shadow: 0 0 20px rgba(20,241,149,0.5); line-height: 1;">0 BC</div>
+        <div id="fighter-of-week-bc" style="font-size:16px; font-weight:900; color:#14F195; text-shadow: 0 0 20px rgba(20,241,149,0.5); line-height: 1;">0 BC</div>
       </div>
     </div>
   </aside>
@@ -3143,7 +3143,7 @@
     }
   }
 
-  const PRIVY_APP_ID = '__PRIVY_APP_ID__';
+  const PRIVY_APP_ID = 'cm4winhli04jg1tvq07cb8942';
   let privyLoginHandler = null;
 
   function openPrivyAuthModal() {
@@ -3153,7 +3153,7 @@
     }
     if (privyLoginHandler) {
       privyLoginHandler({
-        loginMethods: ['wallet', 'email', 'google', 'twitter', 'discord', 'github', 'passkey'],
+        loginMethods: ['wallet', 'email', 'passkey', 'google', 'twitter', 'telegram', 'discord', 'github'],
       });
       return;
     }
@@ -3161,6 +3161,7 @@
   }
 
   window.openPrivyAuthModal = openPrivyAuthModal;
+  window.closePrivyAuthModal = () => {};
 
   if (privyBootOk) {
     function AuthButton() {
@@ -3178,13 +3179,15 @@
         privyLoginHandler = login;
       }, [login]);
 
-      // Expose wallet address globally so other JS can use it for API calls
+      // Expose wallet address and full user object globally
       React.useEffect(() => {
         if (authenticated && user) {
           const wallet = user.wallet?.address || user.linkedAccounts?.find(a => a.type === 'wallet')?.address || '';
           window.currentWalletAddress = wallet.toLowerCase();
+          window.privyUser = user;          // expose so cpImportPFP & deploy can read linkedAccounts
         } else {
           window.currentWalletAddress = '';
+          window.privyUser = null;
         }
       }, [authenticated, user]);
 
@@ -3231,7 +3234,7 @@
         {
           appId: PRIVY_APP_ID,
           config: {
-            loginMethods: ['wallet', 'email', 'google', 'twitter', 'discord', 'github', 'passkey'],
+            loginMethods: ['wallet', 'email', 'passkey', 'google', 'twitter', 'telegram', 'discord', 'github'],
             appearance: {
               theme: 'dark',
               accentColor: '#f59e0b',
@@ -3287,6 +3290,13 @@
       loadPumpfighters();
     }
     
+    // PFP Mode polling
+    if (view === 'pfpmode') {
+      startPFPPolling();
+    } else {
+      stopPFPPolling();
+    }
+
     // Persist state in URL hash
     window.location.hash = view;
   }
@@ -3743,6 +3753,20 @@
     `).join('');
   }
 
+  function updateFighterCount(total) {
+    const el = document.getElementById('nav-fighter-count-value');
+    if (el) el.textContent = Number(total || 0).toLocaleString();
+  }
+
+  async function refreshFighterCount() {
+    try {
+      const data = await api('/api/fighters/counts');
+      updateFighterCount(data?.total ?? 0);
+    } catch (error) {
+      console.warn('Fighter count unavailable', error);
+    }
+  }
+
   async function loadProfile() {
     try {
       profileState.profile = await api('/api/profile');
@@ -4013,25 +4037,74 @@
     }
   }
 
-  function cpImportPFP(source) {
-    let mockUrl = '';
-    let mockName = '';
-    
-    if (source === 'twitter') {
-      mockUrl = 'https://i.seadn.io/gae/BdxvLseXcfl57BiuQcQYdJ64v-aI8din7eo5TIgMiOSB1_W-Mh-M9gT4K-V-n_sB6B-B-aA?auto=format&w=256';
-      mockName = '@bantahchad';
-    } else if (source === 'telegram') {
-      mockUrl = 'https://i.seadn.io/gcs/files/6c2bb12b6f3ee8c8230b80e81c7ff083.png?auto=format&w=256';
-      mockName = 'TG_Degen_99';
-    } else if (source === 'wallet') {
-      mockUrl = 'https://i.seadn.io/gae/rS7Kx8Ett0G16rU2tJubv7qFwW41q4E6-D3wD_wL1N1yZ5zW8P6xV_N9rV0?auto=format&w=256';
-      mockName = 'Bored Ape #4512';
+  async function cpImportPFP(source) {
+    const user = window.privyUser;
+    if (!user) {
+      alert('Please log in first to import your PFP.');
+      return;
     }
-    
-    document.getElementById('cp-image-url').value = mockUrl;
-    document.getElementById('cp-name').value = mockName;
-    
-    _cpSetAvatar(mockUrl);
+
+    let imageUrl = '';
+    let name     = '';
+
+    if (source === 'twitter') {
+      // Privy stores twitter_oauth linked accounts with profilePictureUrl
+      const twAcc = user.linkedAccounts?.find(a =>
+        a.type === 'twitter_oauth' || a.type === 'twitter'
+      );
+      if (!twAcc) {
+        alert('No Twitter / X account linked. Link it via your Privy account first.');
+        return;
+      }
+      // Use the highest-res variant if available (_normal → _400x400)
+      imageUrl = (twAcc.profilePictureUrl || '').replace('_normal', '_400x400');
+      name     = twAcc.name || twAcc.username || '@twitter';
+
+    } else if (source === 'telegram') {
+      // Privy stores telegram linked accounts with photoUrl / firstName
+      const tgAcc = user.linkedAccounts?.find(a => a.type === 'telegram');
+      if (!tgAcc) {
+        alert('No Telegram account linked. Link it via your Privy account first.');
+        return;
+      }
+      imageUrl = tgAcc.photoUrl || tgAcc.photo_url || '';
+      name     = tgAcc.firstName || tgAcc.username || 'TG User';
+
+    } else if (source === 'wallet') {
+      const wallet = window.currentWalletAddress;
+      if (!wallet) {
+        alert('Connect a wallet first.');
+        return;
+      }
+      // Proxy through our server so Alchemy key stays server-side
+      const btn = event?.target;
+      if (btn) { btn.textContent = '⏳ Fetching…'; btn.disabled = true; }
+      try {
+        const res  = await fetch(`/api/nfts?wallet=${encodeURIComponent(wallet)}`);
+        const data = await res.json();
+        if (data.error || !data.nfts?.length) {
+          alert('No NFTs found for this wallet, or the lookup failed. Paste a URL manually.');
+          return;
+        }
+        const nft  = data.nfts[0];
+        imageUrl   = nft.imageUrl || '';
+        name       = nft.name    || 'My NFT';
+        // Populate collection field too
+        const collEl = document.getElementById('cp-collection');
+        if (collEl && nft.collection) collEl.value = nft.collection;
+      } finally {
+        if (btn) { btn.textContent = '👛 Wallet NFT'; btn.disabled = false; }
+      }
+    }
+
+    if (!imageUrl) {
+      alert('Could not retrieve an image. Try pasting a URL manually.');
+      return;
+    }
+
+    document.getElementById('cp-image-url').value = imageUrl;
+    document.getElementById('cp-name').value       = name;
+    _cpSetAvatar(imageUrl);
     cpSync();
   }
 
@@ -4114,33 +4187,85 @@
     cpSync();
   }
 
-  function cpDeploy() {
+  async function cpDeploy() {
     const btn = document.querySelector('.cp-deploy-btn');
     if (btn.disabled) return;
-    
-    const name = document.getElementById('cp-name').value || 'UNNAMED FIGHTER';
+
+    const name = (document.getElementById('cp-name').value || '').trim() || 'UNNAMED FIGHTER';
     const hasAgentKit = document.getElementById('cp-agentkit-toggle').checked;
-    
+    const imageUrl = (document.getElementById('cp-image-url').value || '').trim();
+    const collection = (document.getElementById('cp-collection').value || '').trim();
+    const cls = (document.getElementById('cp-class').value || '').trim();
+    const traits = (document.getElementById('cp-traits').value || '').trim();
+    const hp  = parseInt(document.getElementById('cp-hp').value)  || 100;
+    const atk = parseInt(document.getElementById('cp-atk').value) || 15;
+    const def = parseInt(document.getElementById('cp-def').value) || 15;
+    const spd = parseInt(document.getElementById('cp-spd').value) || 10;
+
     btn.disabled = true;
-    btn.innerHTML = '⚙️ Initializing Eliza OS...';
     btn.style.opacity = '0.7';
-    
-    setTimeout(() => {
-      if (hasAgentKit) {
-        btn.innerHTML = '🔗 Provisioning CDP Wallet...';
-        setTimeout(() => {
-          btn.innerHTML = '✅ Fighter Deployed!';
-          btn.style.background = '#14F195';
-          btn.style.color = '#000';
-          setTimeout(() => alert('Fighter ' + name + ' (Powered by Eliza OS & Base AgentKit) has been successfully deployed to the Arena!'), 500);
-        }, 1500);
-      } else {
-        btn.innerHTML = '✅ Fighter Deployed!';
-        btn.style.background = '#14F195';
-        btn.style.color = '#000';
-        setTimeout(() => alert('Fighter ' + name + ' (Powered by Eliza OS) has been successfully deployed to the Arena!'), 500);
+    btn.innerHTML = hasAgentKit ? '🔗 Provisioning CDP Wallet...' : '⚙️ Initializing Eliza OS...';
+
+    try {
+      // Collect identity from Privy if available
+      const wallet       = window.currentWalletAddress || '';
+      const tgAccount    = window.privyUser?.linkedAccounts?.find(a => a.type === 'telegram');
+      const telegramUserId = tgAccount?.telegramUserId || tgAccount?.userId || '';
+
+      const res = await fetch('/api/pfp/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, imageUrl, collection, class: cls, traits, hp, atk, def, spd, agentKit: hasAgentKit, walletAddress: wallet, telegramUserId }),
+      });
+      const data = await res.json();
+
+      if (!data.ok) throw new Error(data.error || 'Deploy failed');
+
+      btn.innerHTML = '✅ Fighter Deployed!';
+      btn.style.background = '#14F195';
+      btn.style.color = '#000';
+      btn.style.opacity = '1';
+
+      // Update profile stat counters instantly
+      const myAgentsEl = document.getElementById('profile-my-agents');
+      if (myAgentsEl) myAgentsEl.textContent = (data.myAgents ?? 0).toLocaleString();
+      const queueEl = document.getElementById('profile-queue');
+      if (queueEl) queueEl.textContent = (data.queue ?? 0).toLocaleString();
+
+      // Inject notification into the live list
+      if (data.notification) {
+        profileState.notifications = [data.notification, ...(profileState.notifications || [])];
+        renderNotifications();
       }
-    }, 1500);
+
+      // Show a toast banner — no blocking alert
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#14F195;color:#000;padding:12px 28px;border-radius:12px;font-weight:700;font-size:14px;z-index:9999;box-shadow:0 4px 24px rgba(20,241,149,0.45);pointer-events:none;';
+      toast.textContent = '\u2694\uFE0F ' + name + ' entered the queue!';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3500);
+
+      // Reset button after a moment
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '\u2694\uFE0F DEPLOY FIGHTER';
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 4000);
+
+    } catch (e) {
+      console.error('cpDeploy:', e);
+      btn.innerHTML = '\u274C Deploy Failed';
+      btn.style.background = '#ef4444';
+      btn.style.color = '#fff';
+      btn.style.opacity = '1';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '\u2694\uFE0F DEPLOY FIGHTER';
+        btn.style.background = '';
+        btn.style.color = '';
+      }, 3000);
+    }
   }
 
   window.cpLoadEliza = cpLoadEliza;
@@ -4151,6 +4276,137 @@
   window.cpSync = cpSync;
   window.cpLoadPreset = cpLoadPreset;
   window.cpDeploy = cpDeploy;
+
+  // ── PFP MODE — live state polling & rendering ──────────────────────────
+  let _pfpPollTimer   = null;
+  let _pfpAnimTimer   = null;
+  let _pfpLastMatchId = null;
+
+  function startPFPPolling() {
+    if (_pfpPollTimer) return;
+    fetchPFPState();
+    _pfpPollTimer = setInterval(fetchPFPState, 3000);
+  }
+
+  function stopPFPPolling() {
+    if (_pfpPollTimer) { clearInterval(_pfpPollTimer); _pfpPollTimer = null; }
+    if (_pfpAnimTimer) { clearInterval(_pfpAnimTimer); _pfpAnimTimer = null; }
+  }
+
+  async function fetchPFPState() {
+    try {
+      const res  = await fetch('/api/pfp/state');
+      const data = await res.json();
+      renderPFPState(data);
+    } catch (e) { /* silent — arena still shows waiting state */ }
+  }
+
+  function renderPFPState(data) {
+    const waiting  = document.getElementById('av-waiting');
+    const liveEl   = document.getElementById('av-live-match');
+    if (!liveEl) return;
+
+    const match = data && data.live_match;
+
+    // ── Waiting / no match ─────────────────────────────────────────────
+    if (!match || match.status === 'finished') {
+      if (waiting) waiting.style.display = 'flex';
+      liveEl.style.display = 'none';
+      if (_pfpAnimTimer) { clearInterval(_pfpAnimTimer); _pfpAnimTimer = null; }
+
+      // Show queued count as a hint
+      const qEl = document.getElementById('av-queue-info');
+      if (qEl && data) {
+        const q = data.queued_count || 0;
+        qEl.textContent = q === 0
+          ? 'Deploy a fighter to enter the queue.'
+          : q === 1
+          ? '1 fighter queued — need 1 more to start.'
+          : `${q} fighters queued — match incoming!`;
+      }
+
+      // If a recent battle just finished, show result in trollbox
+      if (data && data.recent_battles && data.recent_battles.length) {
+        const last = data.recent_battles[0];
+        if (last && last.match_id !== _pfpLastMatchId) {
+          _pfpLastMatchId = last.match_id;
+          _appendTrollboxEntry(`🏆 <b>${last.winner_name}</b> won vs ${last.fighter_a_name === last.winner_name ? last.fighter_b_name : last.fighter_a_name} in ${last.rounds} rounds`);
+        }
+      }
+      return;
+    }
+
+    // ── Live match ─────────────────────────────────────────────────────
+    if (waiting) waiting.style.display = 'none';
+    liveEl.style.display = 'flex';
+
+    const fa  = match.fighter_a;
+    const fb  = match.fighter_b;
+    const log = match.rounds_log || [];
+
+    // Avatars — info bar
+    const setImg = (id, src) => {
+      const el = document.querySelector('#' + id + ' img');
+      if (el) { el.src = src || ''; el.style.display = src ? 'block' : 'none'; }
+    };
+    setImg('av-fia-left',  fa.avatarUrl);
+    setImg('av-fia-right', fb.avatarUrl);
+    const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    setText('av-fin-left',  fa.name);
+    setText('av-fin-right', fb.name);
+    setText('av-fic-left',  fa.collection || fa.class || 'PFP');
+    setText('av-fic-right', fb.collection || fb.class || 'PFP');
+
+    // Big battle avatars
+    const imgL = document.getElementById('av-ba-left-img');
+    const imgR = document.getElementById('av-ba-right-img');
+    if (imgL) imgL.src = fa.avatarUrl || '';
+    if (imgR) imgR.src = fb.avatarUrl || '';
+
+    // BC pool
+    setText('av-round-energy', `\uD83E\uDE99 ${(match.bc_pool || 576).toLocaleString()} BC Pool`);
+
+    // Detect new match
+    if (match.match_id !== _pfpLastMatchId) {
+      _pfpLastMatchId = match.match_id;
+      if (_pfpAnimTimer) { clearInterval(_pfpAnimTimer); _pfpAnimTimer = null; }
+      _appendTrollboxEntry(`\u2694\uFE0F PFP Battle: <b>${fa.name}</b> vs <b>${fb.name}</b>`);
+    }
+
+    // Derive current round from elapsed time
+    const elapsed       = data.elapsed_secs || 0;
+    const secsPerRound  = match.secs_per_round || 2;
+    const currentRound  = Math.min(Math.floor(elapsed / secsPerRound), log.length - 1);
+    const entry         = log[currentRound] || log[log.length - 1] || {};
+    const maxHpA        = match.max_hp_a || fa.hp || 120;
+    const maxHpB        = match.max_hp_b || fb.hp || 120;
+    const hpA           = entry.hp_a != null ? entry.hp_a : maxHpA;
+    const hpB           = entry.hp_b != null ? entry.hp_b : maxHpB;
+    const pctA          = Math.max(0, Math.round(hpA / maxHpA * 100));
+    const pctB          = Math.max(0, Math.round(hpB / maxHpB * 100));
+
+    // HP bars
+    const barL = document.getElementById('av-hp-left');
+    const barR = document.getElementById('av-hp-right');
+    const valL = document.getElementById('av-hp-left-val');
+    const valR = document.getElementById('av-hp-right-val');
+    if (barL) { barL.style.width = pctA + '%'; barL.className = 'pf-hp-bar-fill ' + (pctA > 50 ? 'green' : pctA > 25 ? 'yellow' : 'red'); }
+    if (barR) { barR.style.width = pctB + '%'; barR.className = 'pf-hp-bar-fill ' + (pctB > 50 ? 'green' : pctB > 25 ? 'yellow' : 'red'); }
+    if (valL) valL.textContent = hpA;
+    if (valR) valR.textContent = hpB;
+
+    // Round label
+    setText('av-round-label', `ROUND ${currentRound + 1}`);
+  }
+
+  function _appendTrollboxEntry(html) {
+    const box = document.getElementById('trollbox-entries');
+    if (!box) return;
+    const el  = document.createElement('div');
+    el.className = 'trollbox-msg system-msg';
+    el.innerHTML = html;
+    box.prepend(el);
+  }
 
   // -- PUMPFIGHTERS LIVE DATA --
   let pfState = null;
@@ -4279,6 +4535,8 @@
     const leftCombatant = combatants[0];
     const rightCombatant = combatants[1];
     const spellCards = document.querySelectorAll('.pf-bottom-spell, .spell-icon');
+    const hpBarL = document.getElementById('pf-hp-left');
+    const hpBarR = document.getElementById('pf-hp-right');
 
     if (pfBattleAnimTimer) clearInterval(pfBattleAnimTimer);
     pfBattleAnimTimer = setInterval(() => {
@@ -4566,7 +4824,9 @@
   fetchPumpLeaderboard();
   loadProfile();
   loadNotifications();
+  refreshFighterCount();
   setInterval(loadNotifications, 15000);
+  setInterval(refreshFighterCount, 20000);
 
   // ── Market Energy Polling ──────────────────────────────────────────────────
   let _pumpBannerTimeout = null;

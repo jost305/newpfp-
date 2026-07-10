@@ -4,7 +4,7 @@ A crypto battle / watch-to-earn arena platform. The UI shows live battles, predi
 
 ## How to run
 
-The workflow **"Start application"** runs `python serve.py`, which starts a plain Python HTTP server on port 5000. No build step needed — the frontend is pre-built static HTML/CSS/JS served directly from `game/newpfp/`.
+The workflow **"Start application"** runs `python serve.py`, which starts a plain Python HTTP server on port 5000. No build step needed — the frontend is pre-built static HTML/CSS/JS served directly from `game/Arena/`.
 
 ```
 python serve.py
