@@ -3429,7 +3429,7 @@
     const h = location.hash.replace('#', '');
     if (h) activateTabByName(h);
   });
-  if (location.hash) activateTabByName(location.hash.replace('#', ''));
+  // if (location.hash) activateTabByName(location.hash.replace('#', '')); // <-- causes TDZ crash, DOMContentLoaded handles this below
   window.openProfileView = openProfileView;
   window.toggleSearchModal = toggleSearchModal;
   window.closeSearchModal = closeSearchModal;
@@ -4702,11 +4702,27 @@
       }
       round++;
 
-      // ── Animate attacker lunging ──
+      // ── Animate attacker lunging & projectile ──
       if (attacker) {
         attacker.classList.remove('attack-left', 'attack-right', 'hit');
         void attacker.offsetWidth; // reflow
         attacker.classList.add(isLeftAttacking ? 'attack-left' : 'attack-right');
+
+        if (defender) {
+          const attRect = attacker.getBoundingClientRect();
+          const defRect = defender.getBoundingClientRect();
+          const startX = attRect.left + attRect.width / 2;
+          const startY = attRect.top + attRect.height / 2;
+          const endX = defRect.left + defRect.width / 2;
+          const endY = defRect.top + defRect.height / 2;
+          
+          if (window.playProjectileAnimation) {
+            window.playProjectileAnimation(startX, startY, endX, endY, () => {
+              if (window.playExplosionAnimation) window.playExplosionAnimation(endX, endY);
+              defender.classList.add('hit');
+            });
+          }
+        }
       }
 
       const pctA = Math.round((hpA / maxA) * 100);
