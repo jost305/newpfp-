@@ -1869,9 +1869,33 @@
       50% { transform: scale(1.1); filter: brightness(1.2); box-shadow: 0 0 30px rgba(20,241,149,0.6); border-color: rgba(20,241,149,0.8); }
       100% { transform: scale(1); filter: brightness(1); }
     }
-    </style>
+    .explosion {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      z-index: 1001;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+
+    .projectile {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      z-index: 1000;
+      pointer-events: none;
+      transition: top 0.4s linear, left 0.4s linear;
+    }
+  </style>
 </head>
 <body class="bantahbro-next-ui dark">
+<audio id="ambient-audio" src="/Arena/assets/audio/ambient_music.mp3" loop preload="auto"></audio>
 
 <!-- TOP NAV -->
 <nav class="topnav">
@@ -1892,6 +1916,7 @@
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this)">Marketplace</button>
     <button class="nav-tab" data-view="leaderboard" onclick="setTab(this)">Leaderboard</button>
     <button class="nav-tab" data-view="doc" onclick="setTab(this)">📖 Doc</button>
+    <button class="nav-tab" id="audio-toggle" onclick="toggleAudio()" style="margin-left:auto; background:var(--bb-surface); border:1px solid var(--bb-border);">🔊 Sound: OFF</button>
   </div>
   <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
   <div class="mobile-nav-dropdown" id="mobile-nav-dropdown">
@@ -1902,6 +1927,7 @@
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this); closeMobileMenu();">Marketplace</button>
     <button class="nav-tab" data-view="leaderboard" onclick="setTab(this); closeMobileMenu();">Leaderboard</button>
     <button class="nav-tab" data-view="doc" onclick="setTab(this); closeMobileMenu();">📖 Doc</button>
+    <button class="nav-tab" id="audio-toggle-mobile" onclick="toggleAudio()" style="background:var(--bb-surface); border:1px solid var(--bb-border);">🔊 Sound: OFF</button>
   </div>
   <div class="mobile-footer-nav" id="mobile-footer-nav">
     <button class="footer-nav-btn nav-tab" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">PumpFighters</button>
@@ -2605,6 +2631,7 @@
         <button class="challenge-tab" data-lbtab="solana" onclick="setLbTab(this)">Solana</button>
         <button class="challenge-tab" data-lbtab="bsc" onclick="setLbTab(this)">BSC</button>
         <button class="challenge-tab" data-lbtab="base" onclick="setLbTab(this)">Base</button>
+        <button class="challenge-tab" data-lbtab="robinhood" onclick="setLbTab(this)">Robinhood</button>
       </div>
       <div class="full-lb-list" id="full-lb-list"></div>
     </div>
@@ -2750,7 +2777,7 @@
           <p>This guide focuses on what users need to understand: sources, badges, ownership, rewards, and battle modes. Internal operations and business planning are not published here.</p>
         </div>
         <div class="doc-badges">
-          <div class="doc-badge-chip"><img src="/Arena/assets/bota-bantah-icon.png" onerror="this.style.display='none'" />BOTA</div>
+          <div class="doc-badge-chip"><img src="/Arena/assets/bota-logo.jpg" onerror="this.style.display='none'" />BOTA</div>
           <div class="doc-badge-chip">🔷 ENS</div>
           <div class="doc-badge-chip">⚡ Virtuals Protocol</div>
           <div class="doc-badge-chip">🧠 ElizaOS</div>
@@ -2929,7 +2956,7 @@
         <div id="doc-pumpfighters">
           <div class="doc-eyebrow">PumpFighters</div>
           <h2>PumpFighters — live token battles</h2>
-          <p>PumpFighters turns real crypto market data into live arena battles. Token fighters from Solana, BSC, and Base compete automatically, with their market cap, price action, and volume driving their combat power.</p>
+          <p>PumpFighters turns real crypto market data into live arena battles. Token fighters from Solana, BSC, Base, and Robinhood compete automatically, with their market cap, price action, and volume driving their combat power.</p>
         </div>
         <div class="doc-grid-4">
           <div class="doc-card"><div class="doc-card-icon">📡</div><h3>Live market data</h3><p>Fighter stats are pulled from DexScreener in real time. Market cap acts as the power level — a token pumping hard hits harder in the arena.</p></div>
@@ -2938,7 +2965,7 @@
           <div class="doc-card"><div class="doc-card-icon">👁</div><h3>Watch 2 Earn</h3><p>Spectating live PumpFighter battles earns BantCredit. Stay in the arena while battles run to accumulate watch rewards passively.</p></div>
         </div>
         <div class="doc-grid-2" style="margin-top:8px;">
-          <div class="doc-card"><div class="doc-card-icon">🏆</div><h3>Leaderboard</h3><p>The Leaderboard tab ranks all PumpFighters by wins and losses across All, Solana, BSC, and Base chains. Rankings update after every resolved battle.</p></div>
+          <div class="doc-card"><div class="doc-card-icon">🏆</div><h3>Leaderboard</h3><p>The Leaderboard tab ranks all PumpFighters by wins and losses across All, Solana, BSC, Base, and Robinhood chains. Rankings update after every resolved battle.</p></div>
           <div class="doc-card"><div class="doc-card-icon">🎯</div><h3>Stake &amp; Challenge</h3><p>Select any fighter in the arena and stake BC to initiate a challenge. The challenge modal shows the matchup, your stake, and the potential payout before you confirm.</p></div>
         </div>
         <div class="doc-table-wrap">
@@ -2950,7 +2977,7 @@
             <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">HP</div><div class="doc-cell-accent">Derived</div><div class="doc-cell-muted">Health points scaled from MCAP and recent volatility. Determines how long a fighter survives.</div></div>
             <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">ATK</div><div class="doc-cell-accent">Derived</div><div class="doc-cell-muted">Aggression score — driven by price momentum and volume spikes.</div></div>
             <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">DEF</div><div class="doc-cell-accent">Derived</div><div class="doc-cell-muted">Defensive rating — tokens with stable price action absorb more damage.</div></div>
-            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">Chain</div><div class="doc-cell-accent">Source</div><div class="doc-cell-muted">Solana, BSC, or Base. Chain determines the fighter's badge and leaderboard category.</div></div>
+            <div class="doc-table-row" style="display:grid;grid-template-columns:100px 80px 1fr;"><div class="doc-cell-key">Chain</div><div class="doc-cell-accent">Source</div><div class="doc-cell-muted">Solana, BSC, Base, or Robinhood. Chain determines the fighter's badge and leaderboard category.</div></div>
           </div>
         </div>
       </div>
@@ -4210,86 +4237,6 @@
     cpSync();
   }
 
-  async function cpDeploy() {
-    const btn = document.querySelector('.cp-deploy-btn');
-    if (btn.disabled) return;
-
-    const name = (document.getElementById('cp-name').value || '').trim() || 'UNNAMED FIGHTER';
-    const hasAgentKit = document.getElementById('cp-agentkit-toggle').checked;
-    const imageUrl = (document.getElementById('cp-image-url').value || '').trim();
-    const collection = (document.getElementById('cp-collection').value || '').trim();
-    const cls = (document.getElementById('cp-class').value || '').trim();
-    const traits = (document.getElementById('cp-traits').value || '').trim();
-    const hp  = parseInt(document.getElementById('cp-hp').value)  || 100;
-    const atk = parseInt(document.getElementById('cp-atk').value) || 15;
-    const def = parseInt(document.getElementById('cp-def').value) || 15;
-    const spd = parseInt(document.getElementById('cp-spd').value) || 10;
-
-    btn.disabled = true;
-    btn.style.opacity = '0.7';
-    btn.innerHTML = hasAgentKit ? '🔗 Provisioning CDP Wallet...' : '⚙️ Initializing Eliza OS...';
-
-    try {
-      // Collect identity from Privy if available
-      const wallet       = window.currentWalletAddress || '';
-      const tgAccount    = window.privyUser?.linkedAccounts?.find(a => a.type === 'telegram');
-      const telegramUserId = tgAccount?.telegramUserId || tgAccount?.userId || '';
-
-      const res = await fetch('/api/pfp/deploy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, imageUrl, collection, class: cls, traits, hp, atk, def, spd, agentKit: hasAgentKit, walletAddress: wallet, telegramUserId }),
-      });
-      const data = await res.json();
-
-      if (!data.ok) throw new Error(data.error || 'Deploy failed');
-
-      btn.innerHTML = '✅ Fighter Deployed!';
-      btn.style.background = '#14F195';
-      btn.style.color = '#000';
-      btn.style.opacity = '1';
-
-      // Update profile stat counters instantly
-      const myAgentsEl = document.getElementById('profile-my-agents');
-      if (myAgentsEl) myAgentsEl.textContent = (data.myAgents ?? 0).toLocaleString();
-      const queueEl = document.getElementById('profile-queue');
-      if (queueEl) queueEl.textContent = (data.queue ?? 0).toLocaleString();
-
-      // Inject notification into the live list
-      if (data.notification) {
-        profileState.notifications = [data.notification, ...(profileState.notifications || [])];
-        renderNotifications();
-      }
-
-      // Show a toast banner — no blocking alert
-      const toast = document.createElement('div');
-      toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#14F195;color:#000;padding:12px 28px;border-radius:12px;font-weight:700;font-size:14px;z-index:9999;box-shadow:0 4px 24px rgba(20,241,149,0.45);pointer-events:none;';
-      toast.textContent = '\u2694\uFE0F ' + name + ' entered the queue!';
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 3500);
-
-      // Reset button after a moment
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.innerHTML = '\u2694\uFE0F DEPLOY FIGHTER';
-        btn.style.background = '';
-        btn.style.color = '';
-      }, 4000);
-
-    } catch (e) {
-      console.error('cpDeploy:', e);
-      btn.innerHTML = '\u274C Deploy Failed';
-      btn.style.background = '#ef4444';
-      btn.style.color = '#fff';
-      btn.style.opacity = '1';
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.innerHTML = '\u2694\uFE0F DEPLOY FIGHTER';
-        btn.style.background = '';
-        btn.style.color = '';
-      }, 3000);
-    }
-  }
 
   function cpCurrentImage() {
     const img = document.getElementById('cp-avatar-img');
@@ -4943,6 +4890,7 @@
       if (f.chain === 'solana') { chainEmoji = '&#x1F7E3;'; badgeClass = 'secondary'; }
       if (f.chain === 'bsc') { chainEmoji = '&#x1F7E1;'; badgeClass = 'orange'; }
       if (f.chain === 'base') { chainEmoji = '&#x1F535;'; badgeClass = 'destructive'; }
+      if (f.chain === 'robinhood') { chainEmoji = '&#x1F985;'; badgeClass = 'secondary'; }
 
       const avatarSrc = f.processed_avatar || f.image_uri;
       const avatarStyle = avatarSrc
@@ -5097,6 +5045,82 @@
       if (defaultBtn) setTab(defaultBtn);
     }
   });
+
+  // ── Audio & Animation Engine ──
+  let isAudioPlaying = false;
+  window.toggleAudio = function() {
+    const audio = document.getElementById('ambient-audio');
+    const btn = document.getElementById('audio-toggle');
+    const btnMob = document.getElementById('audio-toggle-mobile');
+    if (!audio) return;
+    if (isAudioPlaying) {
+      audio.pause();
+      isAudioPlaying = false;
+      if (btn) btn.innerHTML = '🔊 Sound: OFF';
+      if (btnMob) btnMob.innerHTML = '🔊 Sound: OFF';
+    } else {
+      audio.play().then(() => {
+        isAudioPlaying = true;
+        if (btn) btn.innerHTML = '🔊 Sound: ON';
+        if (btnMob) btnMob.innerHTML = '🔊 Sound: ON';
+      }).catch(e => console.error("Audio play failed:", e));
+    }
+  };
+
+  const FIRE_ARROW_FRAMES = 8;
+  const EXPLOSION_FRAMES = 10;
+  
+  window.playProjectileAnimation = function(startX, startY, endX, endY, onComplete) {
+    const proj = document.createElement('div');
+    proj.className = 'projectile';
+    proj.style.left = startX + 'px';
+    proj.style.top = startY + 'px';
+    
+    // rotation to face target
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    proj.style.transform = `rotate(${angle}deg) translate(-50%, -50%)`;
+    
+    document.body.appendChild(proj);
+    
+    let frame = 1;
+    let projInterval = setInterval(() => {
+      proj.style.backgroundImage = `url('/Arena/assets/firearrow/Fire_Arrow_Frame_0${frame}.png')`;
+      frame++;
+      if (frame > FIRE_ARROW_FRAMES) frame = 1;
+    }, 50); // 20fps
+    
+    // Animate movement (0.4s CSS transition matches transition definition)
+    setTimeout(() => {
+      proj.style.left = endX + 'px';
+      proj.style.top = endY + 'px';
+    }, 50);
+    
+    setTimeout(() => {
+      clearInterval(projInterval);
+      if (proj.parentNode) proj.remove();
+      if (onComplete) onComplete();
+    }, 400); 
+  };
+
+  window.playExplosionAnimation = function(x, y) {
+    const expl = document.createElement('div');
+    expl.className = 'explosion';
+    expl.style.left = x + 'px';
+    expl.style.top = y + 'px';
+    document.body.appendChild(expl);
+    
+    let frame = 1;
+    let explInterval = setInterval(() => {
+      expl.style.backgroundImage = `url('/Arena/assets/explosions/Explosion_${frame}.png')`;
+      frame++;
+      if (frame > EXPLOSION_FRAMES) {
+        clearInterval(explInterval);
+        if (expl.parentNode) expl.remove();
+      }
+    }, 50); // 20fps
+  };
 
   // Handle browser back/forward buttons
   window.addEventListener('hashchange', () => {

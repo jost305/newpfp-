@@ -33,29 +33,35 @@ BANTCREDIT_REFERRER_REWARD = 100
 def query_db(sql, params=(), fetchone=False):
     if not _HAS_DB or not DATABASE_URL:
         return None
+    conn = None
     try:
         conn = psycopg2.connect(DATABASE_URL)
         cur = conn.cursor()
         cur.execute(sql, params)
         result = cur.fetchone() if fetchone else cur.fetchall()
-        conn.close()
         return result
     except Exception as e:
         print(f"DB error: {e}", flush=True)
+    finally:
+        if conn is not None:
+            conn.close()
 
 def execute_db(sql, params=()):
     if not _HAS_DB or not DATABASE_URL:
         return None
+    conn = None
     try:
         conn = psycopg2.connect(DATABASE_URL)
         cur = conn.cursor()
         cur.execute(sql, params)
         conn.commit()
-        conn.close()
         return True
     except Exception as e:
         print(f"DB execute error: {e}", flush=True)
         return False
+    finally:
+        if conn is not None:
+            conn.close()
 
 def award_bantcredit(wallet, amount, tx_type, reference_id=""):
     """Award BantCredit and update the ledger and balance."""
@@ -171,7 +177,7 @@ def insert_pfp_battle_record(live):
     ))
 
 
-PORT = int(os.environ.get("PORT", 5000))
+PORT = int(os.environ.get("PORT", 5555))
 GAME_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "game")
 INDEX_PATH = os.path.join(GAME_DIR, "Arena", "index.html")
 PRIVY_APP_ID    = os.environ.get("PRIVY_APP_ID", "")

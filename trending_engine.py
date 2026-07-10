@@ -54,16 +54,18 @@ AVATAR_SIZE = 200                   # px for circular avatar
 MAX_RECENT_BATTLES = 30
 
 CHAIN_CONFIG = {
-    "solana": {"label": "SOL",  "color": "#9945FF", "emoji": "🟣", "slots": 6},
-    "bsc":    {"label": "BSC",  "color": "#F3BA2F", "emoji": "🟡", "slots": 5},
-    "base":   {"label": "BASE", "color": "#0052FF", "emoji": "🔵", "slots": 5},
+    "solana":    {"label": "SOL",   "color": "#9945FF", "emoji": "🟣", "slots": 6},
+    "bsc":       {"label": "BSC",   "color": "#F3BA2F", "emoji": "🟡", "slots": 5},
+    "base":      {"label": "BASE",  "color": "#0052FF", "emoji": "🔵", "slots": 5},
+    "robinhood": {"label": "HOOD",  "color": "#00C805", "emoji": "🦅", "slots": 4},
 }
 
 # Chain personality modifiers applied on top of base stats
 CHAIN_MODS = {
-    "solana": {"speed": 15,  "luck": 10},
-    "bsc":    {"defense": 10, "aggression": 8},
-    "base":   {"intelligence": 12},
+    "solana":    {"speed": 15,  "luck": 10},
+    "bsc":       {"defense": 10, "aggression": 8},
+    "base":      {"intelligence": 12},
+    "robinhood": {"luck": 15, "speed": 5},
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -346,6 +348,34 @@ def fetch_bsc_trending(slots=5):
     print(f"[TrendingEngine] BSC: {len(coins)} valid coins", flush=True)
     return coins
 
+
+def fetch_robinhood_trending(slots=4):
+    """Top Robinhood tokens from DexScreener token-profiles unified CoinProfile list."""
+    raw = _safe_get(f"{DEXSCREENER}/token-profiles/latest/v1") or []
+    rhc_entries = [x for x in raw if x.get("chainId") == "robinhood"][:slots * 3]
+
+    coins = []
+    for entry in rhc_entries:
+        addr = entry.get("tokenAddress", "")
+        if not addr:
+            continue
+        pair = _enrich_token(addr, "robinhood")
+        symbol = ""
+        name = entry.get("description", "")
+        if pair:
+            symbol = pair.get("baseToken", {}).get("symbol", "")
+            name = pair.get("baseToken", {}).get("name", name)
+
+        image_uri = entry.get("icon", "")
+
+        coin = _normalize_token(addr, "robinhood", symbol or name[:12], name, image_uri, pair)
+        if _is_valid(coin):
+            coins.append(coin)
+        if len(coins) >= slots:
+            break
+
+    print(f"[TrendingEngine] Robinhood: {len(coins)} valid coins", flush=True)
+    return coins
 
 def fetch_base_trending(slots=5):
     """
@@ -880,7 +910,7 @@ def get_leaderboard(chain="all", limit=20):
             END AS win_rate_pct
         FROM trending_fighter_profiles f
         LEFT JOIN trending_fighter_stats s ON s.fighter_unique_id = f.unique_id
-        WHERE f.arena_status = 'active' {chain_filter}
+        WHERE 1=1 {chain_filter}
         ORDER BY COALESCE(s.global_rank, 999) ASC
         LIMIT %s
     """, (limit,))
@@ -955,33 +985,34 @@ def _refresh_cycle():
         solana_coins = fetch_solana_trending(CHAIN_CONFIG["solana"]["slots"])
         bsc_coins    = fetch_bsc_trending(CHAIN_CONFIG["bsc"]["slots"])
         base_coins   = fetch_base_trending(CHAIN_CONFIG["base"]["slots"])
+        rhc_coins    = fetch_robinhood_trending(CHAIN_CONFIG["robinhood"]["slots"])
 
-        all_coins = solana_coins + bsc_coins + base_coins
+        all_coins = solana_coins + bsc_coins + base_coins + rhc_coins
+        new_fighters = []
         if not all_coins:
-            print("[TrendingEngine] No coins fetched — skipping cycle.", flush=True)
-            return
-
-        # ── 2. Generate fighter profiles ──────────────────────────────────────
-        new_fighters = [generate_fighter_profile(c) for c in all_coins]
-
-        # ── 3. Process logos with SVG fallback ────────────────────────────────
-        import concurrent.futures
-        def process_one(f):
-            avatar = process_coin_logo(f["image_uri"])
-            if not avatar:
-                avatar = _fallback_avatar_svg(f["display_name"], f["chain"])
-            f["processed_avatar"] = avatar
-            return f
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
-            new_fighters = list(pool.map(process_one, new_fighters))
-
-        # ── 4. DB path: upsert + reload ──────────────────────────────────────
-        if has_db:
-            keep_ids = [f["unique_id"] for f in new_fighters]
-            retire_stale_fighters(keep_ids)
-            for f in new_fighters:
-                upsert_fighter_profile(f)
+            print("[TrendingEngine] No coins fetched — skipping Dexscreener update but simulating battles.", flush=True)
+        else:
+            # ── 2. Generate fighter profiles ──────────────────────────────────────
+            new_fighters = [generate_fighter_profile(c) for c in all_coins]
+    
+            # ── 3. Process logos with SVG fallback ────────────────────────────────
+            import concurrent.futures
+            def process_one(f):
+                avatar = process_coin_logo(f["image_uri"])
+                if not avatar:
+                    avatar = _fallback_avatar_svg(f["display_name"], f["chain"])
+                f["processed_avatar"] = avatar
+                return f
+    
+            with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
+                new_fighters = list(pool.map(process_one, new_fighters))
+    
+            # ── 4. DB path: upsert + reload ──────────────────────────────────────
+            if has_db:
+                keep_ids = [f["unique_id"] for f in new_fighters]
+                retire_stale_fighters(keep_ids)
+                for f in new_fighters:
+                    upsert_fighter_profile(f)
 
         # ── 5. Build fighter list (DB or in-memory) ───────────────────────────
         avatar_map = {f["unique_id"]: f.get("processed_avatar") for f in new_fighters}
