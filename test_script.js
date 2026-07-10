@@ -45,7 +45,7 @@
     }
     if (privyLoginHandler) {
       privyLoginHandler({
-        loginMethods: ['wallet', 'email', 'google', 'twitter', 'discord', 'github', 'passkey'],
+        loginMethods: ['wallet', 'email', 'passkey', 'google', 'twitter', 'discord', 'github'],
       });
       return;
     }
@@ -123,7 +123,7 @@
         {
           appId: PRIVY_APP_ID,
           config: {
-            loginMethods: ['wallet', 'email', 'google', 'twitter', 'discord', 'github', 'passkey'],
+            loginMethods: ['wallet', 'email', 'passkey', 'google', 'twitter', 'discord', 'github'],
             appearance: {
               theme: 'dark',
               accentColor: '#f59e0b',

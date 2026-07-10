@@ -876,6 +876,10 @@ app.get('/api/bantahbro/notifications', async (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.sendFile(require('path').resolve(__dirname, '../game/Arena/index.html'));
+});
+
 app.use('/newpfp', express.static(__dirname + '/../game/newpfp'));
 app.get('/newpfp*', (req, res) => {
     res.sendFile(require('path').resolve(__dirname, '../game/newpfp/index.html'));

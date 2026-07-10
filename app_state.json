@@ -15,13 +15,73 @@
     "xp": 8400,
     "streak": 5,
     "status": "Ready",
-    "myAgents": 3,
-    "queue": 2,
+    "myAgents": 5,
+    "queue": 4,
     "bantCredit": 12840,
     "bantcClaim": 1240000,
     "earnedUsdc": 1250
   },
   "notifications": [
+    {
+      "id": "pfp-24d6d366",
+      "walletAddress": "0xBBB2",
+      "type": "battle_result",
+      "title": "Defeated",
+      "message": "FROSTBYTE lost to SHADOWFANG. Train harder!",
+      "icon": "\ud83d\udc80",
+      "read": false,
+      "createdAt": "2026-07-08T15:20:42.946457+00:00"
+    },
+    {
+      "id": "pfp-8e3ffdc5",
+      "walletAddress": "0xAAA1",
+      "type": "battle_result",
+      "title": "Victory! \ud83c\udfc6",
+      "message": "SHADOWFANG defeated FROSTBYTE in 11 rounds!",
+      "icon": "\ud83c\udfc6",
+      "read": false,
+      "createdAt": "2026-07-08T15:20:42.946421+00:00"
+    },
+    {
+      "id": "pfp-77046233",
+      "walletAddress": "0xBBB2",
+      "type": "match_found",
+      "title": "Match found! \u2694\ufe0f",
+      "message": "FROSTBYTE vs SHADOWFANG \u2014 battle starting now!",
+      "icon": "\u2694\ufe0f",
+      "read": false,
+      "createdAt": "2026-07-08T15:20:12.939060+00:00"
+    },
+    {
+      "id": "pfp-52b7c9c4",
+      "walletAddress": "0xAAA1",
+      "type": "match_found",
+      "title": "Match found! \u2694\ufe0f",
+      "message": "SHADOWFANG vs FROSTBYTE \u2014 battle starting now!",
+      "icon": "\u2694\ufe0f",
+      "read": false,
+      "createdAt": "2026-07-08T15:20:12.938555+00:00"
+    },
+    {
+      "id": "pfp-541f19d1",
+      "walletAddress": "0xBBB2",
+      "type": "queue",
+      "title": "Fighter entered the queue",
+      "message": "FROSTBYTE has been deployed and is waiting for a match.",
+      "icon": "\u2694\ufe0f",
+      "read": false,
+      "createdAt": "2026-07-08T15:20:04.697257+00:00"
+    },
+    {
+      "id": "pfp-4cfd440e",
+      "walletAddress": "0xAAA1",
+      "type": "queue",
+      "title": "Fighter entered the queue",
+      "message": "SHADOWFANG has been deployed and is waiting for a match.",
+      "icon": "\u2694\ufe0f",
+      "read": false,
+      "createdAt": "2026-07-08T15:20:04.632264+00:00"
+    },
     {
       "id": "notif-1",
       "type": "challenge",
@@ -49,5 +109,235 @@
       "read": true,
       "createdAt": "2026-07-05T08:00:00Z"
     }
-  ]
+  ],
+  "pfp_fighters": [
+    {
+      "id": "6dd60443",
+      "name": "SHADOWFANG",
+      "avatarUrl": "https://i.seadn.io/gcs/files/e9f3b7d159be432f80c65ab7574b6bd1.png",
+      "collection": "BAYC",
+      "class": "fire",
+      "traits": "",
+      "hp": 180,
+      "atk": 38,
+      "def": 12,
+      "spd": 20,
+      "agentKit": false,
+      "walletAddress": "0xAAA1",
+      "telegramUserId": null,
+      "wins": 1,
+      "losses": 0,
+      "fameScore": 0.0,
+      "status": "idle",
+      "deployedAt": "2026-07-08T15:20:04.632234+00:00"
+    },
+    {
+      "id": "fe88756e",
+      "name": "FROSTBYTE",
+      "avatarUrl": "https://i.seadn.io/gcs/files/e9f3b7d159be432f80c65ab7574b6bd1.png",
+      "collection": "CryptoPunks",
+      "class": "frost",
+      "traits": "",
+      "hp": 160,
+      "atk": 30,
+      "def": 22,
+      "spd": 18,
+      "agentKit": true,
+      "walletAddress": "0xBBB2",
+      "telegramUserId": null,
+      "wins": 0,
+      "losses": 1,
+      "fameScore": 0.0,
+      "status": "idle",
+      "deployedAt": "2026-07-08T15:20:04.697234+00:00"
+    }
+  ],
+  "pfp_live_match": {
+    "match_id": "pfp_1783524012_8366",
+    "fighter_a": {
+      "id": "6dd60443",
+      "name": "SHADOWFANG",
+      "avatarUrl": "https://i.seadn.io/gcs/files/e9f3b7d159be432f80c65ab7574b6bd1.png",
+      "collection": "BAYC",
+      "class": "fire",
+      "traits": "",
+      "hp": 180,
+      "atk": 38,
+      "def": 12,
+      "spd": 20,
+      "agentKit": false,
+      "walletAddress": "0xAAA1",
+      "telegramUserId": null,
+      "wins": 1,
+      "losses": 0,
+      "fameScore": 0.0,
+      "status": "idle",
+      "deployedAt": "2026-07-08T15:20:04.632234+00:00"
+    },
+    "fighter_b": {
+      "id": "fe88756e",
+      "name": "FROSTBYTE",
+      "avatarUrl": "https://i.seadn.io/gcs/files/e9f3b7d159be432f80c65ab7574b6bd1.png",
+      "collection": "CryptoPunks",
+      "class": "frost",
+      "traits": "",
+      "hp": 160,
+      "atk": 30,
+      "def": 22,
+      "spd": 18,
+      "agentKit": true,
+      "walletAddress": "0xBBB2",
+      "telegramUserId": null,
+      "wins": 0,
+      "losses": 1,
+      "fameScore": 0.0,
+      "status": "idle",
+      "deployedAt": "2026-07-08T15:20:04.697234+00:00"
+    },
+    "max_hp_a": 180.0,
+    "max_hp_b": 160.0,
+    "rounds_log": [
+      {
+        "round": 1,
+        "hp_a": 167,
+        "hp_b": 148
+      },
+      {
+        "round": 2,
+        "hp_a": 149,
+        "hp_b": 135
+      },
+      {
+        "round": 3,
+        "hp_a": 133,
+        "hp_b": 120
+      },
+      {
+        "round": 4,
+        "hp_a": 115,
+        "hp_b": 104
+      },
+      {
+        "round": 5,
+        "hp_a": 103,
+        "hp_b": 90
+      },
+      {
+        "round": 6,
+        "hp_a": 90,
+        "hp_b": 72
+      },
+      {
+        "round": 7,
+        "hp_a": 76,
+        "hp_b": 57
+      },
+      {
+        "round": 8,
+        "hp_a": 64,
+        "hp_b": 42
+      },
+      {
+        "round": 9,
+        "hp_a": 48,
+        "hp_b": 27
+      },
+      {
+        "round": 10,
+        "hp_a": 36,
+        "hp_b": 13
+      },
+      {
+        "round": 11,
+        "hp_a": 36,
+        "hp_b": 0
+      }
+    ],
+    "rounds_fought": 11,
+    "winner_id": "6dd60443",
+    "loser_id": "fe88756e",
+    "winner_name": "SHADOWFANG",
+    "loser_name": "FROSTBYTE",
+    "bc_pool": 576,
+    "secs_per_round": 2,
+    "status": "finished",
+    "started_at": "2026-07-08T15:20:12.939933+00:00"
+  },
+  "pfp_recent_battles": [
+    {
+      "match_id": "pfp_1783524012_8366",
+      "fighter_a_name": "SHADOWFANG",
+      "fighter_b_name": "FROSTBYTE",
+      "winner_name": "SHADOWFANG",
+      "rounds": 11,
+      "bc_pool": 576,
+      "ended_at": "2026-07-08T15:20:42.946466+00:00"
+    }
+  ],
+  "notifications_by_wallet": {
+    "0xAAA1": [
+      {
+        "id": "pfp-8e3ffdc5",
+        "walletAddress": "0xAAA1",
+        "type": "battle_result",
+        "title": "Victory! \ud83c\udfc6",
+        "message": "SHADOWFANG defeated FROSTBYTE in 11 rounds!",
+        "icon": "\ud83c\udfc6",
+        "read": false,
+        "createdAt": "2026-07-08T15:20:42.946421+00:00"
+      },
+      {
+        "id": "pfp-52b7c9c4",
+        "walletAddress": "0xAAA1",
+        "type": "match_found",
+        "title": "Match found! \u2694\ufe0f",
+        "message": "SHADOWFANG vs FROSTBYTE \u2014 battle starting now!",
+        "icon": "\u2694\ufe0f",
+        "read": false,
+        "createdAt": "2026-07-08T15:20:12.938555+00:00"
+      },
+      {
+        "id": "pfp-4cfd440e",
+        "walletAddress": "0xAAA1",
+        "type": "queue",
+        "title": "Fighter entered the queue",
+        "message": "SHADOWFANG has been deployed and is waiting for a match.",
+        "icon": "\u2694\ufe0f",
+        "read": false,
+        "createdAt": "2026-07-08T15:20:04.632264+00:00"
+      }
+    ],
+    "0xBBB2": [
+      {
+        "id": "pfp-24d6d366",
+        "walletAddress": "0xBBB2",
+        "type": "battle_result",
+        "title": "Defeated",
+        "message": "FROSTBYTE lost to SHADOWFANG. Train harder!",
+        "icon": "\ud83d\udc80",
+        "read": false,
+        "createdAt": "2026-07-08T15:20:42.946457+00:00"
+      },
+      {
+        "id": "pfp-77046233",
+        "walletAddress": "0xBBB2",
+        "type": "match_found",
+        "title": "Match found! \u2694\ufe0f",
+        "message": "FROSTBYTE vs SHADOWFANG \u2014 battle starting now!",
+        "icon": "\u2694\ufe0f",
+        "read": false,
+        "createdAt": "2026-07-08T15:20:12.939060+00:00"
+      },
+      {
+        "id": "pfp-541f19d1",
+        "walletAddress": "0xBBB2",
+        "type": "queue",
+        "title": "Fighter entered the queue",
+        "message": "FROSTBYTE has been deployed and is waiting for a match.",
+        "icon": "\u2694\ufe0f",
+        "read": false,
+        "createdAt": "2026-07-08T15:20:04.697257+00:00"
+      }
+    ]
+  }
 }
