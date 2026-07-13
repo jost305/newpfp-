@@ -3358,7 +3358,7 @@
 
   async function fetchPumpState() {
     try {
-      const res = await fetch('/api/pumpfighters/state');
+      const res = await fetch('/api/pfp/state');
       pfState = await res.json();
       renderPumpLiveArena();
       renderPumpFighters();
@@ -3371,7 +3371,7 @@
 
   async function fetchPumpLeaderboard() {
     try {
-      const res = await fetch('/api/pumpfighters/leaderboard?chain=' + lbTab);
+      const res = await fetch('/api/fighters');
       const data = await res.json();
       renderPumpLeaderboard(data);
     } catch (e) { console.error('fetchPumpLeaderboard:', e); }
@@ -3413,26 +3413,29 @@
     const fB = pfState.live_match.fighter_b;
     const match = pfState.live_match;
 
+    const fAImg = fA.processed_avatar || fA.avatarUrl || fA.avatar_url || fA.image_uri || fA.image_url;
+    const fBImg = fB.processed_avatar || fB.avatarUrl || fB.avatar_url || fB.image_uri || fB.image_url;
+
     // Top info panels
     const setImg = (id, src) => {
       const el = document.querySelector('#' + id + ' img');
       if (el) el.src = src || '';
     };
-    setImg('pf-fia-left', fA.processed_avatar);
-    setImg('pf-fia-right', fB.processed_avatar);
-    document.getElementById('pf-fin-left').textContent = fA.display_name;
-    document.getElementById('pf-fin-right').textContent = fB.display_name;
-    document.getElementById('pf-fic-left').textContent = (fA.chain || '').toUpperCase();
-    document.getElementById('pf-fic-right').textContent = (fB.chain || '').toUpperCase();
-    document.getElementById('pf-fib-left').textContent = fmtMcap(fA.market_cap_usd);
-    document.getElementById('pf-fib-right').textContent = fmtMcap(fB.market_cap_usd);
+    setImg('pf-fia-left', fAImg);
+    setImg('pf-fia-right', fBImg);
+    document.getElementById('pf-fin-left').textContent = fA.display_name || fA.name;
+    document.getElementById('pf-fin-right').textContent = fB.display_name || fB.name;
+    document.getElementById('pf-fic-left').textContent = (fA.class || fA.chain || '').toUpperCase();
+    document.getElementById('pf-fic-right').textContent = (fB.class || fB.chain || '').toUpperCase();
+    document.getElementById('pf-fib-left').textContent = (fA.fameScore ? 'Fame ' + (typeof fA.fameScore === 'number' ? fA.fameScore.toFixed(1) : parseFloat(fA.fameScore).toFixed(1)) : fmtMcap(fA.market_cap_usd));
+    document.getElementById('pf-fib-right').textContent = (fB.fameScore ? 'Fame ' + (typeof fB.fameScore === 'number' ? fB.fameScore.toFixed(1) : parseFloat(fB.fameScore).toFixed(1)) : fmtMcap(fB.market_cap_usd));
 
     // Big avatars
-    document.getElementById('pf-ba-left-img').src = fA.processed_avatar || '';
-    document.getElementById('pf-ba-right-img').src = fB.processed_avatar || '';
+    document.getElementById('pf-ba-left-img').src = fAImg || '';
+    document.getElementById('pf-ba-right-img').src = fBImg || '';
 
     // Match label
-    document.getElementById('pf-match-label').textContent = match.label || 'PumpFighters Battle';
+    document.getElementById('pf-match-label').textContent = match.label || 'PFP Battle';
 
     // Stats panel
     const sp = document.getElementById('pf-sp-fighters');
@@ -3598,9 +3601,16 @@
       if (i >= 6) break; // Limit to 3 battles max
       const f1 = fighters[i];
       const f2 = fighters[i+1];
+      const f1Img = f1.processed_avatar || f1.avatarUrl || f1.avatar_url || f1.image_uri || f1.image_url;
+      const f2Img = f2.processed_avatar || f2.avatarUrl || f2.avatar_url || f2.image_uri || f2.image_url;
+      const f1Style = f1Img ? `background-image:url(${f1Img}); background-size:cover; background-position:center; display:inline-block; width:16px; height:16px; vertical-align:middle; border-radius:50%; margin-right:4px;` : '';
+      const f2Style = f2Img ? `background-image:url(${f2Img}); background-size:cover; background-position:center; display:inline-block; width:16px; height:16px; vertical-align:middle; border-radius:50%; margin-right:4px;` : '';
+      const f1Fallback = f1Img ? '' : (f1.emoji || '🥊') + ' ';
+      const f2Fallback = f2Img ? '' : (f2.emoji || '🥊') + ' ';
+      
       html += `
         <div class="pfpmode-item">
-          <div class="pfpmode-match"><span>${f1.emoji || '🥊'} ${f1.name}</span> <span style="color:#666; font-size:10px;">VS</span> <span>${f2.emoji || '🥊'} ${f2.name}</span></div>
+          <div class="pfpmode-match"><span style="${f1Style}">${f1Fallback}</span><span>${f1.name}</span> <span style="color:#666; font-size:10px; margin:0 4px;">VS</span> <span style="${f2Style}">${f2Fallback}</span><span>${f2.name}</span></div>
           <div class="pfpmode-badge">LIVE</div>
         </div>
       `;
@@ -3619,10 +3629,15 @@
     for (let i = 0; i < fighters.length - 1 && i < 6; i += 2) {
       const fA = fighters[i];
       const fB = fighters[i + 1];
+      const fAAvatarUrl = fA.processed_avatar || fA.avatarUrl || fA.avatar_url || fA.image_uri || fA.image_url;
+      const fAAvatarContent = fAAvatarUrl ? '<img src="' + fAAvatarUrl + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">' : (fA.emoji || '&#x1F94A;');
+      const fBAvatarUrl = fB.processed_avatar || fB.avatarUrl || fB.avatar_url || fB.image_uri || fB.image_url;
+      const fBAvatarContent = fBAvatarUrl ? '<img src="' + fBAvatarUrl + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">' : (fB.emoji || '&#x1F94A;');
+
       html += '<div class="battle-item">' +
-        '<div class="fighter-mini"><div class="avatar-sm">' + (fA.emoji || '&#x1F94A;') + '</div><div class="fname">' + (fA.display_name || fA.name) + '</div></div>' +
+        '<div class="fighter-mini"><div class="avatar-sm">' + fAAvatarContent + '</div><div class="fname">' + (fA.display_name || fA.name) + '</div></div>' +
         '<div class="vs-badge">VS</div>' +
-        '<div class="fighter-mini"><div class="avatar-sm">' + (fB.emoji || '&#x1F94A;') + '</div><div class="fname">' + (fB.display_name || fB.name) + '</div></div>' +
+        '<div class="fighter-mini"><div class="avatar-sm">' + fBAvatarContent + '</div><div class="fname">' + (fB.display_name || fB.name) + '</div></div>' +
         '<span class="live-badge">LIVE</span>' +
       '</div>';
     }
@@ -3640,12 +3655,17 @@
     let html = '';
     fighters.forEach((f, i) => {
       const rankLabel = i === 0 ? '&#x1F947;' : i === 1 ? '&#x1F948;' : i === 2 ? '&#x1F949;' : (i + 1);
+      const avatarUrl = f.processed_avatar || f.avatarUrl || f.avatar_url || f.image_uri || f.image_url;
+      const avatarContent = avatarUrl 
+        ? '<img src="' + avatarUrl + '" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">' 
+        : (f.emoji || '&#x1F94A;');
+
       html += '<div class="lb-item" onclick="watchToEarn(\'' + f.unique_id + '\', null)">' +
         '<div class="lb-rank">' + rankLabel + '</div>' +
-        '<div class="lb-avatar">' + (f.emoji || '&#x1F94A;') + '</div>' +
+        '<div class="lb-avatar">' + avatarContent + '</div>' +
         '<div class="lb-info">' +
           '<div class="lb-name">' + (f.display_name || f.name) + '</div>' +
-          '<div class="lb-meta"><span class="wins lb-wins-val">' + (f.wins || 0) + ' W</span> &bull; <span class="lb-bc">' + (f.market_cap_usd ? '$' + (f.market_cap_usd/1000).toFixed(1) + 'K' : '0 BC') + '</span></div>' +
+          '<div class="lb-meta"><span class="wins lb-wins-val">' + (f.wins || 0) + ' W</span> &bull; <span class="lb-bc">' + (f.market_cap_usd ? '$' + (f.market_cap_usd/1000).toFixed(1) + 'K' : (f.fameScore ? 'Fame ' + (typeof f.fameScore === 'number' ? f.fameScore.toFixed(1) : parseFloat(f.fameScore).toFixed(1)) : '0 BC')) + '</span></div>' +
         '</div>' +
       '</div>';
     });
@@ -3672,7 +3692,7 @@
 
     const name = fighter.display_name || fighter.name || 'Unknown Fighter';
     const earnedBc = (fighter.bc_earned || (fighter.wins || 0) * 5000 || 0);
-    const avatarUrl = fighter.processed_avatar || fighter.avatar_url || fighter.image_url || '';
+    const avatarUrl = fighter.processed_avatar || fighter.avatarUrl || fighter.avatar_url || fighter.image_uri || fighter.image_url || '';
 
     if (avatarUrl) {
       avatarEl.innerHTML = '<img src="' + avatarUrl + '" alt="' + name + '" style="width:100%; height:100%; object-fit:cover;">';
@@ -3690,29 +3710,25 @@
     if (!list || !pfState || !pfState.fighters) return;
 
     list.innerHTML = pfState.fighters.slice(0, 4).map((f, i) => {
-      let chainEmoji = '&#x1F680;';
-      let badgeClass = '';
-      if (f.chain === 'solana') { chainEmoji = '&#x1F7E3;'; badgeClass = 'secondary'; }
-      if (f.chain === 'bsc') { chainEmoji = '&#x1F7E1;'; badgeClass = 'orange'; }
-      if (f.chain === 'base') { chainEmoji = '&#x1F535;'; badgeClass = 'destructive'; }
-
-      const avatarStyle = f.processed_avatar
-        ? 'background-image:url(' + f.processed_avatar + '); background-size:cover; background-position:center; font-size:0;'
+      let badgeClass = 'secondary';
+      const fImg = f.processed_avatar || f.avatarUrl || f.avatar_url || f.image_uri || f.image_url;
+      const avatarStyle = fImg
+        ? 'background-image:url(' + fImg + '); background-size:cover; background-position:center; font-size:0;'
         : '';
 
       return '<div class="fighter-card">' +
         '<div class="rank-badge ' + badgeClass + '">' + (i + 1) + '</div>' +
         '<div class="fc-header">' +
-          '<div class="fc-avatar" style="' + avatarStyle + '">' + (f.processed_avatar ? '' : chainEmoji) + '</div>' +
-          '<div class="fc-meta"><div class="fc-name">' + f.display_name + '</div>' +
-          '<div class="fc-holders">' + (f.full_name || '') + '</div></div>' +
+          '<div class="fc-avatar" style="' + avatarStyle + '">' + (fImg ? '' : (f.emoji || '&#x1F94A;')) + '</div>' +
+          '<div class="fc-meta"><div class="fc-name">' + (f.display_name || f.name) + '</div>' +
+          '<div class="fc-holders">' + (f.collection || f.full_name || '') + '</div></div>' +
         '</div>' +
         '<div class="fc-stats">' +
-          '<div class="fc-stat">MCAP <span class="fc-mcap-val">' + fmtMcap(f.market_cap_usd) + '</span></div>' +
-          '<div class="fc-stat">CHAIN <span class="pos">' + chainEmoji + ' ' + (f.chain || '').toUpperCase() + '</span></div>' +
+          '<div class="fc-stat">FAME <span class="fc-mcap-val">' + (f.fameScore || 0).toFixed(1) + '</span></div>' +
+          '<div class="fc-stat">CLASS <span class="pos">' + (f.class || f.chain || 'Fighter').toUpperCase() + '</span></div>' +
         '</div>' +
-        '<div class="fc-rewards">HP: ' + (f.hp||100) + ' | ATK: ' + (f.aggression||50) + ' | DEF: ' + (f.defense||50) + ' | W/L: ' + (f.wins||0) + '/' + (f.losses||0) + '</div>' +
-        '<button class="watch-btn' + (i === 0 ? ' primary' : '') + '" onclick="watchToEarn(\'' + f.unique_id + '\', this)">WATCH 2 EARN</button>' +
+        '<div class="fc-rewards">HP: ' + (f.hp||100) + ' | ATK: ' + (f.atk || f.aggression||50) + ' | DEF: ' + (f.def || f.defense||50) + ' | W/L: ' + (f.wins||0) + '/' + (f.losses||0) + '</div>' +
+        '<button class="watch-btn' + (i === 0 ? ' primary' : '') + '" onclick="watchToEarn(\'' + (f.unique_id || f.id) + '\', this)">WATCH 2 EARN</button>' +
       '</div>';
     }).join('');
   }
@@ -3728,15 +3744,16 @@
 
     container.innerHTML = data.map((s, i) => {
       const rankLabel = i === 0 ? '&#x1F947;' : i === 1 ? '&#x1F948;' : i === 2 ? '&#x1F949;' : (i + 1);
-      const avatarStyle = s.processed_avatar
-        ? 'background-image:url(' + s.processed_avatar + '); background-size:cover; background-position:center; border-radius:50%; width:32px; height:32px; display:inline-block;'
+      const fImg = s.processed_avatar || s.avatarUrl || s.avatar_url || s.image_uri || s.image_url;
+      const avatarStyle = fImg
+        ? 'background-image:url(' + fImg + '); background-size:cover; background-position:center; border-radius:50%; width:32px; height:32px; display:inline-block;'
         : 'font-size:20px;';
       return '<div class="full-lb-row">' +
         '<div class="full-lb-rank">' + rankLabel + '</div>' +
-        '<div class="full-lb-avatar" style="' + avatarStyle + '">' + (s.processed_avatar ? '' : '&#x1F680;') + '</div>' +
-        '<div class="full-lb-info"><div class="full-lb-name">' + s.display_name + '</div>' +
+        '<div class="full-lb-avatar" style="' + avatarStyle + '">' + (fImg ? '' : (s.emoji || '&#x1F94A;')) + '</div>' +
+        '<div class="full-lb-info"><div class="full-lb-name">' + (s.display_name || s.name) + '</div>' +
         '<div class="full-lb-meta">' + (s.wins||0) + 'W / ' + (s.losses||0) + 'L</div></div>' +
-        '<div class="full-lb-bc">' + (s.chain || '').toUpperCase() + '</div></div>';
+        '<div class="full-lb-bc">' + (s.class || s.chain || '').toUpperCase() + '</div></div>';
     }).join('');
   }
 

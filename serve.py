@@ -9,6 +9,16 @@ import uuid as _uuid_mod
 from datetime import datetime, timezone
 from urllib.parse import urlparse, parse_qs
 
+# Load .env.local manually
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env.local")
+if os.path.exists(env_path):
+    with open(env_path, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip() and not line.startswith("#") and "=" in line:
+                k, v = line.strip().split("=", 1)
+                if k.strip() not in os.environ:
+                    os.environ[k.strip()] = v.strip().strip('"').strip("'")
+
 # Import trending engine (starts background refresh thread)
 try:
     import trending_engine as _te
@@ -95,6 +105,55 @@ def award_bantcredit(wallet, amount, tx_type, reference_id=""):
         (user_id, wallet.lower(), amount, amount)
     )
     return True
+
+
+from web3 import Web3
+
+def verify_eth_transaction(tx_hash, expected_amount_eth):
+    try:
+        rpc_url = os.environ.get("ONCHAIN_BASE_MAINNET_RPC_URL", "https://mainnet.base.org")
+        w3 = Web3(Web3.HTTPProvider(rpc_url))
+        
+        # 1. Fetch transaction receipt
+        receipt = w3.eth.get_transaction_receipt(tx_hash)
+        if receipt['status'] != 1:
+            return False, "Transaction failed on-chain"
+            
+        # 2. Fetch transaction details
+        tx = w3.eth.get_transaction(tx_hash)
+        
+        # 3. Verify destination
+        treasury = os.environ.get("BOTA_TREASURY_WALLET", "0x4C24768D98F2D30d3AB827d463d7a8A05c66bD0c")
+        if tx['to'].lower() != treasury.lower():
+            return False, "Transaction was not sent to the Treasury Wallet"
+            
+        # 4. Verify amount
+        actual_eth = w3.from_wei(tx['value'], 'ether')
+        if float(actual_eth) < float(expected_amount_eth) * 0.99:
+            return False, f"Insufficient ETH sent."
+            
+        return True, "Success"
+    except Exception as e:
+        print(f"Web3 Verification Error: {e}", flush=True)
+        return False, "Error verifying transaction on-chain"
+
+def ensure_user_exists(wallet):
+    if not _HAS_DB or not DATABASE_URL or not wallet:
+        return None
+    user = query_db("SELECT id FROM users WHERE LOWER(primary_wallet_address)=%s", (wallet.lower(),), fetchone=True)
+    if user:
+        return user[0]
+    import uuid
+    new_id = str(uuid.uuid4())
+    execute_db(
+        "INSERT INTO users (id, primary_wallet_address, first_name, username, balance, instance_id) VALUES (%s, %s, %s, %s, 0, %s)",
+        (new_id, wallet.lower(), 'Demo', 'demo_user', str(uuid.uuid4()))
+    )
+    execute_db(
+        "INSERT INTO bantcredit_balances (user_id, wallet_address, balance, lifetime_earned) VALUES (%s, %s, 0, 0)",
+        (new_id, wallet.lower())
+    )
+    return new_id
 
 def insert_pfp_battle_record(live):
     if not _HAS_DB or not DATABASE_URL:
@@ -184,6 +243,7 @@ PRIVY_APP_ID    = os.environ.get("PRIVY_APP_ID", "")
 ALCHEMY_API_KEY = os.environ.get("ALCHEMY_API_KEY", "") or os.environ.get("VITE_ALCHEMY_API_KEY", "")
 STATE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_state.json")
 TELEGRAM_BOT_TOKEN = os.environ.get("BANTAHBRO_TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHANNEL_ID = os.environ.get("BANTAHBRO_TELEGRAM_CHANNEL_ID", "")
 
 _STATE_LOCK = threading.Lock()           # guards STATE mutations from matchmaker thread
 _SECS_PER_ROUND = 2                      # frontend animates at this pace
@@ -248,7 +308,7 @@ def load_state():
         "profile": dict(DEFAULT_PROFILE),
         "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS],
         "pfp_fighters": [],
-        "pfp_live_match": None,
+        "pfp_live_matches": [],
         "pfp_recent_battles": [],
         "notifications_by_wallet": {},
     }
@@ -261,7 +321,7 @@ def load_state():
             "profile": {**DEFAULT_PROFILE, **(data.get("profile") or {})},
             "notifications": data.get("notifications") or [dict(n) for n in DEFAULT_NOTIFICATIONS],
             "pfp_fighters": data.get("pfp_fighters") or [],
-            "pfp_live_match": data.get("pfp_live_match"),
+            "pfp_live_matches": data.get("pfp_live_matches", []),
             "pfp_recent_battles": data.get("pfp_recent_battles") or [],
             "notifications_by_wallet": data.get("notifications_by_wallet") or {},
         }
@@ -400,6 +460,27 @@ def _send_telegram_dm(telegram_user_id, text):
     except Exception as _e:
         print(f"[Telegram] DM failed: {_e}", flush=True)
 
+def _broadcast_telegram_channel(text):
+    """Fire-and-forget Telegram broadcast to a public channel."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
+        return
+    try:
+        import urllib.request
+        payload = json.dumps({
+            "chat_id": TELEGRAM_CHANNEL_ID,
+            "text": text,
+            "parse_mode": "HTML",
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        urllib.request.urlopen(req, timeout=5)
+    except Exception as _e:
+        print(f"[Telegram] Broadcast failed: {_e}", flush=True)
+
 
 def _pfp_add_notif(wallet, data):
     """
@@ -437,10 +518,20 @@ def _pfp_finish_battle(live):
     for f in STATE.get("pfp_fighters", []):
         if f["id"] == winner_id:
             f["wins"]   = f.get("wins", 0) + 1
-            f["status"] = "idle"
+            f["status"] = "queued"
             wallet = f.get("walletAddress", "")
             if wallet:
                 award_bantcredit(wallet, BANTCREDIT_AGENT_WIN_REWARD, "agent_win", live.get("id", ""))
+            
+            loser = next((l for l in STATE.get("pfp_fighters", []) if l["id"] == loser_id), {})
+            
+            _broadcast_telegram_channel(
+                f"⚔️ <b>PFP BATTLE FINISHED!</b>\n"
+                f"🏆 <b><a href='{f.get('image_uri', '')}'>{f['name']}</a></b> defeated "
+                f"<b><a href='{loser.get('image_uri', '')}'>{live.get('loser_name', '???')}</a></b> "
+                f"in {live.get('rounds_fought', '?')} rounds!\n"
+                f"💰 <b>Reward:</b> +{BANTCREDIT_AGENT_WIN_REWARD} BC earned!"
+            )
             
             _pfp_add_notif(wallet, {
                 "type":    "battle_result",
@@ -450,7 +541,7 @@ def _pfp_finish_battle(live):
             })
         elif f["id"] == loser_id:
             f["losses"] = f.get("losses", 0) + 1
-            f["status"] = "idle"
+            f["status"] = "queued"
             _pfp_add_notif(f.get("walletAddress", ""), {
                 "type":    "battle_result",
                 "title":   "Defeated",
@@ -481,7 +572,7 @@ def _pfp_matchmaker_loop():
         time.sleep(_MATCHMAKER_INTERVAL)
         try:
             with _STATE_LOCK:
-                live = STATE.get("pfp_live_match")
+                live = STATE.get("pfp_live_matches")
 
                 # ── 1. Finish any completed live match ─────────────────────
                 if live and live.get("status") == "live":
@@ -646,6 +737,67 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_json(get_platform_fighter_counts())
             return
 
+        if path == "/api/marketplace":
+            # Return static items + dynamic list of fighters for sale
+            import random
+            items = [
+                {"id": "item_potion", "type": "consumable", "icon": "🧪", "name": "Power Potion", "desc": "+15% damage for one battle", "price": 250},
+                {"id": "item_shield", "type": "consumable", "icon": "🛡️", "name": "Iron Shield", "desc": "Blocks the next incoming hit", "price": 400},
+                {"id": "item_skin", "type": "cosmetic", "icon": "✨", "name": "Golden Aura", "desc": "Premium glowing effect on profile", "price": 1000},
+            ]
+            
+            # Select 5 random PFP fighters to sell
+            all_pfps = STATE.get("pfp_fighters", [])
+            market_fighters = []
+            
+            # 1. Add Community Listings (User listed fighters)
+            community_listings = []
+            if _HAS_DB and DATABASE_URL:
+                rows = query_db(
+                    "SELECT f.listing_id, f.agent_id, f.price_native, a.agent_name, a.avatar_url, a.win_count, a.loss_count, u.primary_wallet_address "
+                    "FROM fighter_listings f "
+                    "JOIN agents a ON f.agent_id::uuid = a.agent_id "
+                    "JOIN users u ON f.seller_user_id = u.id "
+                    "WHERE f.status = 'active'"
+                )
+                if rows:
+                    for r in rows:
+                        community_listings.append({
+                            "id": str(r[0]),
+                            "type": "fighter",
+                            "fighterId": str(r[1]),
+                            "price": float(r[2]),
+                            "name": r[3],
+                            "avatarUrl": r[4],
+                            "wins": r[5] or 0,
+                            "losses": r[6] or 0,
+                            "seller": r[7]
+                        })
+            else:
+                community_listings = STATE.get("marketplace_listings", [])
+            market_fighters.extend(community_listings)
+            
+            # 2. Add System listings (Random subset of PFP bots)
+            if len(all_pfps) > 0:
+                sample_size = min(5, len(all_pfps))
+                sampled = random.sample(all_pfps, sample_size)
+                for f in sampled:
+                    market_fighters.append({
+                        "id": "fighter_" + f["id"],
+                        "type": "fighter",
+                        "fighterId": f["id"],
+                        "name": f.get("name", "Unknown"),
+                        "avatarUrl": f.get("avatarUrl", ""),
+                        "price": 2500 + random.randint(0, 20) * 100, # 2500-4500 BC
+                        "wins": f.get("wins", 0),
+                        "losses": f.get("losses", 0),
+                        "seller": "System"
+                    })
+                    
+            self.send_json({"items": items, "fighters": market_fighters})
+            return
+
+
         if path == "/api/fighters":
             rows = query_db(
                 "SELECT agent_id, display_name, avatar_url, wins, losses, fame_score "
@@ -734,7 +886,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             try:
                 qs = parse_qs(urlparse(self.path).query)
                 chain = (qs.get("chain") or ["all"])[0]
-                limit = int((qs.get("limit") or ["30"])[0])
+                limit = int((qs.get("limit") or ["1000"])[0])
                 if _HAS_TRENDING:
                     rows = _te.get_leaderboard(chain=chain, limit=limit)
                     from decimal import Decimal as _Decimal
@@ -808,7 +960,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         if path == "/api/pfp/state":
             with _STATE_LOCK:
-                live = STATE.get("pfp_live_match")
+                live = STATE.get("pfp_live_matches")
                 # Compute elapsed so the frontend can derive the current round
                 elapsed_secs = 0
                 if live and live.get("status") == "live" and live.get("started_at"):
@@ -823,6 +975,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     "recent_battles":  STATE.get("pfp_recent_battles", []),
                     "queued_count":    sum(1 for f in STATE.get("pfp_fighters", [])
                                           if f.get("status") == "queued"),
+                    "fighters":        STATE.get("pfp_fighters", []),
                 })
             return
 
@@ -884,6 +1037,166 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if path == "/api/buy-bc":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length).decode("utf-8") if length else "{}"
+            payload = json.loads(body or "{}")
+            amount = int(payload.get("amount", 0))
+            tx_hash = payload.get("txHash")
+            coin = payload.get("coin", "ETH")
+            
+            if not tx_hash:
+                self.send_json({"error": "No transaction hash provided"}, 400)
+                return
+                
+            wallet = STATE["profile"].get("walletAddress", "")
+            if not wallet:
+                self.send_json({"error": "No wallet connected"}, 400)
+                return
+                
+            # Verify tx hash
+            # Calculate expected ETH (1000 BC = 0.0001 ETH)
+            expected_eth = (amount / 1000) * 0.0001
+            
+            is_valid, msg = verify_eth_transaction(tx_hash, expected_eth)
+            
+            if not is_valid:
+                self.send_json({"error": msg}, 400)
+                return
+
+            ensure_user_exists(wallet)
+            award_bantcredit(wallet, amount, "crypto_deposit")
+            
+            # Fetch new balance
+            bal = query_db("SELECT balance FROM bantcredit_balances WHERE LOWER(wallet_address)=%s", (wallet.lower(),), fetchone=True)
+            if bal:
+                STATE["profile"]["balance"] = str(bal[0])
+            
+            self.send_json({"success": True, "newBalance": STATE["profile"]["balance"]})
+            return
+
+        if path == "/api/marketplace/list":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length).decode("utf-8") if length else "{}"
+            payload = json.loads(body or "{}")
+            agent = payload.get("agent")
+            price = int(payload.get("price", 0))
+            wallet = STATE["profile"].get("walletAddress", "")
+            
+            if not agent or not wallet:
+                self.send_json({"error": "No agent or wallet provided"}, 400)
+                return
+                
+            user_id = ensure_user_exists(wallet)
+            if user_id:
+                import uuid
+                execute_db(
+                    "INSERT INTO fighter_listings (listing_id, seller_user_id, agent_id, price_native, token_symbol, status, created_at) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, NOW())",
+                    (str(uuid.uuid4()), user_id, str(agent.get("id")), price, "BC", "active")
+                )
+                self.send_json({"success": True})
+            else:
+                self.send_json({"error": "User not found in database"}, 400)
+            return
+
+        if path == "/api/marketplace/buy":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length).decode("utf-8") if length else "{}"
+            payload = json.loads(body or "{}")
+            item_id = payload.get("itemId")
+            price = int(payload.get("price", 0))
+            wallet = STATE["profile"].get("walletAddress", "")
+            
+            if not wallet:
+                self.send_json({"error": "No wallet provided"}, 400)
+                return
+                
+            buyer_id = ensure_user_exists(wallet)
+            if not buyer_id:
+                self.send_json({"error": "User not found in DB"}, 400)
+                return
+                
+            # If it's a real fighter listing, do a DB transaction
+            # In our schema, UUIDs have dashes. Our mock IDs like 'item_potion' do not.
+            if _HAS_DB and DATABASE_URL and str(item_id).count("-") == 4:
+                listing = query_db("SELECT seller_user_id, agent_id, price_native FROM fighter_listings WHERE listing_id=%s AND status='active'", (item_id,), fetchone=True)
+                if listing:
+                    seller_id, agent_id, db_price = listing
+                    if float(price) != float(db_price):
+                        self.send_json({"error": "Price mismatch"}, 400)
+                        return
+                        
+                    # Check buyer balance
+                    buyer_bal = query_db("SELECT balance FROM bantcredit_balances WHERE user_id=%s", (buyer_id,), fetchone=True)
+                    if not buyer_bal or buyer_bal[0] < price:
+                        self.send_json({"error": "Insufficient BantCredit in DB"}, 400)
+                        return
+                        
+                    # Execute transaction manually
+                    conn = psycopg2.connect(DATABASE_URL)
+                    try:
+                        cur = conn.cursor()
+                        # Deduct from buyer
+                        cur.execute("UPDATE bantcredit_balances SET balance = balance - %s WHERE user_id = %s", (price, buyer_id))
+                        # Add to seller
+                        cur.execute("UPDATE bantcredit_balances SET balance = balance + %s WHERE user_id = %s", (price, seller_id))
+                        # Transfer agent
+                        cur.execute("UPDATE agents SET owner_id = %s, owner_wallet_address = %s WHERE agent_id = %s", (buyer_id, wallet.lower(), agent_id))
+                        # Mark listing as sold
+                        cur.execute("UPDATE fighter_listings SET status = 'sold' WHERE listing_id = %s", (item_id,))
+                        # Insert ledger entries
+                        cur.execute("INSERT INTO bantcredit_ledger (user_id, amount, transaction_type, reference_id) VALUES (%s, %s, 'market_buy', %s)", (buyer_id, -price, item_id))
+                        cur.execute("INSERT INTO bantcredit_ledger (user_id, amount, transaction_type, reference_id) VALUES (%s, %s, 'market_sell', %s)", (seller_id, price, item_id))
+                        conn.commit()
+                    except Exception as e:
+                        conn.rollback()
+                        print(f"Marketplace buy error: {e}", flush=True)
+                        self.send_json({"error": "Transaction failed"}, 500)
+                        return
+                    finally:
+                        conn.close()
+                    
+                    # Update local state balance
+                    new_bal = query_db("SELECT balance FROM bantcredit_balances WHERE user_id=%s", (buyer_id,), fetchone=True)[0]
+                    STATE["profile"]["balance"] = str(new_bal)
+                    
+                    # Add to inventory (UI mock)
+                    if "inventory" not in STATE["profile"]:
+                        STATE["profile"]["inventory"] = []
+                    STATE["profile"]["inventory"].append({
+                        "itemId": item_id,
+                        "purchasedAt": time.time(),
+                    })
+                    
+                    self.send_json({"success": True, "newBalance": STATE["profile"]["balance"]})
+                    return
+            
+            # Fallback for system items/fighters
+            with _STATE_LOCK:
+                balance = float(STATE["profile"].get("balance", 0))
+                if balance < price:
+                    self.send_json({"error": "Insufficient BantCredit"}, 400)
+                    return
+                
+                # Deduct balance
+                STATE["profile"]["balance"] = str(balance - price)
+                
+                # Add to inventory
+                if "inventory" not in STATE["profile"]:
+                    STATE["profile"]["inventory"] = []
+                    
+                STATE["profile"]["inventory"].append({
+                    "itemId": item_id,
+                    "purchasedAt": time.time(),
+                })
+                
+                save_state(STATE)
+            
+            self.send_json({"success": True, "newBalance": STATE["profile"]["balance"]})
+            return
+
+
         if path == "/api/daily-checkin":
             length = int(self.headers.get("Content-Length", "0"))
             body = self.rfile.read(length).decode("utf-8") if length else "{}"
@@ -905,6 +1218,40 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"success": True, "reward": BANTCREDIT_DAILY_CHECKIN_REWARD})
             else:
                 self.send_json({"error": "User not found or db error"}, 500)
+            return
+
+        if path == "/api/watch2earn/claim":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length).decode("utf-8") if length else "{}"
+            payload = json.loads(body or "{}")
+            amount = payload.get("amount", 0)
+            wallet = payload.get("wallet") or STATE["profile"].get("primaryWalletAddress")
+
+            if amount > 0:
+                # Update mock state
+                STATE["profile"]["bantCredit"] = STATE["profile"].get("bantCredit", 0) + amount
+                STATE["profile"]["totalBantCredit"] = STATE["profile"].get("totalBantCredit", 0) + amount
+                
+                # Push real notification
+                import uuid, datetime
+                STATE["notifications"].insert(0, {
+                    "id": f"notif-w2e-{uuid.uuid4().hex[:8]}",
+                    "type": "reward",
+                    "title": "Watch 2 Earn payout",
+                    "message": f"You earned {amount} BC from spectating a live battle.",
+                    "icon": "💰",
+                    "read": False,
+                    "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat()
+                })
+                save_state(STATE)
+
+                # Update database ledger if active
+                if wallet:
+                    award_bantcredit(wallet, amount, "watch2earn")
+                
+                self.send_json({"success": True, "reward": amount})
+            else:
+                self.send_json({"error": "Invalid amount"}, 400)
             return
 
         if path == "/api/signup-bonus":
@@ -1096,7 +1443,7 @@ def _onchain_submitter_loop():
             print("[serve.py] Running onchain submitter for PFP battles...", flush=True)
             script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts", "record-pfp-battles-onchain.ts")
             server_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server")
-            result = subprocess.run(["npx", "tsx", script_path], cwd=server_dir, capture_output=True, text=True)
+            result = subprocess.run(["npx", "tsx", script_path], cwd=server_dir, capture_output=True, text=True, shell=True)
             if result.stdout: print(f"[serve.py] onchain submitter: {result.stdout}", flush=True)
             if result.stderr: print(f"[serve.py] onchain submitter err: {result.stderr}", flush=True)
         except Exception as e:

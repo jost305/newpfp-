@@ -24,6 +24,16 @@ from datetime import datetime, timezone
 import requests
 from PIL import Image, ImageDraw
 
+# Load .env.local manually
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env.local")
+if os.path.exists(env_path):
+    with open(env_path, "r", encoding="utf-8") as f:
+        for line in f:
+            if line.strip() and not line.startswith("#") and "=" in line:
+                k, v = line.strip().split("=", 1)
+                if k.strip() not in os.environ:
+                    os.environ[k.strip()] = v.strip().strip('"').strip("'")
+
 try:
     import psycopg2
     _HAS_DB = True
@@ -31,6 +41,54 @@ except ImportError:
     _HAS_DB = False
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
+TELEGRAM_BOT_TOKEN = os.environ.get("BANTAHBRO_TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHANNEL_ID = os.environ.get("BANTAHBRO_TELEGRAM_CHANNEL_ID", "")
+
+def _broadcast_telegram_channel(text):
+    """Fire-and-forget Telegram broadcast to a public channel."""
+    print(f"[DEBUG] Broadcast fired. TOKEN: {bool(TELEGRAM_BOT_TOKEN)}, CHANNEL: {bool(TELEGRAM_CHANNEL_ID)}", flush=True)
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHANNEL_ID:
+        return
+    try:
+        import urllib.request
+        payload = json.dumps({
+            "chat_id": TELEGRAM_CHANNEL_ID,
+            "text": text,
+            "parse_mode": "HTML",
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        resp = urllib.request.urlopen(req, timeout=5)
+        print(f"[TrendingEngine Telegram] Broadcast success: {resp.status}", flush=True)
+    except Exception as _e:
+        print(f"[TrendingEngine Telegram] Broadcast failed: {_e}", flush=True)
+
+def _broadcast_pumpfighter_match(result):
+    """Format and broadcast a finished match to Telegram."""
+    w_addr = result['winner'].get('mint_address', '')
+    w_chain = result['winner'].get('chain', 'solana')
+    w_dex = f"https://dexscreener.com/{w_chain}/{w_addr}"
+    
+    l_addr = result['loser'].get('mint_address', '')
+    l_chain = result['loser'].get('chain', 'solana')
+    l_dex = f"https://dexscreener.com/{l_chain}/{l_addr}"
+
+    w_pump = result['winner'].get('pump_energy', 0)
+    w_arrow = "🚀" if w_pump > 80 else ("🟢" if w_pump > 40 else "🔴")
+    
+    l_pump = result['loser'].get('pump_energy', 0)
+    l_arrow = "🚀" if l_pump > 80 else ("🟢" if l_pump > 40 else "🔴")
+
+    _broadcast_telegram_channel(
+        f"📈 <b>PUMPFIGHTERS BATTLE FINISHED!</b>\n"
+        f"🏆 <b><a href='{w_dex}'>${result['winner'].get('display_name')}</a></b> {w_arrow} ({w_chain}) "
+        f"crushed <a href='{l_dex}'>${result['loser'].get('display_name')}</a> {l_arrow} ({l_chain}) in {result['rounds_fought']} rounds!\n"
+        f"💰 <b>Prize Pool:</b> {result['bc_pool']} BC"
+    )
 
 # Market Energy Engine (Pump Meter)
 try:
@@ -74,7 +132,7 @@ CHAIN_MODS = {
 
 _state = {
     "fighters": [],          # list of active fighter dicts
-    "live_match": None,      # {fighter_a, fighter_b, match_type, label}
+    "live_matches": [],      # {fighter_a, fighter_b, match_type, label}
     "recent_battles": [],    # last MAX_RECENT_BATTLES results
     "last_refreshed": None,  # ISO timestamp
     "next_refresh_in": REFRESH_INTERVAL,
@@ -1057,12 +1115,16 @@ def _refresh_cycle():
         # ── 6. Build match queue + simulate battles ───────────────────────────
         match_queue = build_match_queue(active_fighters)
         battle_results = []
-        live_match = None
+        live_matches = []
 
         for match in match_queue:
             result = simulate_battle(match["fighter_a"], match["fighter_b"])
             result["match_type"] = match["match_type"]
             result["label"]      = match["label"]
+            
+            # --- BROADCAST HERE SO IT RUNS EVEN WITHOUT A DB ---
+            _broadcast_pumpfighter_match(result)
+            
             if has_db:
                 save_battle_result(result, match["match_type"])
                 update_leaderboard(result)
@@ -1086,19 +1148,30 @@ def _refresh_cycle():
             while len(_mem_battles) > MAX_RECENT_BATTLES:
                 _mem_battles.pop(0)
 
-        # Pick one match as the "live" display match (prefer chain rivalry)
+        # Pick up to 4 matches for the "live" display (prefer chain rivalry)
         if match_queue:
             priority = ["KING_CLASH", "SOL_VS_BSC", "BSC_VS_BASE", "SOL_VS_BASE", "BALANCED"]
+            picked = []
             for ptype in priority:
-                m = next((m for m in match_queue if m["match_type"] == ptype), None)
-                if m:
-                    live_match = {
-                        "fighter_a":  m["fighter_a"],
-                        "fighter_b":  m["fighter_b"],
-                        "match_type": m["match_type"],
-                        "label":      m["label"],
-                    }
+                for m in match_queue:
+                    if m["match_type"] == ptype and m not in picked:
+                        picked.append(m)
+                    if len(picked) >= 4:
+                        break
+                if len(picked) >= 4:
                     break
+            
+            for m in match_queue:
+                if len(picked) >= 4: break
+                if m not in picked:
+                    picked.append(m)
+            
+            live_matches = [{
+                "fighter_a":  m["fighter_a"],
+                "fighter_b":  m["fighter_b"],
+                "match_type": m["match_type"],
+                "label":      m["label"],
+            } for m in picked]
 
         # ── 7. Final state update ─────────────────────────────────────────────
         if has_db:
@@ -1135,7 +1208,7 @@ def _refresh_cycle():
 
         with _lock:
             _state["fighters"]       = final_fighters
-            _state["live_match"]     = live_match
+            _state["live_matches"] = live_matches
             _state["recent_battles"] = recent
             _state["last_refreshed"] = datetime.now(timezone.utc).isoformat()
             _state["is_refreshing"]  = False
@@ -1198,7 +1271,7 @@ def bootstrap_state_from_db():
 
         with _lock:
             _state["fighters"]       = clean
-            _state["live_match"]     = live_match
+            _state["live_matches"] = live_matches
             _state["last_refreshed"] = _state.get("last_refreshed")
             _state["is_refreshing"]  = False
 

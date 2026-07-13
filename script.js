@@ -170,6 +170,81 @@
     if (target) target.classList.add('active');
 
     document.getElementById('notif-dropdown').classList.remove('open');
+    
+    if (view === 'marketplace') {
+      loadMarketplace();
+    }
+  }
+  
+  async function loadMarketplace() {
+    const grid = document.querySelector('.marketplace-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div style="color:var(--bb-muted-foreground); grid-column:1/-1; text-align:center;">Loading Marketplace...</div>';
+    
+    try {
+      const data = await api('/api/marketplace');
+      let html = '';
+      
+      // Items
+      if (data.items && data.items.length) {
+        html += '<div style="grid-column:1/-1;" class="doc-eyebrow">Cosmetics & Consumables</div>';
+        data.items.forEach(item => {
+          html += `
+            <div class="market-card">
+              <div class="market-icon">${item.icon}</div>
+              <div class="market-name">${item.name}</div>
+              <div class="market-desc">${item.desc}</div>
+              <div class="market-price"><span>${item.price} BC</span></div>
+              <button class="market-btn" onclick="buyMarketplaceItem('${item.id}', ${item.price}, '${item.name}')">BUY</button>
+            </div>
+          `;
+        });
+      }
+      
+      // Fighters
+      if (data.fighters && data.fighters.length) {
+        html += '<div style="grid-column:1/-1; margin-top:20px;" class="doc-eyebrow">Fighter Records (Live Auction)</div>';
+        data.fighters.forEach(f => {
+          const av = f.avatarUrl 
+            ? `<img src="${f.avatarUrl}" style="width:48px;height:48px;border-radius:12px;object-fit:cover;margin:0 auto 12px;display:block;">` 
+            : `<div class="market-icon">🤖</div>`;
+          html += `
+            <div class="market-card" style="border: 1px solid var(--bb-primary); background: rgba(0,255,150,0.02);">
+              ${av}
+              <div class="market-name">${f.name}</div>
+              <div class="market-desc" style="font-size:10px;">${f.wins}W · ${f.losses}L</div>
+              <div class="market-price" style="color:var(--bb-primary);"><span>${f.price} BC</span></div>
+              <button class="market-btn" style="background:var(--bb-primary);color:#000;" onclick="buyMarketplaceItem('${f.id}', ${f.price}, '${f.name}')">PURCHASE RECORD</button>
+            </div>
+          `;
+        });
+      }
+      
+      grid.innerHTML = html;
+    } catch (err) {
+      grid.innerHTML = '<div style="color:var(--bb-destructive); grid-column:1/-1; text-align:center;">Failed to load marketplace.</div>';
+    }
+  }
+  
+  async function buyMarketplaceItem(itemId, price, name) {
+    if (!confirm(`Buy ${name} for ${price} BC?`)) return;
+    
+    try {
+      const res = await fetch('/api/marketplace/buy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId, price })
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert("Purchase failed: " + data.error);
+      } else {
+        alert(`Successfully purchased ${name}!\nNew Balance: ${data.newBalance} BC`);
+        loadProfile(); // Refresh balance
+      }
+    } catch (e) {
+      alert("Network error.");
+    }
   }
 
   function openProfileView() {
@@ -313,7 +388,16 @@
     const profile = profileState.profile;
     if (!profile) return;
     document.getElementById('profile-pill-title').textContent = profile.firstName ? `${profile.firstName} ${profile.lastName || ''}`.trim() : 'Connected';
-    document.getElementById('profile-wallet-label').textContent = profile.walletAddress ? `${profile.walletAddress.slice(0, 6)}…${profile.walletAddress.slice(-4)}` : 'Wallet connected';
+    document.getElementById('profile-wallet-label').textContent = profile.walletAddress ? `${profile.walletAddress.slice(0, 6)}...${profile.walletAddress.slice(-4)}` : 'Wallet connected';
+    
+    const invList = document.getElementById('profile-inventory-list');
+    if (invList) {
+      if (profile.inventory && profile.inventory.length > 0) {
+        invList.innerHTML = profile.inventory.map(item => `<div style="background:var(--bb-muted); padding:4px 8px; border-radius:4px; font-size:12px; color:var(--bb-foreground); border: 1px solid var(--bb-primary);">${item.itemId}</div>`).join('');
+      } else {
+        invList.innerHTML = '<span style="color:var(--bb-muted-foreground); font-size:12px;">No items owned yet. Visit the Marketplace!</span>';
+      }
+    }
   }
 
   function renderLiveStats(stats) {
@@ -356,13 +440,129 @@
             <div class="agent-name">${a.name}</div>
             <div class="agent-level">${a.status ? a.status.toUpperCase() : 'ACTIVE'}</div>
             <div class="agent-record"><span class="win">${a.wins}W</span> · <span class="loss">${a.losses}L</span> · ${(a.points || 0).toLocaleString()} BC</div>
-            <button class="agent-btn" onclick="openChallengeModal(${JSON.stringify(a)})">CHALLENGE</button>
+            <div style="display:flex; gap:6px;">
+              <button class="agent-btn" style="flex:1;" onclick="openChallengeModal(${JSON.stringify(a).replace(/"/g, '&quot;')})">CHALLENGE</button>
+              <button class="agent-btn" style="flex:1; background:var(--bb-primary); color:#000;" onclick="openSellFighterModal(${JSON.stringify(a).replace(/"/g, '&quot;')})">SELL</button>
+            </div>
           </div>`;
       }).join('');
     } catch (e) {
       grid.innerHTML = '<div class="agent-empty">Could not load agents.</div>';
     }
   }
+
+  /* ── BC & Sell Modals ── */
+  let _fighterToSell = null;
+  
+  window.openBuyBcModal = function() {
+    document.getElementById('buy-bc-modal-overlay').classList.add('open');
+  };
+  
+  window.closeBuyBcModal = function() {
+    document.getElementById('buy-bc-modal-overlay').classList.remove('open');
+  };
+  
+  window.confirmBuyBc = async function() {
+    const coin = document.getElementById('buy-bc-coin').value;
+    const amount = parseInt(document.getElementById('buy-bc-amount').value, 10);
+    const btn = document.querySelector('#buy-bc-modal-overlay .chal-confirm-btn');
+    
+    if (coin !== 'ETH') {
+      alert("Only ETH (Base) is supported in this version.");
+      return;
+    }
+
+    if (!window.currentWalletProvider || !window.ethers) {
+      alert("Wallet provider not found. Please ensure you are logged in via Privy.");
+      return;
+    }
+    
+    btn.textContent = 'SIGNING...';
+    try {
+      // Setup ethers
+      const provider = new window.ethers.BrowserProvider(window.currentWalletProvider);
+      const signer = await provider.getSigner();
+      
+      // Calculate ETH amount (1000 BC = 0.0001 ETH)
+      const ethAmount = (amount / 1000) * 0.0001;
+      const parsedAmount = window.ethers.parseEther(ethAmount.toString());
+      // Treasury from .env.local BOTA_TREASURY_WALLET
+      const treasury = '0x4C24768D98F2D30d3AB827d463d7a8A05c66bD0c';
+      
+      // Send tx
+      const tx = await signer.sendTransaction({
+        to: treasury,
+        value: parsedAmount
+      });
+      
+      btn.textContent = 'VERIFYING...';
+      
+      const res = await fetch('/api/buy-bc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, coin, txHash: tx.hash })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Successfully bought ${amount.toLocaleString()} BC with ${coin}!`);
+        closeBuyBcModal();
+        loadProfile(); // Refresh balance
+      } else {
+        alert("Purchase failed: " + data.error);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Transaction failed or rejected.");
+    } finally {
+      btn.textContent = 'CONFIRM SWAP';
+    }
+  };
+
+  window.openSellFighterModal = function(fighter) {
+    _fighterToSell = fighter;
+    document.getElementById('sell-fighter-name').textContent = fighter.name;
+    document.getElementById('sell-fighter-price').value = '';
+    document.getElementById('sell-fighter-modal-overlay').classList.add('open');
+  };
+  
+  window.closeSellFighterModal = function() {
+    document.getElementById('sell-fighter-modal-overlay').classList.remove('open');
+    _fighterToSell = null;
+  };
+  
+  window.confirmSellFighter = async function() {
+    if (!_fighterToSell) return;
+    const price = parseInt(document.getElementById('sell-fighter-price').value, 10);
+    if (!price || price < 100) {
+      alert("Please enter a valid price (minimum 100 BC).");
+      return;
+    }
+    
+    const btn = document.querySelector('#sell-fighter-modal-overlay .chal-confirm-btn');
+    btn.textContent = 'LISTING...';
+    
+    try {
+      const res = await fetch('/api/marketplace/list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent: _fighterToSell, price })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Successfully listed ${_fighterToSell.name} on the Marketplace for ${price.toLocaleString()} BC!`);
+        closeSellFighterModal();
+        // Option to reload agents or just show success
+      } else {
+        alert("Failed to list fighter: " + (data.error || "Unknown"));
+      }
+    } catch (e) {
+      alert("Network error.");
+    } finally {
+      btn.textContent = 'LIST ON MARKETPLACE';
+    }
+  };
+
+
 
   /* ── Challenge modal ── */
   let _fighters = [];
@@ -1103,3 +1303,25 @@
     alert(`⚔️ Fighter "${payload.name}" queued for deployment!\n\n(Onchain signing coming soon)`);
   }
   // ── end Fighter Builder ─────────────────────────────────────────────────
+// UI Tab Switching Logic
+window.switchProfileTab = function(tabId, btnElement) {
+  // Get all tab contents and hide them
+  const contents = document.querySelectorAll('.profile-tab-content');
+  contents.forEach(el => el.style.display = 'none');
+  
+  // Show the selected tab
+  const activeContent = document.getElementById('tab-' + tabId);
+  if (activeContent) {
+    activeContent.style.display = 'block';
+  }
+  
+  // Remove active class from all chips in the same row
+  const row = btnElement.closest('.profile-nav-row');
+  if (row) {
+    const chips = row.querySelectorAll('.profile-nav-chip');
+    chips.forEach(chip => chip.classList.remove('active'));
+  }
+  
+  // Add active class to clicked button
+  btnElement.classList.add('active');
+};
