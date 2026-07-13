@@ -35,17 +35,34 @@ except ImportError:
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
-BANTCREDIT_AGENT_WIN_REWARD = 50
-BANTCREDIT_SIGNUP_REWARD = 5
+BANTCREDIT_AGENT_WIN_REWARD = 20
+BANTCREDIT_SIGNUP_REWARD = 10
 BANTCREDIT_DAILY_CHECKIN_REWARD = 5
 BANTCREDIT_REFERRED_REWARD = 30
 BANTCREDIT_REFERRER_REWARD = 100
-def query_db(sql, params=(), fetchone=False):
+from psycopg2 import pool
+
+db_pool = None
+
+def get_db_pool():
+    global db_pool
     if not _HAS_DB or not DATABASE_URL:
+        return None
+    if db_pool is None:
+        try:
+            db_pool = pool.ThreadedConnectionPool(1, 10, DATABASE_URL)
+            print("[serve.py] Initialized DB connection pool with 10 max connections.", flush=True)
+        except Exception as e:
+            print(f"Failed to init DB pool: {e}", flush=True)
+    return db_pool
+
+def query_db(sql, params=(), fetchone=False):
+    p = get_db_pool()
+    if not p:
         return None
     conn = None
     try:
-        conn = psycopg2.connect(DATABASE_URL)
+        conn = db_pool.getconn()
         cur = conn.cursor()
         cur.execute(sql, params)
         result = cur.fetchone() if fetchone else cur.fetchall()
@@ -54,24 +71,27 @@ def query_db(sql, params=(), fetchone=False):
         print(f"DB error: {e}", flush=True)
     finally:
         if conn is not None:
-            conn.close()
+            db_pool.putconn(conn)
 
 def execute_db(sql, params=()):
-    if not _HAS_DB or not DATABASE_URL:
+    p = get_db_pool()
+    if not p:
         return None
     conn = None
     try:
-        conn = psycopg2.connect(DATABASE_URL)
+        conn = p.getconn()
         cur = conn.cursor()
         cur.execute(sql, params)
         conn.commit()
         return True
     except Exception as e:
         print(f"DB execute error: {e}", flush=True)
+        if conn is not None:
+            conn.rollback()
         return False
     finally:
         if conn is not None:
-            conn.close()
+            db_pool.putconn(conn)
 
 def award_bantcredit(wallet, amount, tx_type, reference_id=""):
     """Award BantCredit and update the ledger and balance."""
@@ -103,6 +123,32 @@ def award_bantcredit(wallet, amount, tx_type, reference_id=""):
             updated_at = NOW()
         """,
         (user_id, wallet.lower(), amount, amount)
+    )
+    return True
+
+def deduct_bantcredit(wallet, amount, tx_type, reference_id=""):
+    """Deduct BantCredit and update the ledger. Return True if successful."""
+    if not wallet or not _HAS_DB or not DATABASE_URL:
+        return False
+    
+    user = query_db("SELECT id FROM users WHERE LOWER(primary_wallet_address)=%s", (wallet.lower(),), fetchone=True)
+    if not user:
+        return False
+    user_id = user[0]
+    
+    # Check if user has enough balance
+    bal = query_db("SELECT balance FROM bantcredit_balances WHERE user_id=%s", (user_id,), fetchone=True)
+    if not bal or float(bal[0]) < amount:
+        return False
+
+    execute_db(
+        "INSERT INTO bantcredit_ledger (user_id, amount, transaction_type, reference_id) VALUES (%s, %s, %s, %s)",
+        (user_id, -amount, tx_type, reference_id)
+    )
+    
+    execute_db(
+        "UPDATE bantcredit_balances SET balance = balance - %s, updated_at = NOW() WHERE user_id = %s",
+        (amount, user_id)
     )
     return True
 
@@ -308,7 +354,7 @@ def load_state():
         "profile": dict(DEFAULT_PROFILE),
         "notifications": [dict(n) for n in DEFAULT_NOTIFICATIONS],
         "pfp_fighters": [],
-        "pfp_live_matches": [],
+        "pfp_live_match": None,
         "pfp_recent_battles": [],
         "notifications_by_wallet": {},
     }
@@ -321,7 +367,7 @@ def load_state():
             "profile": {**DEFAULT_PROFILE, **(data.get("profile") or {})},
             "notifications": data.get("notifications") or [dict(n) for n in DEFAULT_NOTIFICATIONS],
             "pfp_fighters": data.get("pfp_fighters") or [],
-            "pfp_live_matches": data.get("pfp_live_matches", []),
+            "pfp_live_match": data.get("pfp_live_match"),
             "pfp_recent_battles": data.get("pfp_recent_battles") or [],
             "notifications_by_wallet": data.get("notifications_by_wallet") or {},
         }
@@ -399,6 +445,7 @@ def simulate_pfp_battle(fa, fb):
     rounds_log = []
     round_num  = 0
     max_rounds = 25
+    spells = ["HornCharge", "WingDash", "MightyRoar", "MemeBlast"]
 
     while hp_a > 0 and hp_b > 0 and round_num < max_rounds:
         round_num += 1
@@ -406,19 +453,27 @@ def simulate_pfp_battle(fa, fb):
         base_a = (agg_a * 18 + spd_a * 4 + luck_a * 3 + intel * 2) * (1 - def_b * 0.45)
         dmg_a  = max(1.0, base_a * random.uniform(0.75, 1.30))
         hp_b  -= dmg_a
+        act_a = random.choice(spells)
         if hp_b <= 0:
             hp_b = 0
-            rounds_log.append({"round": round_num, "hp_a": int(hp_a), "hp_b": 0})
+            rounds_log.append({"round": round_num, "hp_a": int(hp_a), "hp_b": 0, "action_a": act_a, "dmg_a": round(dmg_a, 1)})
             break
         # B attacks A
         base_b = (agg_b * 18 + spd_b * 4 + luck_b * 3 + intel * 2) * (1 - def_a * 0.45)
         dmg_b  = max(1.0, base_b * random.uniform(0.75, 1.30))
         hp_a  -= dmg_b
+        act_b = random.choice(spells)
         if hp_a <= 0:
             hp_a = 0
-        rounds_log.append({"round": round_num,
-                            "hp_a": int(max(0, hp_a)),
-                            "hp_b": int(max(0, hp_b))})
+        rounds_log.append({
+            "round": round_num,
+            "hp_a": int(max(0, hp_a)),
+            "hp_b": int(max(0, hp_b)),
+            "action_a": act_a,
+            "dmg_a": round(dmg_a, 1),
+            "action_b": act_b,
+            "dmg_b": round(dmg_b, 1)
+        })
 
     winner, loser = (fa, fb) if hp_a >= hp_b else (fb, fa)
     hp_rem = int(max(0, hp_a if hp_a >= hp_b else hp_b))
@@ -434,7 +489,7 @@ def simulate_pfp_battle(fa, fb):
         "max_hp_a":      max_hp_a,
         "max_hp_b":      max_hp_b,
         "rounds_log":    rounds_log,
-        "bc_pool":       576,
+        "bc_pool":       20,
         "created_at":    datetime.now(timezone.utc).isoformat(),
     }
 
@@ -518,7 +573,7 @@ def _pfp_finish_battle(live):
     for f in STATE.get("pfp_fighters", []):
         if f["id"] == winner_id:
             f["wins"]   = f.get("wins", 0) + 1
-            f["status"] = "queued"
+            f["status"] = "idle"
             wallet = f.get("walletAddress", "")
             if wallet:
                 award_bantcredit(wallet, BANTCREDIT_AGENT_WIN_REWARD, "agent_win", live.get("id", ""))
@@ -526,7 +581,7 @@ def _pfp_finish_battle(live):
             loser = next((l for l in STATE.get("pfp_fighters", []) if l["id"] == loser_id), {})
             
             _broadcast_telegram_channel(
-                f"⚔️ <b>PFP BATTLE FINISHED!</b>\n"
+                f"⚔️ <b>BATTLE FINISHED!</b>\n"
                 f"🏆 <b><a href='{f.get('image_uri', '')}'>{f['name']}</a></b> defeated "
                 f"<b><a href='{loser.get('image_uri', '')}'>{live.get('loser_name', '???')}</a></b> "
                 f"in {live.get('rounds_fought', '?')} rounds!\n"
@@ -541,7 +596,7 @@ def _pfp_finish_battle(live):
             })
         elif f["id"] == loser_id:
             f["losses"] = f.get("losses", 0) + 1
-            f["status"] = "queued"
+            f["status"] = "idle"
             _pfp_add_notif(f.get("walletAddress", ""), {
                 "type":    "battle_result",
                 "title":   "Defeated",
@@ -564,7 +619,10 @@ def _pfp_finish_battle(live):
     save_state(STATE)
     
     # Record to DB for on-chain claiming
-    insert_pfp_battle_record(live)
+    try:
+        insert_pfp_battle_record(live)
+    except Exception as e:
+        print(f"[PFP Engine] DB insert failed (skipping): {e}")
 
 def _pfp_matchmaker_loop():
     """Background thread: pair queued PFP fighters and run AI vs AI battles every 30 s."""
@@ -572,7 +630,7 @@ def _pfp_matchmaker_loop():
         time.sleep(_MATCHMAKER_INTERVAL)
         try:
             with _STATE_LOCK:
-                live = STATE.get("pfp_live_matches")
+                live = STATE.get("pfp_live_match")
 
                 # ── 1. Finish any completed live match ─────────────────────
                 if live and live.get("status") == "live":
@@ -593,10 +651,19 @@ def _pfp_matchmaker_loop():
 
                 queued = [f for f in STATE.get("pfp_fighters", [])
                           if f.get("status") == "queued"]
-                if len(queued) < 2:
+                if len(queued) >= 2:
+                    fa, fb = queued[0], queued[1]
+                elif len(queued) == 1:
+                    fa = queued[0]
+                    import random
+                    others = [f for f in STATE.get("pfp_fighters", []) if f.get("status") != "queued" and f["id"] != fa["id"]]
+                    if others:
+                        fb = random.choice(others)
+                    else:
+                        continue
+                else:
                     continue
 
-                fa, fb = queued[0], queued[1]
                 for f in STATE["pfp_fighters"]:
                     if f["id"] in (fa["id"], fb["id"]):
                         f["status"] = "fighting"
@@ -741,9 +808,22 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             # Return static items + dynamic list of fighters for sale
             import random
             items = [
-                {"id": "item_potion", "type": "consumable", "icon": "🧪", "name": "Power Potion", "desc": "+15% damage for one battle", "price": 250},
-                {"id": "item_shield", "type": "consumable", "icon": "🛡️", "name": "Iron Shield", "desc": "Blocks the next incoming hit", "price": 400},
-                {"id": "item_skin", "type": "cosmetic", "icon": "✨", "name": "Golden Aura", "desc": "Premium glowing effect on profile", "price": 1000},
+                {"id": "item_potion", "type": "consumable", "icon": "🧪", "name": "Power Potion", "desc": "+15% damage for one battle", "price": "250 BC"},
+                {"id": "item_shield", "type": "consumable", "icon": "🛡️", "name": "Iron Shield", "desc": "Blocks the next incoming hit", "price": "400 BC"},
+                {"id": "item_strike", "type": "consumable", "icon": "⚡", "name": "Thunder Strike", "desc": "Deal a bonus lightning attack", "price": "600 BC"},
+                {"id": "item_skin", "type": "cosmetic", "icon": "👑", "name": "Golden Skin", "desc": "Exclusive cosmetic for your agent", "price": "1,200 BC"},
+                {"id": "item_xp", "type": "consumable", "icon": "🎒", "name": "XP Booster", "desc": "Double training XP for 24h", "price": "850 BC"},
+                {"id": "item_vault", "type": "consumable", "icon": "🔒", "name": "Vault Key", "desc": "Unlocks a locked spell slot", "price": "2,000 BC"},
+            ]
+            runes = [
+                {"id": "rune_fire", "type": "rune", "icon": "🔥", "name": "Fire Rune", "desc": "Grants burning effect to attacks", "price": "500 BC"},
+                {"id": "rune_ice", "type": "rune", "icon": "❄️", "name": "Ice Rune", "desc": "Slows enemy attack speed", "price": "500 BC"},
+                {"id": "rune_void", "type": "rune", "icon": "🌌", "name": "Void Rune", "desc": "Ignores 10% of enemy armor", "price": "800 BC"},
+            ]
+            bc_packages = [
+                {"id": "bc_small", "type": "bc", "icon": "🪙", "name": "Pouch of BC", "desc": "1,000 BantCredit", "price": "0.01 SOL"},
+                {"id": "bc_med", "type": "bc", "icon": "💰", "name": "Sack of BC", "desc": "5,000 BantCredit", "price": "0.04 SOL"},
+                {"id": "bc_large", "type": "bc", "icon": "🏦", "name": "Vault of BC", "desc": "20,000 BantCredit", "price": "0.15 SOL"},
             ]
             
             # Select 5 random PFP fighters to sell
@@ -794,9 +874,25 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                         "seller": "System"
                     })
                     
-            self.send_json({"items": items, "fighters": market_fighters})
+            self.send_json({"items": items, "runes": runes, "bc": bc_packages, "fighters": market_fighters})
             return
 
+        if path == "/api/pfp/leaderboard":
+            pfps = STATE.get("pfp_fighters", [])
+            # Map them to the same structure as PumpFighters
+            mapped = []
+            for pf in pfps:
+                mapped.append({
+                    "id": pf["id"],
+                    "name": pf.get("name", ""),
+                    "avatarUrl": pf.get("avatarUrl", ""),
+                    "wins": pf.get("wins", 0),
+                    "losses": pf.get("losses", 0),
+                    "fameScore": float(pf.get("fameScore", 0)),
+                })
+            mapped.sort(key=lambda x: (x.get("wins", 0) + x.get("losses", 0), x.get("fameScore", 0)), reverse=True)
+            self.send_json(mapped[:100])
+            return
 
         if path == "/api/fighters":
             rows = query_db(
@@ -804,7 +900,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "FROM bota_fighter_profiles "
                 "WHERE wins > 0 OR losses > 0 "
                 "ORDER BY (wins + losses) DESC NULLS LAST, fame_score DESC NULLS LAST "
-                "LIMIT 30")
+                "LIMIT 100")
             fighters = []
             if rows:
                 fighters = [{"id": r[0], "name": r[1], "avatarUrl": r[2],
@@ -821,20 +917,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                                 "wins": f.get("wins", 0),
                                 "losses": f.get("losses", 0),
                                 "fameScore": float(f.get("fame_score", 0))} 
-                               for f in state["fighters"][:30]]
+                               for f in state["fighters"][:100]]
 
-            # Merge in locally-deployed PFP fighters (always included)
-            pfp_ids = {f["id"] for f in fighters}
-            for pf in STATE.get("pfp_fighters", []):
-                if pf["id"] not in pfp_ids:
-                    fighters.append({
-                        "id": pf["id"],
-                        "name": pf.get("name", ""),
-                        "avatarUrl": pf.get("avatarUrl", ""),
-                        "wins": pf.get("wins", 0),
-                        "losses": pf.get("losses", 0),
-                        "fameScore": float(pf.get("fameScore", 0)),
-                    })
+            # Sort the PumpFighters list and take the top 100
+            fighters.sort(key=lambda x: (x.get("wins", 0) + x.get("losses", 0), x.get("fameScore", 0)), reverse=True)
+            fighters = fighters[:100]
 
             self.send_json(fighters)
             return
@@ -960,7 +1047,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
         if path == "/api/pfp/state":
             with _STATE_LOCK:
-                live = STATE.get("pfp_live_matches")
+                live = STATE.get("pfp_live_match")
                 # Compute elapsed so the frontend can derive the current round
                 elapsed_secs = 0
                 if live and live.get("status") == "live" and live.get("started_at"):
@@ -1016,6 +1103,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_json({"nfts": nfts[:20]})
             return
 
+        if path == "/api/trollbox":
+            messages = STATE.setdefault("trollbox_messages", [])
+            self.send_json({"messages": messages})
+            return
+
         if path in {"/", ""}:
             try:
                 with open(INDEX_PATH, "r", encoding="utf-8") as f:
@@ -1037,6 +1129,27 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if path == "/api/trollbox":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length).decode("utf-8") if length else "{}"
+            payload = json.loads(body or "{}")
+            user = payload.get("user", "guest").strip()
+            msg = payload.get("message", "").strip()
+            if not user: user = "guest"
+            if msg:
+                # Add message to the list
+                messages = STATE.setdefault("trollbox_messages", [])
+                messages.append({
+                    "user": user,
+                    "message": msg,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+                # Keep only the last 50 messages
+                if len(messages) > 50:
+                    STATE["trollbox_messages"] = messages[-50:]
+            self.send_json({"success": True})
+            return
+
         if path == "/api/buy-bc":
             length = int(self.headers.get("Content-Length", "0"))
             body = self.rfile.read(length).decode("utf-8") if length else "{}"
@@ -1134,7 +1247,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                         return
                         
                     # Execute transaction manually
-                    conn = psycopg2.connect(DATABASE_URL)
+                    p = get_db_pool()
+                    conn = p.getconn() if p else None
+                    if not conn:
+                        self.send_json({"error": "DB unavailable"}, 500)
+                        return
                     try:
                         cur = conn.cursor()
                         # Deduct from buyer
@@ -1155,7 +1272,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                         self.send_json({"error": "Transaction failed"}, 500)
                         return
                     finally:
-                        conn.close()
+                        p = get_db_pool()
+                        if p and conn:
+                            p.putconn(conn)
                     
                     # Update local state balance
                     new_bal = query_db("SELECT balance FROM bantcredit_balances WHERE user_id=%s", (buyer_id,), fetchone=True)[0]
@@ -1208,16 +1327,22 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             
             # Very simple daily check-in: award if they haven't claimed today (we skip actual daily timing check for brevity as we just migrate the structure, or we can check ledger)
             # Check if claimed today:
-            r = query_db("SELECT COUNT(*) FROM bantcredit_ledger WHERE transaction_type='daily_signin' AND user_id=(SELECT id FROM users WHERE LOWER(primary_wallet_address)=%s) AND created_at > NOW() - INTERVAL '1 day'", (wallet.lower(),), fetchone=True)
+            r = None
+            if _HAS_DB and DATABASE_URL:
+                r = query_db("SELECT COUNT(*) FROM bantcredit_ledger WHERE transaction_type='daily_signin' AND user_id=(SELECT id FROM users WHERE LOWER(primary_wallet_address)=%s) AND created_at > NOW() - INTERVAL '1 day'", (wallet.lower(),), fetchone=True)
             if r and r[0] > 0:
                 self.send_json({"error": "Already claimed today", "claimed": False}, 400)
                 return
             
-            success = award_bantcredit(wallet, BANTCREDIT_DAILY_CHECKIN_REWARD, "daily_signin")
-            if success:
-                self.send_json({"success": True, "reward": BANTCREDIT_DAILY_CHECKIN_REWARD})
-            else:
-                self.send_json({"error": "User not found or db error"}, 500)
+            if _HAS_DB and DATABASE_URL:
+                award_bantcredit(wallet, BANTCREDIT_DAILY_CHECKIN_REWARD, "daily_signin")
+            
+            with _STATE_LOCK:
+                STATE["profile"]["bantCredit"] = STATE["profile"].get("bantCredit", 0) + BANTCREDIT_DAILY_CHECKIN_REWARD
+                STATE["profile"]["totalBantCredit"] = STATE["profile"].get("totalBantCredit", 0) + BANTCREDIT_DAILY_CHECKIN_REWARD
+                save_state(STATE)
+
+            self.send_json({"success": True, "reward": BANTCREDIT_DAILY_CHECKIN_REWARD})
             return
 
         if path == "/api/watch2earn/claim":
@@ -1264,16 +1389,22 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 return
             
             # Check if claimed:
-            r = query_db("SELECT COUNT(*) FROM bantcredit_ledger WHERE transaction_type='signup_bonus' AND user_id=(SELECT id FROM users WHERE LOWER(primary_wallet_address)=%s)", (wallet.lower(),), fetchone=True)
+            r = None
+            if _HAS_DB and DATABASE_URL:
+                r = query_db("SELECT COUNT(*) FROM bantcredit_ledger WHERE transaction_type='signup_bonus' AND user_id=(SELECT id FROM users WHERE LOWER(primary_wallet_address)=%s)", (wallet.lower(),), fetchone=True)
             if r and r[0] > 0:
                 self.send_json({"error": "Already claimed signup bonus", "claimed": False}, 400)
                 return
             
-            success = award_bantcredit(wallet, BANTCREDIT_SIGNUP_REWARD, "signup_bonus")
-            if success:
-                self.send_json({"success": True, "reward": BANTCREDIT_SIGNUP_REWARD})
-            else:
-                self.send_json({"error": "User not found or db error"}, 500)
+            if _HAS_DB and DATABASE_URL:
+                award_bantcredit(wallet, BANTCREDIT_SIGNUP_REWARD, "signup_bonus")
+            
+            with _STATE_LOCK:
+                STATE["profile"]["bantCredit"] = STATE["profile"].get("bantCredit", 0) + BANTCREDIT_SIGNUP_REWARD
+                STATE["profile"]["totalBantCredit"] = STATE["profile"].get("totalBantCredit", 0) + BANTCREDIT_SIGNUP_REWARD
+                save_state(STATE)
+
+            self.send_json({"success": True, "reward": BANTCREDIT_SIGNUP_REWARD})
             return
 
         if path == "/api/pfp/deploy":
@@ -1285,9 +1416,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_json({"error": "Invalid JSON"}, 400)
                 return
 
+            wallet = (payload.get("walletAddress") or "").strip()
+            if not wallet:
+                self.send_json({"error": "Wallet required"}, 400)
+                return
+
+            # Deduct 10 BC for queue entry
+            success = deduct_bantcredit(wallet, 10, "pfp_queue_fee")
+            if not success:
+                self.send_json({"error": "Insufficient BantCredit. 10 BC is required to enter the arena queue."}, 400)
+                return
+
             with _STATE_LOCK:
                 fighter_id = _uuid_mod.uuid4().hex[:8]
-                wallet     = (payload.get("walletAddress") or "").strip()
                 tg_id      = (payload.get("telegramUserId") or "").strip() or None
 
                 fighter = {
@@ -1301,7 +1442,6 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     "atk":            int(payload.get("atk") or 25),
                     "def":            int(payload.get("def") or 15),
                     "spd":            int(payload.get("spd") or 12),
-                    "agentKit":       bool(payload.get("agentKit", False)),
                     "walletAddress":  wallet,
                     "telegramUserId": tg_id,
                     "wins":           0,

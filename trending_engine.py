@@ -162,18 +162,39 @@ def get_state():
 # PART 1 — DB HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _conn():
+from psycopg2 import pool
+
+db_pool = None
+
+def get_db_pool():
+    global db_pool
     if not _HAS_DB or not DATABASE_URL:
         return None
+    if db_pool is None:
+        try:
+            db_pool = pool.ThreadedConnectionPool(1, 5, DATABASE_URL)
+            print("[TrendingEngine] Initialized DB connection pool with 5 max connections.", flush=True)
+        except Exception as e:
+            print(f"[TrendingEngine] Failed to init DB pool: {e}", flush=True)
+    return db_pool
+
+def _getconn():
+    p = get_db_pool()
+    if not p:
+        return None
     try:
-        return psycopg2.connect(DATABASE_URL)
+        return p.getconn()
     except Exception as e:
-        print(f"[TrendingEngine] DB connect: {e}", flush=True)
+        print(f"[TrendingEngine] DB getconn: {e}", flush=True)
         return None
 
+def _putconn(conn):
+    p = get_db_pool()
+    if p and conn:
+        p.putconn(conn)
 
 def _exec(sql, params=()):
-    c = _conn()
+    c = _getconn()
     if not c:
         return
     try:
@@ -183,14 +204,10 @@ def _exec(sql, params=()):
     except Exception as e:
         print(f"[TrendingEngine] DB exec: {e}", flush=True)
     finally:
-        try:
-            c.close()
-        except Exception:
-            pass
-
+        _putconn(c)
 
 def _query(sql, params=()):
-    c = _conn()
+    c = _getconn()
     if not c:
         return []
     try:
@@ -203,10 +220,7 @@ def _query(sql, params=()):
         print(f"[TrendingEngine] DB query: {e}", flush=True)
         return []
     finally:
-        try:
-            c.close()
-        except Exception:
-            pass
+        _putconn(c)
 
 
 def ensure_tables():
@@ -969,7 +983,7 @@ def get_leaderboard(chain="all", limit=20):
         FROM trending_fighter_profiles f
         LEFT JOIN trending_fighter_stats s ON s.fighter_unique_id = f.unique_id
         WHERE 1=1 {chain_filter}
-        ORDER BY COALESCE(s.global_rank, 999) ASC
+        ORDER BY COALESCE(s.wins, 0) DESC, COALESCE(s.losses, 0) ASC
         LIMIT %s
     """, (limit,))
     
@@ -978,8 +992,8 @@ def get_leaderboard(chain="all", limit=20):
         fighters = _state.get("fighters", [])
         if chain != "all":
             fighters = [f for f in fighters if f.get("chain") == chain]
-        # Sort by global_rank if available, else market cap
-        fighters.sort(key=lambda x: x.get("global_rank", 999))
+        # Sort by wins then losses
+        fighters.sort(key=lambda x: (-x.get("wins", 0), x.get("losses", 0)))
         return fighters[:limit]
         
     return res

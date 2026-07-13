@@ -1993,7 +1993,7 @@
   </a>
   <button class="search-btn" type="button" onclick="toggleSearchModal(event)" aria-label="Open search">🔍</button>
   <div class="nav-stats">
-    <div class="nav-stat">BC EARNED&nbsp;&nbsp;<strong>0 BC 🎒</strong></div>
+    <div class="nav-stat">BC EARNED&nbsp;&nbsp;<strong id="nav-bc-earned">0 BC 🎒</strong></div>
     <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong><span id="nav-fighter-count-value">0</span> <span class="live-badge">LIVE</span></strong></div>
   </div>
   <div class="nav-tabs">
@@ -2026,7 +2026,7 @@
   </div>
   <div class="nav-right">
     <div style="position:relative;">
-      <button class="icon-btn" id="notif-btn" onclick="toggleNotifications(event)">🔔<span class="badge">3</span></button>
+      <button class="icon-btn" id="notif-btn" onclick="toggleNotifications(event)" style="display:none">🔔<span class="badge" style="display:none">0</span></button>
       <div class="notif-dropdown" id="notif-dropdown">
         <div class="notif-header">Notifications <span onclick="markAllRead()">Mark all read</span></div>
         <div id="notif-list"></div>
@@ -2525,12 +2525,14 @@
             </label>
           </div>
 
-          <!-- Image URL + Class -->
+          <!-- Image URL -->
+          <label class="cp-label">
+            <span>Image URL</span>
+            <input class="cp-input" id="cp-image-url" type="url" placeholder="https://…" oninput="cpSyncImageUrl()" />
+          </label>
+
+          <!-- Class + Traits -->
           <div class="cp-inline-row">
-            <label class="cp-label">
-              <span>Image URL</span>
-              <input class="cp-input" id="cp-image-url" type="url" placeholder="https://…" oninput="cpSyncImageUrl()" />
-            </label>
             <label class="cp-label">
               <span>Class</span>
               <select class="cp-input cp-select" id="cp-class" onchange="cpSync()">
@@ -2541,36 +2543,36 @@
                 <option value="blaster">Blaster</option>
               </select>
             </label>
+            <label class="cp-label">
+              <span>Traits <small style="text-transform:none;font-weight:400">(comma-sep)</small></span>
+              <input class="cp-input" id="cp-traits" type="text" placeholder="e.g. fire, legendary" oninput="cpSync()" />
+            </label>
           </div>
 
-          <!-- Traits -->
-          <label class="cp-label">
-            <span>Traits <small style="text-transform:none;font-weight:400">(comma-separated)</small></span>
-            <input class="cp-input" id="cp-traits" type="text" placeholder="e.g. fire, legendary, swift" oninput="cpSync()" />
-          </label>
-
-          <!-- Stats -->
-          <div class="cp-section-lbl">Stats</div>
-          <div class="cp-stat-grid">
-            <div class="cp-stat-cell">
-              <span>HP <small style="font-weight:400;text-transform:none">(60–220)</small></span>
-              <input class="cp-stat-num" type="number" id="cp-hp" value="120" min="60" max="220" oninput="cpSyncStat('hp',60,220)" />
-              <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-hp-bar" style="width:37.5%"></div></div>
-            </div>
-            <div class="cp-stat-cell">
-              <span>ATK <small style="font-weight:400;text-transform:none">(5–45)</small></span>
-              <input class="cp-stat-num" type="number" id="cp-atk" value="25" min="5" max="45" oninput="cpSyncStat('atk',5,45)" />
-              <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-atk-bar" style="width:50%"></div></div>
-            </div>
-            <div class="cp-stat-cell">
-              <span>DEF <small style="font-weight:400;text-transform:none">(0–35)</small></span>
-              <input class="cp-stat-num" type="number" id="cp-def" value="15" min="0" max="35" oninput="cpSyncStat('def',0,35)" />
-              <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-def-bar" style="width:42.9%"></div></div>
-            </div>
-            <div class="cp-stat-cell">
-              <span>SPD <small style="font-weight:400;text-transform:none">(5–24)</small></span>
-              <input class="cp-stat-num" type="number" id="cp-spd" value="12" min="5" max="24" oninput="cpSyncStat('spd',5,24)" />
-              <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-spd-bar" style="width:36.8%"></div></div>
+          <!-- Stats (Hidden per request) -->
+          <div style="display: none;">
+            <div class="cp-section-lbl">Stats</div>
+            <div class="cp-stat-grid">
+              <div class="cp-stat-cell">
+                <span>HP <small style="font-weight:400;text-transform:none">(60–220)</small></span>
+                <input class="cp-stat-num" type="number" id="cp-hp" value="120" min="60" max="220" oninput="cpSyncStat('hp',60,220)" />
+                <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-hp-bar" style="width:37.5%"></div></div>
+              </div>
+              <div class="cp-stat-cell">
+                <span>ATK <small style="font-weight:400;text-transform:none">(5–45)</small></span>
+                <input class="cp-stat-num" type="number" id="cp-atk" value="25" min="5" max="45" oninput="cpSyncStat('atk',5,45)" />
+                <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-atk-bar" style="width:50%"></div></div>
+              </div>
+              <div class="cp-stat-cell">
+                <span>DEF <small style="font-weight:400;text-transform:none">(0–35)</small></span>
+                <input class="cp-stat-num" type="number" id="cp-def" value="15" min="0" max="35" oninput="cpSyncStat('def',0,35)" />
+                <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-def-bar" style="width:42.9%"></div></div>
+              </div>
+              <div class="cp-stat-cell">
+                <span>SPD <small style="font-weight:400;text-transform:none">(5–24)</small></span>
+                <input class="cp-stat-num" type="number" id="cp-spd" value="12" min="5" max="24" oninput="cpSyncStat('spd',5,24)" />
+                <div class="cp-stat-bar-wrap"><div class="cp-stat-bar" id="cp-spd-bar" style="width:36.8%"></div></div>
+              </div>
             </div>
           </div>
 
@@ -2662,49 +2664,14 @@
         <div class="view-title">Marketplace</div>
         <div class="view-subtitle">Buy skins, power-ups and boosts for your agents</div>
       </div>
-      <div class="marketplace-grid">
-        <div class="market-card">
-          <div class="market-icon">🧪</div>
-          <div class="market-name">Power Potion</div>
-          <div class="market-desc">+15% damage for one battle</div>
-          <div class="market-price"><span>250 BC</span></div>
-          <button class="market-btn">BUY</button>
-        </div>
-        <div class="market-card">
-          <div class="market-icon">🛡</div>
-          <div class="market-name">Iron Shield</div>
-          <div class="market-desc">Blocks the next incoming hit</div>
-          <div class="market-price"><span>400 BC</span></div>
-          <button class="market-btn">BUY</button>
-        </div>
-        <div class="market-card">
-          <div class="market-icon">⚡</div>
-          <div class="market-name">Thunder Strike</div>
-          <div class="market-desc">Deal a bonus lightning attack</div>
-          <div class="market-price"><span>600 BC</span></div>
-          <button class="market-btn">BUY</button>
-        </div>
-        <div class="market-card">
-          <div class="market-icon">👑</div>
-          <div class="market-name">Golden Skin</div>
-          <div class="market-desc">Exclusive cosmetic for your agent</div>
-          <div class="market-price"><span>1,200 BC</span></div>
-          <button class="market-btn">BUY</button>
-        </div>
-        <div class="market-card">
-          <div class="market-icon">🎒</div>
-          <div class="market-name">XP Booster</div>
-          <div class="market-desc">Double training XP for 24h</div>
-          <div class="market-price"><span>850 BC</span></div>
-          <button class="market-btn">BUY</button>
-        </div>
-        <div class="market-card">
-          <div class="market-icon">🔒</div>
-          <div class="market-name">Vault Key</div>
-          <div class="market-desc">Unlocks a locked spell slot</div>
-          <div class="market-price"><span>2,000 BC</span></div>
-          <button class="market-btn">BUY</button>
-        </div>
+      <div class="challenge-tabs" style="margin-bottom:12px;" id="market-tabs">
+        <button class="challenge-tab active" data-markettab="items" onclick="setMarketTab(this, 'items')">Items</button>
+        <button class="challenge-tab" data-markettab="runes" onclick="setMarketTab(this, 'runes')">Runes</button>
+        <button class="challenge-tab" data-markettab="bc" onclick="setMarketTab(this, 'bc')">BC</button>
+        <button class="challenge-tab" data-markettab="fighters" onclick="setMarketTab(this, 'fighters')">Fighters</button>
+      </div>
+      <div class="marketplace-grid" id="market-grid">
+        <div style="text-align:center; padding: 20px; color: var(--bb-muted-foreground); grid-column: 1 / -1;">Loading...</div>
       </div>
     </div>
   </div>
@@ -2716,12 +2683,16 @@
         <div class="view-title">Leaderboard</div>
         <div class="view-subtitle">Top performing PumpFighters this season</div>
       </div>
-      <div class="challenge-tabs" style="margin-bottom:12px;">
-        <button class="challenge-tab active" data-lbtab="all" onclick="setLbTab(this)">All</button>
-        <button class="challenge-tab" data-lbtab="solana" onclick="setLbTab(this)">Solana</button>
-        <button class="challenge-tab" data-lbtab="bsc" onclick="setLbTab(this)">BSC</button>
-        <button class="challenge-tab" data-lbtab="base" onclick="setLbTab(this)">Base</button>
-        <button class="challenge-tab" data-lbtab="robinhood" onclick="setLbTab(this)">Robinhood</button>
+      <div class="challenge-tabs" style="margin-bottom:12px;" id="lb-primary-tabs">
+        <button class="challenge-tab active" data-lbtab="pfp" onclick="setLbPrimaryTab(this, 'pfp')">PFP Fighters</button>
+        <button class="challenge-tab" data-lbtab="pump" onclick="setLbPrimaryTab(this, 'pump')">PumpFighters</button>
+      </div>
+      <div class="challenge-tabs" style="margin-bottom:12px; display:none;" id="lb-secondary-tabs">
+        <button class="challenge-tab active" data-lbtab="all" onclick="setLbSubTab(this)">All</button>
+        <button class="challenge-tab" data-lbtab="solana" onclick="setLbSubTab(this)">Solana</button>
+        <button class="challenge-tab" data-lbtab="bsc" onclick="setLbSubTab(this)">BSC</button>
+        <button class="challenge-tab" data-lbtab="base" onclick="setLbSubTab(this)">Base</button>
+        <button class="challenge-tab" data-lbtab="robinhood" onclick="setLbSubTab(this)">Robinhood</button>
       </div>
       <div class="full-lb-list" id="full-lb-list"></div>
     </div>
@@ -3400,6 +3371,8 @@
           btn.textContent = 'LOADING…';
           btn.disabled = true;
           if (profileIcon) profileIcon.style.display = 'none';
+          const notifBtn = document.getElementById('notif-btn');
+          if (notifBtn) notifBtn.style.display = 'none';
           return;
         }
 
@@ -3415,11 +3388,19 @@
               loadMyAgents(window.currentWalletAddress);
             }
           }, 200);
+          const notifBtn = document.getElementById('notif-btn');
+          if (notifBtn) notifBtn.style.display = '';
+          loadNotifications();
         } else {
           btn.textContent = 'LOGIN';
           btn.disabled = false;
           btn.onclick = () => window.openPrivyAuthModal ? window.openPrivyAuthModal() : null;
           if (profileIcon) profileIcon.style.display = 'none';
+          const notifBtn = document.getElementById('notif-btn');
+          if (notifBtn) { notifBtn.style.display = 'none'; }
+          const notifDropdown = document.getElementById('notif-dropdown');
+          if (notifDropdown) notifDropdown.classList.remove('open');
+          profileState.notifications = [];
         }
       }, [ready, authenticated]);
 
@@ -3438,6 +3419,9 @@
               theme: 'dark',
               accentColor: '#f59e0b',
               logo: '/Arena/assets/bota-logo.jpg',
+            },
+            embeddedWallets: {
+              createOnLogin: 'users-without-wallets'
             },
           },
         },
@@ -3659,6 +3643,7 @@
     set('profile-bantc-claim', Math.round(stats.bantcClaim ?? 0).toLocaleString());
     set('profile-earned-usdc', `${Number(stats.earnedUsdc ?? 0).toLocaleString()}`);
     set('profile-status', stats.status || 'Ready');
+    set('nav-bc-earned', Math.round(stats.bantCredit ?? 0).toLocaleString() + ' BC 🎒');
   }
 
   async function loadUserStats(wallet) {
@@ -3912,7 +3897,8 @@
   window.selectFighter = selectFighter;
   window.confirmChallenge = confirmChallenge;
   window.watchToEarn = watchToEarn;
-  window.setLbTab = setLbTab;
+  window.setLbPrimaryTab = setLbPrimaryTab;
+  window.setLbSubTab = setLbSubTab;
 
   // ── Avatar Mode stubs ──
   function avJoinQueue() {
@@ -3997,6 +3983,12 @@
   }
 
   async function loadNotifications() {
+    // Only load notifications if user is authenticated
+    if (!window.currentWalletAddress) {
+      profileState.notifications = [];
+      renderNotifications();
+      return;
+    }
     try {
       profileState.notifications = await api('/api/notifications');
       renderNotifications();
@@ -4180,37 +4172,64 @@
     renderRoundTimer();
   }, 1000);
 
-  const mockMsgs = [
-    ['kek_enjoyer','PEPE ARMY NO CAP 🐸'],
-    ['degen420','LFG ROBOT V1 🤖'],
-    ['whale_x','THIS IS INSANE 🤯'],
-    ['moon_chaser','PUMP IT 🚀'],
-    ['suchlow69','WAGMI 💪'],
-    ['frog_lord','NGL this is wild'],
-  ];
-  let msgIdx = 0;
-  setInterval(() => {
-    const [user, msg] = mockMsgs[msgIdx++ % mockMsgs.length];
-    const box = document.getElementById('trollbox');
-    if (!box) return;
-    const div = document.createElement('div');
-    div.className = 'troll-msg';
-    div.innerHTML = `<span class="troll-user">${user}:</span> ${msg}`;
-    box.appendChild(div);
-    if (box.children.length > 8) box.removeChild(box.children[0]);
-  }, 3500);
+  let lastTrollboxSync = 0;
+  async function loadTrollbox() {
+    try {
+      const res = await fetch('/api/trollbox');
+      if (!res.ok) return;
+      const data = await res.json();
+      const box = document.getElementById('trollbox');
+      if (!box || !data.messages) return;
+      
+      // Update the DOM if we have new messages
+      box.innerHTML = '';
+      data.messages.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'troll-msg';
+        const isSelf = m.user === window.currentWalletAddress;
+        div.innerHTML = `<span class="troll-user ${isSelf ? 'self' : ''}">${m.user === 'guest' ? 'guest' : m.user.substring(0,6)}:</span> ${m.message}`;
+        box.appendChild(div);
+      });
+      // Scroll to bottom
+      box.scrollTop = box.scrollHeight;
+    } catch (e) {
+      console.warn('Trollbox sync failed', e);
+    }
+  }
+  setInterval(loadTrollbox, 3000);
+  // Initial load
+  setTimeout(loadTrollbox, 500);
 
   function sendMsg(e) { if (e.key === 'Enter') sendMsgBtn(); }
-  function sendMsgBtn() {
+  async function sendMsgBtn() {
     const inp = document.getElementById('troll-in');
-    const box = document.getElementById('trollbox');
-    if (!inp || !inp.value.trim() || !box) return;
-    const div = document.createElement('div');
-    div.className = 'troll-msg';
-    div.innerHTML = `<span class="troll-user self">you:</span> ${inp.value.trim()}`;
-    box.appendChild(div);
-    if (box.children.length > 8) box.removeChild(box.children[0]);
+    if (!inp || !inp.value.trim()) return;
+    const val = inp.value.trim();
     inp.value = '';
+    
+    // Optimistic UI update
+    const box = document.getElementById('trollbox');
+    if (box) {
+      const div = document.createElement('div');
+      div.className = 'troll-msg';
+      div.innerHTML = `<span class="troll-user self">you:</span> ${val}`;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    try {
+      await fetch('/api/trollbox', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          user: window.currentWalletAddress || 'guest',
+          message: val
+        })
+      });
+      loadTrollbox();
+    } catch (e) {
+      console.error('Failed to send msg', e);
+    }
   }
 
 
@@ -4669,8 +4688,11 @@
       const el = document.querySelector('#' + id + ' img');
       if (el) { el.src = src || ''; el.style.display = src ? 'block' : 'none'; }
     };
-    setImg('av-fia-left',  fa.avatarUrl);
-    setImg('av-fia-right', fb.avatarUrl);
+    const faImg = fa.avatarUrl || fa.imageUrl || fa.image_uri || '';
+    const fbImg = fb.avatarUrl || fb.imageUrl || fb.image_uri || '';
+    
+    setImg('av-fia-left',  faImg);
+    setImg('av-fia-right', fbImg);
     const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
     setText('av-fin-left',  fa.name);
     setText('av-fin-right', fb.name);
@@ -4680,8 +4702,8 @@
     // Big battle avatars
     const imgL = document.getElementById('av-ba-left-img');
     const imgR = document.getElementById('av-ba-right-img');
-    if (imgL) imgL.src = fa.avatarUrl || '';
-    if (imgR) imgR.src = fb.avatarUrl || '';
+    if (imgL) imgL.src = faImg;
+    if (imgR) imgR.src = fbImg;
 
     // BC pool
     setText('av-round-energy', `\uD83E\uDE99 ${(match.bc_pool || 576).toLocaleString()} BC Pool`);
@@ -4691,32 +4713,140 @@
       _pfpLastMatchId = match.match_id;
       if (_pfpAnimTimer) { clearInterval(_pfpAnimTimer); _pfpAnimTimer = null; }
       _appendTrollboxEntry(`\u2694\uFE0F PFP Battle: <b>${fa.name}</b> vs <b>${fb.name}</b>`);
+      
+      // Reset UI elements
+      const spellCards = document.querySelectorAll('#view-pfpmode .pf-bottom-spell');
+      spellCards.forEach(c => { c.style.borderColor = ''; c.style.boxShadow = ''; });
     }
 
-    // Derive current round from elapsed time
-    const elapsed       = data.elapsed_secs || 0;
-    const secsPerRound  = match.secs_per_round || 2;
-    const currentRound  = Math.min(Math.floor(elapsed / secsPerRound), log.length - 1);
-    const entry         = log[currentRound] || log[log.length - 1] || {};
     const maxHpA        = match.max_hp_a || fa.hp || 120;
     const maxHpB        = match.max_hp_b || fb.hp || 120;
-    const hpA           = entry.hp_a != null ? entry.hp_a : maxHpA;
-    const hpB           = entry.hp_b != null ? entry.hp_b : maxHpB;
-    const pctA          = Math.max(0, Math.round(hpA / maxHpA * 100));
-    const pctB          = Math.max(0, Math.round(hpB / maxHpB * 100));
 
-    // HP bars
-    const barL = document.getElementById('av-hp-left');
-    const barR = document.getElementById('av-hp-right');
-    const valL = document.getElementById('av-hp-left-val');
-    const valR = document.getElementById('av-hp-right-val');
-    if (barL) { barL.style.width = pctA + '%'; barL.className = 'pf-hp-bar-fill ' + (pctA > 50 ? 'green' : pctA > 25 ? 'yellow' : 'red'); }
-    if (barR) { barR.style.width = pctB + '%'; barR.className = 'pf-hp-bar-fill ' + (pctB > 50 ? 'green' : pctB > 25 ? 'yellow' : 'red'); }
-    if (valL) valL.textContent = hpA;
-    if (valR) valR.textContent = hpB;
+    // Start animation loop if not running and match is live
+    if (!_pfpAnimTimer && match.status === 'live') {
+      let animRound = 0;
+      let hpA = maxHpA;
+      let hpB = maxHpB;
+      let turnSide = 'left';
 
-    // Round label
-    setText('av-round-label', `ROUND ${currentRound + 1}`);
+      const leftCombatant = document.getElementById('av-ba-left');
+      const rightCombatant = document.getElementById('av-ba-right');
+      const spellCards = document.querySelectorAll('#view-pfpmode .pf-bottom-spell');
+      const pumpBanner = document.getElementById('av-pump-banner');
+      
+      // Initialize bars
+      const updateBars = (hA, hB, rd) => {
+         const pctA = Math.max(0, Math.round(hA / maxHpA * 100));
+         const pctB = Math.max(0, Math.round(hB / maxHpB * 100));
+         const barL = document.getElementById('av-hp-left');
+         const barR = document.getElementById('av-hp-right');
+         const valL = document.getElementById('av-hp-left-val');
+         const valR = document.getElementById('av-hp-right-val');
+         if (barL) { barL.style.width = pctA + '%'; barL.className = 'pf-hp-bar-fill ' + (pctA > 50 ? 'green' : pctA > 25 ? 'yellow' : 'red'); }
+         if (barR) { barR.style.width = pctB + '%'; barR.className = 'pf-hp-bar-fill ' + (pctB > 50 ? 'green' : pctB > 25 ? 'yellow' : 'red'); }
+         if (valL) valL.textContent = hA;
+         if (valR) valR.textContent = hB;
+         setText('av-round-label', `ROUND ${rd}`);
+      };
+      updateBars(hpA, hpB, 1);
+
+      _pfpAnimTimer = setInterval(() => {
+        const elapsed       = window.lastPfpData?.elapsed_secs || 0;
+        const secsPerRound  = match.secs_per_round || 2;
+        const targetRound   = Math.min(Math.floor(elapsed / secsPerRound), log.length - 1);
+        
+        if (animRound < targetRound) {
+           animRound++;
+           const entry = log[animRound] || log[log.length - 1] || {};
+           
+           // Determine turn
+           const isLeftAttacking = turnSide === 'left';
+           const attacker = isLeftAttacking ? leftCombatant : rightCombatant;
+           const defender = isLeftAttacking ? rightCombatant : leftCombatant;
+           const dmg = isLeftAttacking ? (entry.dmg_a || 0) : (entry.dmg_b || 0);
+           const action = isLeftAttacking ? entry.action_a : entry.action_b;
+           
+           if (isLeftAttacking) hpB = entry.hp_b != null ? entry.hp_b : Math.max(0, hpB - dmg);
+           else hpA = entry.hp_a != null ? entry.hp_a : Math.max(0, hpA - dmg);
+           
+           // Animate Spell Card
+           spellCards.forEach(c => { c.style.borderColor = ''; c.style.boxShadow = ''; });
+           if (action) {
+             const card = Array.from(spellCards).find(c => c.textContent.includes(action));
+             if (card) {
+               card.style.borderColor = '#14F195';
+               card.style.boxShadow = '0 0 15px rgba(20,241,149,0.5)';
+               setTimeout(() => {
+                 card.style.borderColor = '';
+                 card.style.boxShadow = '';
+               }, 500);
+             }
+             // pumpBanner removed to let spell effects shine
+           }
+           
+           // Attacker lunge with spell effects (matching PumpFighters)
+            if (attacker && defender) {
+              attacker.classList.remove('attack-left', 'attack-right', 'hit', 'spell-cast-rise');
+              void attacker.offsetWidth;
+              const isVisible = attacker.offsetWidth > 0;
+              if (isVisible) {
+                const attRect = attacker.getBoundingClientRect();
+                const defRect = defender.getBoundingClientRect();
+                const distanceX = (defRect.left + defRect.width / 2) - (attRect.left + attRect.width / 2);
+                const targetX = distanceX * 0.8;
+                const startX = attRect.left + attRect.width / 2;
+                const startY = attRect.top + attRect.height / 2;
+                const endX = defRect.left + defRect.width / 2;
+                const endY = defRect.top + defRect.height / 2;
+                const attackType = Math.random();
+
+                if (attackType < 0.33) {
+                  if (window.playSFX) window.playSFX('whoosh');
+                  attacker.animate([
+                    { transform: 'translateX(0) scale(1) rotate(0deg)' },
+                    { transform: `translateX(${targetX}px) scale(1.2) rotate(${isLeftAttacking ? 15 : -15}deg)`, offset: 0.4 },
+                    { transform: `translateX(${targetX * 0.8}px) scale(1.1)`, offset: 0.6 },
+                    { transform: 'translateX(0) scale(1) rotate(0deg)' }
+                  ], { duration: 500, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' });
+                  setTimeout(() => {
+                    if (window.playExplosionAnimation) window.playExplosionAnimation(endX, endY);
+                    if (window.playSFX) window.playSFX('hit');
+                    if (dmg > 0 && window.spawnDamageNumber) window.spawnDamageNumber(endX, defRect.top + defRect.height / 4, dmg);
+                    defender.classList.remove('hit'); void defender.offsetWidth; defender.classList.add('hit');
+                  }, 200);
+                } else if (attackType < 0.66) {
+                  if (window.playSFX) window.playSFX('thunder_cast');
+                  attacker.classList.add('spell-cast-rise');
+                  setTimeout(() => {
+                    if (window.playThunderAnimation) {
+                      window.playThunderAnimation(startX, startY, endX, endY, () => {
+                        if (window.playSFX) window.playSFX('thunder_impact');
+                        if (window.playThunderImpact) window.playThunderImpact(endX, endY);
+                        if (dmg > 0 && window.spawnDamageNumber) window.spawnDamageNumber(endX, defRect.top + defRect.height / 4, dmg);
+                        defender.classList.remove('hit'); void defender.offsetWidth; defender.classList.add('hit');
+                      });
+                    }
+                  }, 300);
+                } else {
+                  if (window.playSFX) window.playSFX('fireball_cast');
+                  attacker.classList.add(isLeftAttacking ? 'attack-left' : 'attack-right');
+                  if (window.playProjectileAnimation) {
+                    window.playProjectileAnimation(startX, startY, endX, endY, () => {
+                      if (window.playSFX) window.playSFX('fireball_impact');
+                      if (window.playExplosionAnimation) window.playExplosionAnimation(endX, endY);
+                      if (dmg > 0 && window.spawnDamageNumber) window.spawnDamageNumber(endX, defRect.top + defRect.height / 4, dmg);
+                      defender.classList.remove('hit'); void defender.offsetWidth; defender.classList.add('hit');
+                    });
+                  }
+                }
+              }
+            }
+           
+           turnSide = turnSide === 'left' ? 'right' : 'left';
+           updateBars(hpA, hpB, animRound);
+        }
+      }, 1000);
+    }
   }
 
   function _appendTrollboxEntry(html) {
@@ -4747,10 +4877,20 @@
     } catch (e) { console.error('fetchPumpState:', e); }
   }
 
+  let lbPrimaryTab = 'pfp';
+  let lbSubTab = 'all';
+
   async function fetchPumpLeaderboard() {
+    const c = document.getElementById('full-lb-list');
+    if (c && !c.querySelector('.skel-row')) c.innerHTML = lbSkeletonHTML(8);
     try {
-      const res = await fetch('/api/pumpfighters/leaderboard?chain=' + lbTab);
-      const data = await res.json();
+      const url = lbPrimaryTab === 'pfp' ? '/api/pfp/leaderboard' : '/api/fighters';
+      const res = await fetch(url);
+      let data = await res.json();
+      
+      if (lbPrimaryTab === 'pump' && lbSubTab !== 'all') {
+        data = data.filter(f => f.chain && f.chain.toLowerCase() === lbSubTab.toLowerCase());
+      }
       renderPumpLeaderboard(data);
     } catch (e) { console.error('fetchPumpLeaderboard:', e); }
   }
@@ -4845,19 +4985,25 @@
     };
     setImg('pf-fia-left', fA.processed_avatar || fA.image_uri);
     setImg('pf-fia-right', fB.processed_avatar || fB.image_uri);
-    document.getElementById('pf-fin-left').textContent = fA.display_name;
-    document.getElementById('pf-fin-right').textContent = fB.display_name;
-    document.getElementById('pf-fic-left').textContent = (fA.chain || '').toUpperCase();
-    document.getElementById('pf-fic-right').textContent = (fB.chain || '').toUpperCase();
-    document.getElementById('pf-fib-left').textContent = fmtMcap(fA.market_cap_usd);
-    document.getElementById('pf-fib-right').textContent = fmtMcap(fB.market_cap_usd);
+    document.getElementById('pf-fin-left').textContent = fA.display_name || fA.name;
+    document.getElementById('pf-fin-right').textContent = fB.display_name || fB.name;
+    document.getElementById('pf-fic-left').textContent = (fA.collection || fA.class || fA.chain || 'PFP FIGHTER').toUpperCase();
+    document.getElementById('pf-fic-right').textContent = (fB.collection || fB.class || fB.chain || 'PFP FIGHTER').toUpperCase();
+
+    const getFighterStat = (f) => {
+      if (f.market_cap_usd) return fmtMcap(f.market_cap_usd);
+      if (f.fameScore) return 'Fame ' + Number(f.fameScore).toFixed(1);
+      return `${f.wins || 0}W / ${f.losses || 0}L`;
+    };
+    document.getElementById('pf-fib-left').textContent = getFighterStat(fA);
+    document.getElementById('pf-fib-right').textContent = getFighterStat(fB);
 
     // Big avatars
-    document.getElementById('pf-ba-left-img').src = fA.processed_avatar || fA.image_uri || '';
-    document.getElementById('pf-ba-right-img').src = fB.processed_avatar || fB.image_uri || '';
+    document.getElementById('pf-ba-left-img').src = fA.processed_avatar || fA.image_uri || fA.avatarUrl || '';
+    document.getElementById('pf-ba-right-img').src = fB.processed_avatar || fB.image_uri || fB.avatarUrl || '';
 
     // Match label
-    document.getElementById('pf-match-label').textContent = match.label || 'PumpFighters Battle';
+    document.getElementById('pf-match-label').textContent = match.label || 'PFP Battle';
 
     // Stats panel
     const sp = document.getElementById('pf-sp-fighters');
@@ -4866,7 +5012,7 @@
     if (spM && pfState.recent_battles) spM.textContent = pfState.recent_battles.length;
 
     // BC pool
-    const bcPool = 576 + Math.round((fA.market_cap_usd || 0) / 5000);
+    const bcPool = match.bc_pool !== undefined ? match.bc_pool : 576 + Math.round((fA.market_cap_usd || 0) / 5000);
     document.getElementById('pf-round-energy').textContent = '🪙 ' + bcPool.toLocaleString() + ' BC Pool';
 
     // Animate battle (HP bars simulation)
@@ -4929,80 +5075,83 @@
         attacker.classList.remove('attack-left', 'attack-right', 'melee-left', 'melee-right', 'spell-cast-rise', 'hit');
         void attacker.offsetWidth; // reflow
 
-        const attackType = Math.random();
-
-        if (attackType < 0.33) {
-          // Melee
-          if (defender) {
-            const attRect = attacker.getBoundingClientRect();
-            const defRect = defender.getBoundingClientRect();
-            const distanceX = (defRect.left + defRect.width / 2) - (attRect.left + attRect.width / 2);
-            // Move 80% of the way to collide visually without overlapping too much
-            const targetX = distanceX * 0.8;
-            
-            attacker.animate([
-              { transform: 'translateX(0) scale(1) rotate(0deg)' },
-              { transform: `translateX(${targetX}px) scale(1.2) rotate(${isLeftAttacking ? 15 : -15}deg)`, offset: 0.4 },
-              { transform: `translateX(${targetX * 0.8}px) scale(1.1) rotate(${isLeftAttacking ? 5 : -5}deg)`, offset: 0.6 },
-              { transform: 'translateX(0) scale(1) rotate(0deg)' }
-            ], {
-              duration: 500,
-              easing: 'cubic-bezier(0.25, 1, 0.5, 1)'
-            });
-
-            setTimeout(() => {
-              if (window.playExplosionAnimation) {
-                window.playExplosionAnimation(defRect.left + defRect.width / 2, defRect.top + defRect.height / 2);
-              }
-              if (window.playSFX) window.playSFX('hit');
-              if (window.spawnDamageNumber) window.spawnDamageNumber(defRect.left + defRect.width / 2, defRect.top + defRect.height / 4, dmg);
-              defender.classList.add('hit');
-            }, 200);
-          }
-        } else if (attackType < 0.66) {
-          // Thunder Strike
-          if (window.playSFX) window.playSFX('thunder_cast');
-          attacker.classList.add('spell-cast-rise');
-          if (defender) {
-            setTimeout(() => {
-              const attRect = attacker.getBoundingClientRect();
-              const defRect = defender.getBoundingClientRect();
-              const startX = attRect.left + attRect.width / 2;
-              const startY = attRect.top + attRect.height / 2;
-              const endX = defRect.left + defRect.width / 2;
-              const endY = defRect.top + defRect.height / 2;
-              
-              if (window.playThunderAnimation) {
-                window.playThunderAnimation(startX, startY, endX, endY, () => {
-                  if (window.playSFX) window.playSFX('thunder_impact');
-                  if (window.playThunderImpact) window.playThunderImpact(endX, endY);
-                  if (window.spawnDamageNumber) window.spawnDamageNumber(defRect.left + defRect.width / 2, defRect.top + defRect.height / 4, dmg);
-              defender.classList.add('hit');
+        const isVisible = attacker.offsetWidth > 0;
+        if (isVisible) {
+            const attackType = Math.random();
+    
+            if (attackType < 0.33) {
+              // Melee
+              if (defender) {
+                const attRect = attacker.getBoundingClientRect();
+                const defRect = defender.getBoundingClientRect();
+                const distanceX = (defRect.left + defRect.width / 2) - (attRect.left + attRect.width / 2);
+                // Move 80% of the way to collide visually without overlapping too much
+                const targetX = distanceX * 0.8;
+                
+                attacker.animate([
+                  { transform: 'translateX(0) scale(1) rotate(0deg)' },
+                  { transform: `translateX(${targetX}px) scale(1.2) rotate(${isLeftAttacking ? 15 : -15}deg)`, offset: 0.4 },
+                  { transform: `translateX(${targetX * 0.8}px) scale(1.1) rotate(${isLeftAttacking ? 5 : -5}deg)`, offset: 0.6 },
+                  { transform: 'translateX(0) scale(1) rotate(0deg)' }
+                ], {
+                  duration: 500,
+                  easing: 'cubic-bezier(0.25, 1, 0.5, 1)'
                 });
+    
+                setTimeout(() => {
+                  if (window.playExplosionAnimation) {
+                    window.playExplosionAnimation(defRect.left + defRect.width / 2, defRect.top + defRect.height / 2);
+                  }
+                  if (window.playSFX) window.playSFX('hit');
+                  if (window.spawnDamageNumber) window.spawnDamageNumber(defRect.left + defRect.width / 2, defRect.top + defRect.height / 4, dmg);
+                  defender.classList.add('hit');
+                }, 200);
               }
-            }, 300); // 300ms is the apex of the rise animation
-          }
-        } else {
-          // Firearrow
-          if (window.playSFX) window.playSFX('fireball_cast');
-          attacker.classList.add(isLeftAttacking ? 'attack-left' : 'attack-right');
-          if (defender) {
-            const attRect = attacker.getBoundingClientRect();
-            const defRect = defender.getBoundingClientRect();
-            const startX = attRect.left + attRect.width / 2;
-            const startY = attRect.top + attRect.height / 2;
-            const endX = defRect.left + defRect.width / 2;
-            const endY = defRect.top + defRect.height / 2;
-            
-            if (window.playProjectileAnimation) {
-              window.playProjectileAnimation(startX, startY, endX, endY, () => {
-                if (window.playSFX) window.playSFX('fireball_impact');
-                if (window.playExplosionAnimation) window.playExplosionAnimation(endX, endY);
-                if (window.spawnDamageNumber) window.spawnDamageNumber(defRect.left + defRect.width / 2, defRect.top + defRect.height / 4, dmg);
-              defender.classList.add('hit');
-              });
+            } else if (attackType < 0.66) {
+              // Thunder Strike
+              if (window.playSFX) window.playSFX('thunder_cast');
+              attacker.classList.add('spell-cast-rise');
+              if (defender) {
+                setTimeout(() => {
+                  const attRect = attacker.getBoundingClientRect();
+                  const defRect = defender.getBoundingClientRect();
+                  const startX = attRect.left + attRect.width / 2;
+                  const startY = attRect.top + attRect.height / 2;
+                  const endX = defRect.left + defRect.width / 2;
+                  const endY = defRect.top + defRect.height / 2;
+                  
+                  if (window.playThunderAnimation) {
+                    window.playThunderAnimation(startX, startY, endX, endY, () => {
+                      if (window.playSFX) window.playSFX('thunder_impact');
+                      if (window.playThunderImpact) window.playThunderImpact(endX, endY);
+                      if (window.spawnDamageNumber) window.spawnDamageNumber(defRect.left + defRect.width / 2, defRect.top + defRect.height / 4, dmg);
+                  defender.classList.add('hit');
+                    });
+                  }
+                }, 300); // 300ms is the apex of the rise animation
+              }
+            } else {
+              // Firearrow
+              if (window.playSFX) window.playSFX('fireball_cast');
+              attacker.classList.add(isLeftAttacking ? 'attack-left' : 'attack-right');
+              if (defender) {
+                const attRect = attacker.getBoundingClientRect();
+                const defRect = defender.getBoundingClientRect();
+                const startX = attRect.left + attRect.width / 2;
+                const startY = attRect.top + attRect.height / 2;
+                const endX = defRect.left + defRect.width / 2;
+                const endY = defRect.top + defRect.height / 2;
+                
+                if (window.playProjectileAnimation) {
+                  window.playProjectileAnimation(startX, startY, endX, endY, () => {
+                    if (window.playSFX) window.playSFX('fireball_impact');
+                    if (window.playExplosionAnimation) window.playExplosionAnimation(endX, endY);
+                    if (window.spawnDamageNumber) window.spawnDamageNumber(defRect.left + defRect.width / 2, defRect.top + defRect.height / 4, dmg);
+                  defender.classList.add('hit');
+                  });
+                }
+              }
             }
-          }
         }
       }
 
@@ -5257,21 +5406,102 @@
       const avatarStyle = lbAvatarSrc
         ? 'background-image:url(' + lbAvatarSrc + '); background-size:cover; background-position:center; border-radius:50%; width:32px; height:32px; display:inline-block;'
         : 'font-size:20px;';
+      const chainName = (s.chain || '').toLowerCase();
+      let chainLogo = '';
+      if (chainName === 'solana') chainLogo = '<img src="https://cryptologos.cc/logos/solana-sol-logo.png" style="width:20px;height:20px;border-radius:50%;" title="Solana">';
+      else if (chainName === 'bsc' || chainName === 'bnb') chainLogo = '<img src="https://cryptologos.cc/logos/bnb-bnb-logo.png" style="width:20px;height:20px;border-radius:50%;" title="BSC">';
+      else if (chainName === 'base') chainLogo = '<img src="https://raw.githubusercontent.com/base-org/brand-kit/main/logo/symbol/Base_Symbol_Blue.svg" style="width:20px;height:20px;border-radius:50%;" title="Base">';
+      else if (chainName === 'robinhood') chainLogo = '<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Robinhood_Logo.svg/200px-Robinhood_Logo.svg.png" style="width:20px;height:20px;border-radius:50%;" title="Robinhood">';
+      else chainLogo = (s.chain || '').toUpperCase();
+
       return '<div class="full-lb-row">' +
         '<div class="full-lb-rank">' + rankLabel + '</div>' +
         '<div class="full-lb-avatar" style="' + avatarStyle + '">' + (lbAvatarSrc ? '' : '&#x1F680;') + '</div>' +
-        '<div class="full-lb-info"><div class="full-lb-name">' + s.display_name + '</div>' +
+        '<div class="full-lb-info"><div class="full-lb-name">' + (s.display_name || s.name || 'Unknown Fighter') + '</div>' +
         '<div class="full-lb-meta">' + (s.wins||0) + 'W / ' + (s.losses||0) + 'L</div></div>' +
-        '<div class="full-lb-bc">' + (s.chain || '').toUpperCase() + '</div></div>';
+        '<div class="full-lb-bc">' + chainLogo + '</div></div>';
     }).join('');
   }
 
-  function setLbTab(el) {
-    document.querySelectorAll('#view-leaderboard .challenge-tab').forEach(t => t.classList.remove('active'));
+  let currentMarketData = null;
+  let activeMarketTab = 'items';
+
+  async function loadMarketplace() {
+    try {
+      const res = await fetch('/api/marketplace');
+      currentMarketData = await res.json();
+      renderMarketTab();
+    } catch (e) { console.error('loadMarketplace:', e); }
+  }
+
+  function setMarketTab(el, type) {
+    document.querySelectorAll('#market-tabs .challenge-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
-    lbTab = el.getAttribute('data-lbtab');
+    activeMarketTab = type;
+    renderMarketTab();
+  }
+
+  function renderMarketTab() {
+    const grid = document.getElementById('market-grid');
+    if (!grid) return;
+    if (!currentMarketData) {
+      grid.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--bb-muted-foreground); grid-column: 1 / -1;">Loading...</div>';
+      return;
+    }
+
+    const items = currentMarketData[activeMarketTab] || [];
+    if (items.length === 0) {
+      grid.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--bb-muted-foreground); grid-column: 1 / -1;">No items available.</div>';
+      return;
+    }
+
+    grid.innerHTML = items.map(item => {
+      let iconHTML = item.icon ? `<div class="market-icon">${item.icon}</div>` : '';
+      if (item.avatarUrl) {
+         iconHTML = `<div class="market-icon" style="background-image:url(${item.avatarUrl}); background-size:cover; background-position:center; width:48px; height:48px; border-radius:50%; margin: 0 auto 12px;"></div>`;
+      } else if (!item.icon && activeMarketTab === 'fighters') {
+         iconHTML = `<div class="market-icon" style="font-size:32px;">🤖</div>`;
+      }
+
+      let desc = item.desc || '';
+      if (activeMarketTab === 'fighters') {
+         desc = `${item.wins||0}W / ${item.losses||0}L`;
+      }
+      
+      let priceStr = item.price;
+      if (typeof priceStr === 'number') {
+        priceStr = priceStr + ' BC';
+      }
+
+      return `<div class="market-card">
+        ${iconHTML}
+        <div class="market-name">${item.name}</div>
+        <div class="market-desc">${desc}</div>
+        <div class="market-price"><span>${priceStr}</span></div>
+        <button class="market-btn">BUY</button>
+      </div>`;
+    }).join('');
+  }
+
+  window.setMarketTab = setMarketTab;
+
+  function setLbPrimaryTab(el, type) {
+    document.querySelectorAll('#lb-primary-tabs .challenge-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    lbPrimaryTab = type;
+    const sec = document.getElementById('lb-secondary-tabs');
+    if(sec) sec.style.display = type === 'pump' ? 'flex' : 'none';
     const c = document.getElementById('full-lb-list');
-    if (c) c.innerHTML = lbSkeletonHTML(8);
+    if (c) c.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--bb-muted-foreground);">Loading...</div>';
+    fetchPumpLeaderboard();
+  }
+
+  function setLbSubTab(el) {
+    document.querySelectorAll('#lb-secondary-tabs .challenge-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    lbSubTab = el.getAttribute('data-lbtab');
+    const c = document.getElementById('full-lb-list');
+    if (c) c.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--bb-muted-foreground);">Loading...</div>';
     fetchPumpLeaderboard();
   }
 
@@ -5282,6 +5512,7 @@
   fetchPumpLeaderboard();
   loadProfile();
   loadNotifications();
+  loadMarketplace();
   refreshFighterCount();
   setInterval(loadNotifications, 15000);
   setInterval(refreshFighterCount, 20000);
