@@ -188,12 +188,12 @@ def _getconn():
         print(f"[TrendingEngine] DB getconn: {e}", flush=True)
         return None
 
-def _putconn(conn):
+def _putconn(conn, close=False):
     p = get_db_pool()
     if p and conn:
-        p.putconn(conn)
+        p.putconn(conn, close=close)
 
-def _exec(sql, params=()):
+def _exec(sql, params=(), retries=1):
     c = _getconn()
     if not c:
         return
@@ -203,10 +203,17 @@ def _exec(sql, params=()):
         c.commit()
     except Exception as e:
         print(f"[TrendingEngine] DB exec: {e}", flush=True)
+        if c:
+            c.rollback()
+            _putconn(c, close=True)
+            c = None
+        if retries > 0:
+            return _exec(sql, params, retries=retries-1)
     finally:
-        _putconn(c)
+        if c:
+            _putconn(c)
 
-def _query(sql, params=()):
+def _query(sql, params=(), retries=1):
     c = _getconn()
     if not c:
         return []
@@ -218,9 +225,15 @@ def _query(sql, params=()):
         return [dict(zip(cols, r)) for r in rows]
     except Exception as e:
         print(f"[TrendingEngine] DB query: {e}", flush=True)
+        if c:
+            _putconn(c, close=True)
+            c = None
+        if retries > 0:
+            return _query(sql, params, retries=retries-1)
         return []
     finally:
-        _putconn(c)
+        if c:
+            _putconn(c)
 
 
 def ensure_tables():

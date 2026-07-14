@@ -56,7 +56,7 @@ def get_db_pool():
             print(f"Failed to init DB pool: {e}", flush=True)
     return db_pool
 
-def query_db(sql, params=(), fetchone=False):
+def query_db(sql, params=(), fetchone=False, retries=1):
     p = get_db_pool()
     if not p:
         return None
@@ -69,11 +69,17 @@ def query_db(sql, params=(), fetchone=False):
         return result
     except Exception as e:
         print(f"DB error: {e}", flush=True)
+        if conn is not None:
+            db_pool.putconn(conn, close=True)
+            conn = None
+        if retries > 0:
+            return query_db(sql, params, fetchone, retries=retries-1)
+        return None
     finally:
         if conn is not None:
             db_pool.putconn(conn)
 
-def execute_db(sql, params=()):
+def execute_db(sql, params=(), retries=1):
     p = get_db_pool()
     if not p:
         return None
@@ -88,6 +94,10 @@ def execute_db(sql, params=()):
         print(f"DB execute error: {e}", flush=True)
         if conn is not None:
             conn.rollback()
+            db_pool.putconn(conn, close=True)
+            conn = None
+        if retries > 0:
+            return execute_db(sql, params, retries=retries-1)
         return False
     finally:
         if conn is not None:
