@@ -17,10 +17,10 @@
     "status": "Ready",
     "myAgents": 5,
     "queue": 4,
-    "bantCredit": 17113,
+    "bantCredit": 17143,
     "bantcClaim": 1240000,
     "earnedUsdc": 1250,
-    "totalBantCredit": 4273
+    "totalBantCredit": 4303
   },
   "notifications": [
     {
