@@ -4753,6 +4753,7 @@
     if (avList && data.fighters) {
       avList.innerHTML = data.fighters.slice(0, 4).map((f, i) => {
         const avatarStyle = f.avatarUrl ? `background-image:url(${f.avatarUrl}); background-size:cover; background-position:center; font-size:0;` : '';
+        const blurStyle = i !== current_match_index ? 'filter: blur(2px) grayscale(40%); opacity: 0.6; pointer-events: none;' : '';
         return `<div class="fighter-card">
           <div class="rank-badge">${i + 1}</div>
           <div class="fc-header">
@@ -4765,7 +4766,8 @@
             <div class="fc-stat">CLASS <span class="pos">${f.class || 'Fighter'}</span></div>
           </div>
           <div class="fc-rewards">HP: ${f.hp||100} | ATK: ${f.atk||20} | DEF: ${f.def||20} | W/L: ${f.wins||0}/${f.losses||0}</div>
-          <button class="watch-btn${i === 0 ? ' primary' : ''}" onclick="watchToEarn('${f.id}', this)">WATCH 2 EARN</button>
+          <div style="color: #F3BA2F; font-size: 11px; margin-bottom: 6px; text-align: center; font-weight: bold;">🎁 Spectate Reward: 5-20 BC</div>
+          <button class="watch-btn${i === current_match_index ? ' primary' : ''}" style="${blurStyle}" onclick="watchToEarn('${f.id}', this)">${i === current_match_index ? 'LIVE NOW' : 'UP NEXT'}</button>
         </div>`;
       }).join('');
     }
@@ -4923,6 +4925,25 @@
            
            turnSide = turnSide === 'left' ? 'right' : 'left';
            updateBars(hpA, hpB, animRound);
+        } else if (animRound >= log.length - 1 && log.length > 0 && !document.getElementById('winner-modal-overlay')?.classList.contains('open')) {
+           clearInterval(_pfpAnimTimer);
+           _pfpAnimTimer = null;
+           const winnerName = hpA <= 0 ? fb.display_name : fa.display_name;
+           const loserName = hpA <= 0 ? fa.display_name : fb.display_name;
+           if (typeof showWinnerModal === 'function') {
+             showWinnerModal(winnerName, loserName);
+           }
+           pendingArenaReset = () => {
+             current_match_index++;
+             const matchCount = data.live_matches ? data.live_matches.length : (data.live_match ? 1 : 1);
+             if (current_match_index >= matchCount) current_match_index = 0;
+             window.switchMatch(current_match_index);
+           };
+           setTimeout(() => {
+             if (document.getElementById('winner-modal-overlay')?.classList.contains('open')) {
+               closeWinnerModal();
+             }
+           }, 3500);
         }
       }, 1000);
     }
@@ -5018,6 +5039,13 @@
       body: JSON.stringify({ amount: earned })
     }).then(r => r.json()).then(data => {
       if (data.success) {
+        userBCBalance += data.reward;
+        const earnedEl = document.getElementById('earned-bc');
+        const totalEl = document.getElementById('total-bantcredit');
+        const navEl = document.getElementById('nav-bc-earned');
+        if (earnedEl) earnedEl.textContent = userBCBalance.toLocaleString() + ' BC';
+        if (totalEl) totalEl.textContent = userBCBalance.toLocaleString() + ' BC';
+        if (navEl) navEl.textContent = userBCBalance.toLocaleString() + ' BC 🎒';
         // Fetch new profile state and notifications to automatically populate UI
         if (window.fetchProfile) window.fetchProfile();
         if (window.fetchNotifications) window.fetchNotifications();
@@ -5332,7 +5360,8 @@
           
           // Autonomous transition to next match
           current_match_index++;
-          if (current_match_index >= 4) current_match_index = 0; // Wrap around
+          const matchCount = pfState.live_matches ? pfState.live_matches.length : (pfState.live_match ? 1 : 1);
+          if (current_match_index >= matchCount) current_match_index = 0; // Wrap around
           
           // Switch match visually
           window.switchMatch(current_match_index);
@@ -5387,10 +5416,16 @@
       const bStyle = fBImg ? `background-image:url(${fBImg}); background-size:cover; background-position:center; font-size:0; color:transparent; display:inline-block; width:16px; height:16px; vertical-align:middle; border-radius:4px; margin-right:4px;` : '';
       const aFallback = fAImg ? '' : (f1.emoji || '🥊') + ' ';
       const bFallback = fBImg ? '' : (f2.emoji || '🥊') + ' ';
+      
+      const isLive = i === current_match_index;
+      const isNext = i > current_match_index;
+      const badgeText = isLive ? 'LIVE NOW' : (isNext ? 'UP NEXT' : 'FINISHED');
+      const badgeStyle = isLive ? 'background: rgba(20,241,149,0.2); color: #14F195;' : (isNext ? 'background: rgba(243,186,47,0.2); color: #F3BA2F;' : 'background: rgba(255,255,255,0.1); color: #888;');
+
       html += `
-        <div class="pfpmode-item">
+        <div class="pfpmode-item" style="${isActive}">
           <div class="pfpmode-match"><span style="${aStyle}">${aFallback}</span><span>${f1.name}</span> <span style="color:#666; font-size:10px;">VS</span> <span style="${bStyle}">${bFallback}</span><span>${f2.name}</span></div>
-          <div class="pfpmode-badge">LIVE</div>
+          <div class="pfpmode-badge" style="${badgeStyle}">${badgeText}</div>
         </div>
       `;
     }
@@ -5468,6 +5503,7 @@
         ? 'background-image:url(' + avatarSrc + '); background-size:cover; background-position:center; font-size:0;'
         : '';
 
+      const blurStyle = i !== current_match_index ? 'filter: blur(2px) grayscale(40%); opacity: 0.6; pointer-events: none;' : '';
       return '<div class="fighter-card">' +
         '<div class="rank-badge ' + badgeClass + '">' + (i + 1) + '</div>' +
         '<div class="fc-header">' +
@@ -5480,7 +5516,8 @@
           '<div class="fc-stat">CHAIN <span class="pos">' + chainEmoji + ' ' + (f.chain || '').toUpperCase() + '</span></div>' +
         '</div>' +
         '<div class="fc-rewards">HP: ' + (f.hp||100) + ' | ATK: ' + (f.aggression||50) + ' | DEF: ' + (f.defense||50) + ' | W/L: ' + (f.wins||0) + '/' + (f.losses||0) + '</div>' +
-        '<button class="watch-btn' + (i === 0 ? ' primary' : '') + '" onclick="watchToEarn(\'' + f.unique_id + '\', this)">WATCH 2 EARN</button>' +
+        '<div style="color: #F3BA2F; font-size: 11px; margin-bottom: 6px; text-align: center; font-weight: bold;">🎁 Spectate Reward: 5-20 BC</div>' +
+        '<button class="watch-btn' + (i === current_match_index ? ' primary' : '') + '" style="' + blurStyle + '" onclick="watchToEarn(\'' + f.unique_id + '\', this)">' + (i === current_match_index ? 'LIVE NOW' : 'UP NEXT') + '</button>' +
       '</div>';
     }).join('');
 

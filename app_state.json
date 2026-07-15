@@ -17,12 +17,192 @@
     "status": "Ready",
     "myAgents": 5,
     "queue": 4,
-    "bantCredit": 18914,
+    "bantCredit": 19228,
     "bantcClaim": 1240000,
     "earnedUsdc": 1250,
-    "totalBantCredit": 6074
+    "totalBantCredit": 6388
   },
   "notifications": [
+    {
+      "id": "notif-w2e-60f9b231",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 17 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T14:21:44.430909+00:00"
+    },
+    {
+      "id": "notif-w2e-c4ac525d",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 7 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T14:20:57.430194+00:00"
+    },
+    {
+      "id": "notif-w2e-9d165503",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 17 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T14:20:11.224232+00:00"
+    },
+    {
+      "id": "notif-w2e-87b8405b",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 6 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T14:10:00.479149+00:00"
+    },
+    {
+      "id": "notif-w2e-af19e47b",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 8 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T14:09:14.433390+00:00"
+    },
+    {
+      "id": "notif-w2e-e6f98de4",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 10 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T14:07:09.109087+00:00"
+    },
+    {
+      "id": "notif-w2e-56b8aae1",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 10 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T14:06:21.541730+00:00"
+    },
+    {
+      "id": "notif-w2e-3eeb6898",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 13 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:59:44.150838+00:00"
+    },
+    {
+      "id": "notif-w2e-e39fb4f8",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 19 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:55:29.109921+00:00"
+    },
+    {
+      "id": "notif-w2e-eedab067",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 5 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:49:00.424466+00:00"
+    },
+    {
+      "id": "notif-w2e-0c8d8257",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 11 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:48:14.409243+00:00"
+    },
+    {
+      "id": "notif-w2e-1a846203",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 11 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:47:27.422665+00:00"
+    },
+    {
+      "id": "notif-w2e-38b3a3dc",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 10 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:46:41.621052+00:00"
+    },
+    {
+      "id": "notif-w2e-d2c562a8",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 10 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:45:42.121214+00:00"
+    },
+    {
+      "id": "notif-w2e-10938df8",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 13 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:41:19.457036+00:00"
+    },
+    {
+      "id": "notif-w2e-22b0ce8c",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 16 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:40:28.430335+00:00"
+    },
+    {
+      "id": "notif-w2e-1dd46246",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 10 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:39:43.406738+00:00"
+    },
+    {
+      "id": "notif-w2e-3f94c163",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 16 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:38:11.431543+00:00"
+    },
+    {
+      "id": "notif-w2e-70e9b3a3",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 18 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:17:54.460526+00:00"
+    },
+    {
+      "id": "notif-w2e-8b2ddd9b",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 12 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T13:17:06.179551+00:00"
+    },
     {
       "id": "notif-w2e-d121d3f0",
       "type": "reward",
