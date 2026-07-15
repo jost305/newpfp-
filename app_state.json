@@ -17,12 +17,30 @@
     "status": "Ready",
     "myAgents": 5,
     "queue": 4,
-    "bantCredit": 19228,
+    "bantCredit": 19262,
     "bantcClaim": 1240000,
     "earnedUsdc": 1250,
-    "totalBantCredit": 6388
+    "totalBantCredit": 6422
   },
   "notifications": [
+    {
+      "id": "notif-w2e-7d00fc0e",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 19 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T14:50:44.177067+00:00"
+    },
+    {
+      "id": "notif-w2e-c3ba78fa",
+      "type": "reward",
+      "title": "Watch 2 Earn payout",
+      "message": "You earned 15 BC from spectating a live battle.",
+      "icon": "\ud83d\udcb0",
+      "read": false,
+      "createdAt": "2026-07-15T14:42:30.431440+00:00"
+    },
     {
       "id": "notif-w2e-60f9b231",
       "type": "reward",

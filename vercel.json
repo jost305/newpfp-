@@ -1,0 +1,17 @@
+{
+  "framework": null,
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://botapfp.up.railway.app/api/$1"
+    },
+    {
+      "source": "/",
+      "destination": "/game/Arena/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/game/$1"
+    }
+  ]
+}
