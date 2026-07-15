@@ -163,37 +163,59 @@
     .mobile-footer-nav {
       display: none;
       position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      left: 0; right: 0; bottom: 0;
       z-index: 100;
-      background: rgba(17, 24, 39, 0.96);
-      border-top: 1px solid rgba(148, 163, 184, 0.18);
-      backdrop-filter: blur(12px);
-      padding: 6px 10px;
-      gap: 6px;
-      justify-content: space-between;
+      background: rgba(17, 24, 39, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 0 10px calc(10px + env(safe-area-inset-bottom));
+      justify-content: space-around;
       align-items: center;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
     }
-    .mobile-footer-nav .footer-nav-btn {
-      flex: 1;
-      min-width: 0;
-      border: none;
-      border-radius: 12px;
-      background: var(--bb-card);
-      color: var(--bb-muted-foreground);
-      font-size: 12px;
-      padding: 8px 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+    .mobile-footer-nav .nav-tab {
+      background: transparent !important;
+      padding: 8px 0 6px 0; border-radius: 0; height: auto; line-height: 1;
+      flex: 1; min-width: 0; border: none;
+      color: rgba(255,255,255,0.4);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
       cursor: pointer;
-      transition: background .15s, color .15s;
+      position: relative;
+      transition: all 0.2s ease;
     }
-    .mobile-footer-nav .footer-nav-btn.active {
-      color: var(--bb-foreground);
-      background: hsl(var(--bb-primary));
+    .mobile-footer-nav .nav-tab::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 3px;
+      background: #f97316;
+      border-radius: 0 0 3px 3px;
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .mobile-footer-nav .nav-tab .icon {
+      font-size: 18px; margin-bottom: 2px; transition: transform 0.2s ease;
+      filter: grayscale(1) opacity(0.6);
+    }
+    .mobile-footer-nav .nav-tab .label {
+      font-size: 8.5px; font-weight: 600; 
+      opacity: 1; max-height: 12px;
+      transition: opacity 0.2s ease, color 0.2s ease;
+      letter-spacing: 0;
+    }
+    .mobile-footer-nav .nav-tab:hover {
+      color: rgba(255,255,255,0.7);
+    }
+    .mobile-footer-nav .nav-tab.active {
+      color: #f97316 !important;
+    }
+    .mobile-footer-nav .nav-tab.active::before {
+      width: 40px;
+    }
+    .mobile-footer-nav .nav-tab.active .icon {
+      filter: none; opacity: 1; transform: scale(1.05);
     }
     .nav-right { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .icon-btn {
@@ -572,6 +594,7 @@
     .view-header { margin-bottom: 14px; }
     .view-title { font-size: 18px; font-weight: 800; color: var(--bb-foreground); }
     .view-subtitle { font-size: 12px; color: var(--bb-muted-foreground); margin-top: 2px; }
+    @media (max-width: 900px) { .mobile-hide-title { display: none !important; } }
 
     /* Agents view */
     .agents-grid {
@@ -1328,6 +1351,7 @@
       .fighter-cards-row {
         display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch; padding-left: 12px;
+        padding-bottom: 20px; width: 100%; box-sizing: border-box;
       }
       .fighter-cards-row::-webkit-scrollbar { display: none; }
       .fighter-cards-row .fighter-card {
@@ -1339,6 +1363,21 @@
       .nav-stats, .nav-tabs { display: none; }
       .mobile-menu-btn { display: flex; }
       .mobile-footer-nav { display: flex; }
+      .pf-arena, .arena-wrap { margin-top: 16px; margin-left: 12px; margin-right: 12px; border-radius: 12px; }
+      
+      /* Mobile fixes for the two arenas */
+      .arena-content { padding: 5px; gap: 5px; justify-content: space-between; }
+      .fighter-panel { width: 42%; flex-shrink: 1; min-width: 0; }
+      .pf-fighter-info { max-width: 42%; padding: 4px; gap: 4px; }
+      .pf-fi-avatar { width: 36px; height: 36px; }
+      .arena-avatar { width: 32px; height: 32px; }
+      .pf-top-bar { padding: 10px 10px 0; gap: 5px; }
+      .pf-round-badge { transform: scale(0.8); }
+      .arena-vs-column { transform: scale(0.7); width: 30px; }
+      .fighter-name-arena, .pf-fi-name { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .pf-fi-chain { font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .fighter-bc, .pf-fi-bc { font-size: 9px; }
+
       .pf-waiting-logo {
         width: 70px;
         height: 70px;
@@ -1997,8 +2036,8 @@
     <div class="nav-stat">FIGHTERS&nbsp;&nbsp;<strong><span id="nav-fighter-count-value">0</span> <span class="live-badge">LIVE</span></strong></div>
   </div>
   <div class="nav-tabs">
-    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)"><img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
-    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)"><img src="/Arena/loading%20screen/pfp-arena-loading.jpg" class="nav-tab-icon" alt=""> PFP Mode</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this)"><img src="/Arena/assets/pumpfighters_menu_icon.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this)"><img src="/Arena/assets/pfp_menu_icon.jpg" class="nav-tab-icon" alt=""> PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this)">Fighters</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this)">Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this)">Marketplace</button>
@@ -2008,8 +2047,8 @@
   </div>
   <button class="mobile-menu-btn" id="mobile-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
   <div class="mobile-nav-dropdown" id="mobile-nav-dropdown">
-    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();"><img src="/Arena/loading%20screen/pumpfighters-arena-loading.jpg.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
-    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();"><img src="/Arena/loading%20screen/pfp-arena-loading.jpg" class="nav-tab-icon" alt=""> PFP Mode</button>
+    <button class="nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();"><img src="/Arena/assets/pumpfighters_menu_icon.jpg" class="nav-tab-icon" alt=""> PumpFighters</button>
+    <button class="nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();"><img src="/Arena/assets/pfp_menu_icon.jpg" class="nav-tab-icon" alt=""> PFP Mode</button>
     <button class="nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">Fighters</button>
     <button class="nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">Create</button>
     <button class="nav-tab" data-view="marketplace" onclick="setTab(this); closeMobileMenu();">Marketplace</button>
@@ -2018,11 +2057,30 @@
 
   </div>
   <div class="mobile-footer-nav" id="mobile-footer-nav">
-    <button class="footer-nav-btn nav-tab" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu();">PumpFighters</button>
-    <button class="footer-nav-btn nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu();">PFP Mode</button>
-    <button class="footer-nav-btn nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu();">Fighters</button>
-    <button class="footer-nav-btn nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu();">Create</button>
-    <button class="footer-nav-btn nav-tab" data-view="leaderboard" onclick="setTab(this); closeMobileMenu();">Leaderboard</button>
+    <button class="footer-nav-btn nav-tab active" data-view="pumpfighters" onclick="setTab(this); closeMobileMenu && closeMobileMenu();">
+      <img src="/Arena/assets/pumpfighters_menu_icon.jpg" class="icon" style="width: 22px; height: 22px; border-radius: 4px; object-fit: cover; margin-bottom: 2px;" alt="">
+      <span class="label">PumpFighters</span>
+    </button>
+    <button class="footer-nav-btn nav-tab" data-view="pfpmode" onclick="setTab(this); closeMobileMenu && closeMobileMenu();">
+      <img src="/Arena/assets/pfp_menu_icon.jpg" class="icon" style="width: 22px; height: 22px; border-radius: 4px; object-fit: cover; margin-bottom: 2px;" alt="">
+      <span class="label">PFP Mode</span>
+    </button>
+    <button class="footer-nav-btn nav-tab" data-view="agents" onclick="setTab(this); closeMobileMenu && closeMobileMenu();">
+      <span class="icon">⚔️</span>
+      <span class="label">Fighters</span>
+    </button>
+    <button class="footer-nav-btn nav-tab create" data-view="create" onclick="setTab(this); closeMobileMenu && closeMobileMenu();">
+      <span class="icon">⚡</span>
+      <span class="label">Create</span>
+    </button>
+    <button class="footer-nav-btn nav-tab" data-view="marketplace" onclick="setTab(this); closeMobileMenu && closeMobileMenu();">
+      <span class="icon">🛒</span>
+      <span class="label">Marketplace</span>
+    </button>
+    <button class="footer-nav-btn nav-tab" data-view="leaderboard" onclick="setTab(this); closeMobileMenu && closeMobileMenu();">
+      <span class="icon">🏆</span>
+      <span class="label">Leaderboard</span>
+    </button>
   </div>
   <div class="nav-right">
     <div style="position:relative;">
@@ -2460,7 +2518,7 @@
   <!-- FIGHTERS VIEW (with sub-tabs) -->
   <div id="view-agents" class="tab-view">
     <div class="view-inner">
-      <div class="view-header">
+      <div class="view-header mobile-hide-title">
         <div class="view-title">Fighters</div>
         <div class="view-subtitle">Discover and challenge fighters</div>
       </div>
@@ -2679,7 +2737,7 @@
   <!-- LEADERBOARD VIEW -->
   <div id="view-leaderboard" class="tab-view">
     <div class="view-inner">
-      <div class="view-header">
+      <div class="view-header mobile-hide-title">
         <div class="view-title">Leaderboard</div>
         <div class="view-subtitle">Top performing PumpFighters this season</div>
       </div>
@@ -3112,7 +3170,6 @@
             <div class="profile-metric" style="position: relative;">
               <span class="label">Total BantCredit</span>
               <span class="value" id="total-bantcredit">0 BC</span>
-              <button class="market-btn" style="position: absolute; top: 8px; right: 8px; padding: 4px 8px; font-size: 10px;" onclick="openBuyBcModal()">BUY BC</button>
             </div>
             <div class="profile-metric">
               <span class="label">Status</span>
@@ -3731,7 +3788,7 @@
         return;
       }
       grid.innerHTML = agents.map(a => {
-        const isEmoji = a.avatarUrl && !a.avatarUrl.startsWith('http') && !a.avatarUrl.startsWith('/');
+        const isEmoji = a.avatarUrl && !a.avatarUrl.startsWith('http') && !a.avatarUrl.startsWith('/') && !a.avatarUrl.startsWith('data:');
         const avatar = a.avatarUrl && !isEmoji
           ? `<img class="agent-avatar" src="${a.avatarUrl}" alt="${a.name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
           : `<div class="agent-avatar">${a.avatarUrl || '🖼'}</div>`;
@@ -3759,7 +3816,7 @@
         return;
       }
       grid.innerHTML = agents.map(a => {
-        const isEmoji = a.avatarUrl && !a.avatarUrl.startsWith('http') && !a.avatarUrl.startsWith('/');
+        const isEmoji = a.avatarUrl && !a.avatarUrl.startsWith('http') && !a.avatarUrl.startsWith('/') && !a.avatarUrl.startsWith('data:');
         const avatar = a.avatarUrl && !isEmoji
           ? `<img class="agent-avatar" src="${a.avatarUrl}" alt="${a.name}" style="width:56px;height:56px;border-radius:14px;object-fit:cover;border:2px solid hsl(var(--bb-primary));">`
           : `<div class="agent-avatar">${a.avatarUrl || '⚔️'}</div>`;
@@ -4566,7 +4623,7 @@
         defense: cpReadStat('def', 0, 35),
         speed: cpReadStat('spd', 5, 24),
       },
-      wallet: wallet,
+      walletAddress: wallet,
       elizaPersona: document.getElementById('cp-eliza-persona').value.trim(),
       agentkitEnabled: document.getElementById('cp-agentkit-toggle').checked,
     };
@@ -4691,6 +4748,28 @@
     const faImg = fa.avatarUrl || fa.imageUrl || fa.image_uri || '';
     const fbImg = fb.avatarUrl || fb.imageUrl || fb.image_uri || '';
     
+    // Render PFP Fighters in Watch 2 Earn list
+    const avList = document.getElementById('av-fighters-list');
+    if (avList && data.fighters) {
+      avList.innerHTML = data.fighters.slice(0, 4).map((f, i) => {
+        const avatarStyle = f.avatarUrl ? `background-image:url(${f.avatarUrl}); background-size:cover; background-position:center; font-size:0;` : '';
+        return `<div class="fighter-card">
+          <div class="rank-badge">${i + 1}</div>
+          <div class="fc-header">
+            <div class="fc-avatar" style="${avatarStyle}"></div>
+            <div class="fc-meta"><div class="fc-name">${f.name}</div>
+            <div class="fc-holders">${f.collection || 'PFP Collection'}</div></div>
+          </div>
+          <div class="fc-stats">
+            <div class="fc-stat">FAME <span class="fc-mcap-val">${Number(f.fameScore||0).toFixed(1)}</span></div>
+            <div class="fc-stat">CLASS <span class="pos">${f.class || 'Fighter'}</span></div>
+          </div>
+          <div class="fc-rewards">HP: ${f.hp||100} | ATK: ${f.atk||20} | DEF: ${f.def||20} | W/L: ${f.wins||0}/${f.losses||0}</div>
+          <button class="watch-btn${i === 0 ? ' primary' : ''}" onclick="watchToEarn('${f.id}', this)">WATCH 2 EARN</button>
+        </div>`;
+      }).join('');
+    }
+
     setImg('av-fia-left',  faImg);
     setImg('av-fia-right', fbImg);
     const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
@@ -4874,7 +4953,40 @@
     renderLiveBattles();
     renderSidebarLiveBattles();
     renderSidebarLeaderboard();
+    renderFighterOfTheWeek();
     } catch (e) { console.error('fetchPumpState:', e); }
+  }
+
+  function renderFighterOfTheWeek() {
+    const avatarEl = document.getElementById('fighter-of-week-avatar');
+    const nameEl = document.getElementById('fighter-of-week-name');
+    const bcEl = document.getElementById('fighter-of-week-bc');
+    if (!avatarEl || !nameEl || !bcEl) return;
+
+    const fighters = Array.isArray(pfState?.fighters) ? pfState.fighters : [];
+    const fighter = [...fighters].sort((a, b) => {
+      return (b.wins || 0) - (a.wins || 0) || (b.fameScore || 0) - (a.fameScore || 0);
+    })[0];
+
+    if (!fighter) {
+      avatarEl.innerHTML = '&#x1F94A;';
+      nameEl.textContent = 'No fighter yet';
+      bcEl.textContent = '0 BC';
+      return;
+    }
+
+    const name = fighter.display_name || fighter.name || 'Unknown Fighter';
+    const earnedBc = (fighter.bc_earned || (fighter.wins || 0) * 5000 || 0);
+    const avatarUrl = fighter.processed_avatar || fighter.avatarUrl || fighter.avatar_url || fighter.image_uri || fighter.image_url || '';
+
+    if (avatarUrl) {
+      avatarEl.innerHTML = '<img src="' + avatarUrl + '" alt="' + name + '" style="width:100%; height:100%; object-fit:cover;">';
+    } else {
+      avatarEl.innerHTML = fighter.emoji || '&#x1F94A;';
+    }
+
+    nameEl.textContent = name;
+    bcEl.textContent = Number(earnedBc).toLocaleString() + ' BC';
   }
 
   let lbPrimaryTab = 'pfp';
@@ -5341,8 +5453,7 @@
   function renderPumpFighters() {
 
     const list = document.getElementById('pf-fighters-list');
-    const avList = document.getElementById('av-fighters-list');
-    if ((!list && !avList) || !pfState || !pfState.fighters) return;
+    if (!list || !pfState || !pfState.fighters) return;
 
     const html = pfState.fighters.slice(0, 4).map((f, i) => {
       let chainEmoji = '&#x1F680;';
@@ -5516,6 +5627,11 @@
   refreshFighterCount();
   setInterval(loadNotifications, 15000);
   setInterval(refreshFighterCount, 20000);
+  setInterval(() => {
+    if (window.currentWalletAddress) {
+      loadUserStats(window.currentWalletAddress);
+    }
+  }, 10000);
 
   // ── Market Energy Polling ──────────────────────────────────────────────────
   let _pumpBannerTimeout = null;

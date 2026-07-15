@@ -40,7 +40,7 @@ try:
 except ImportError:
     _HAS_DB = False
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "")
+DATABASE_URL = os.environ.get("DATABASE_URL_DIRECT", os.environ.get("DATABASE_URL", ""))
 TELEGRAM_BOT_TOKEN = os.environ.get("BANTAHBRO_TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHANNEL_ID = os.environ.get("BANTAHBRO_TELEGRAM_CHANNEL_ID", "")
 
@@ -172,8 +172,8 @@ def get_db_pool():
         return None
     if db_pool is None:
         try:
-            db_pool = pool.ThreadedConnectionPool(1, 5, DATABASE_URL)
-            print("[TrendingEngine] Initialized DB connection pool with 5 max connections.", flush=True)
+            db_pool = pool.ThreadedConnectionPool(1, 1, DATABASE_URL + "?sslmode=require")
+            print("[TrendingEngine] Initialized DB connection pool with 1 max connections.", flush=True)
         except Exception as e:
             print(f"[TrendingEngine] Failed to init DB pool: {e}", flush=True)
     return db_pool

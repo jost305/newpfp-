@@ -32,10 +32,7 @@ try:
     _HAS_DB = True
 except ImportError:
     _HAS_DB = False
-
-DATABASE_URL = os.environ.get("DATABASE_URL", "")
-
-BANTCREDIT_AGENT_WIN_REWARD = 20
+DATABASE_URL = os.environ.get("DATABASE_URL_DIRECT", os.environ.get("DATABASE_URL", ""))
 BANTCREDIT_SIGNUP_REWARD = 10
 BANTCREDIT_DAILY_CHECKIN_REWARD = 5
 BANTCREDIT_REFERRED_REWARD = 30
@@ -50,8 +47,8 @@ def get_db_pool():
         return None
     if db_pool is None:
         try:
-            db_pool = pool.ThreadedConnectionPool(1, 10, DATABASE_URL)
-            print("[serve.py] Initialized DB connection pool with 10 max connections.", flush=True)
+            db_pool = pool.ThreadedConnectionPool(1, 1, DATABASE_URL + "?sslmode=require")
+            print("[serve.py] Initialized DB connection pool with 1 max connections.", flush=True)
         except Exception as e:
             print(f"Failed to init DB pool: {e}", flush=True)
     return db_pool
@@ -767,6 +764,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             stats = {"myAgents": 0, "queue": 0, "bantCredit": 0,
                      "bantcClaim": 0, "earnedUsdc": 0, "status": "Ready"}
             if wallet:
+                ensure_user_exists(wallet)
                 r = query_db("SELECT COUNT(*) FROM agents WHERE LOWER(owner_wallet_address)=%s", (wallet,), fetchone=True)
                 if r: stats["myAgents"] = int(r[0])
 
@@ -1401,6 +1399,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             # Check if claimed:
             r = None
             if _HAS_DB and DATABASE_URL:
+                ensure_user_exists(wallet)
                 r = query_db("SELECT COUNT(*) FROM bantcredit_ledger WHERE transaction_type='signup_bonus' AND user_id=(SELECT id FROM users WHERE LOWER(primary_wallet_address)=%s)", (wallet.lower(),), fetchone=True)
             if r and r[0] > 0:
                 self.send_json({"error": "Already claimed signup bonus", "claimed": False}, 400)
